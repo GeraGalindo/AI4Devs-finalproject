@@ -35,11 +35,12 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 | 15 | Sistema de diseño, i18n y reconciliación en I3 | **Sección 1, Prompt 3**, porque la sección 6 ya estaba completa | `docs/design-system.md` (nuevo) y `readme.md`, sección 6 |
 | 16 | Consolidación documental antes de implementar | **Anexo**, porque es transversal | `readme.md` (secciones 0–7), `prompts.md` y `docs/design-system.md` |
 | 17 | Consolidación de las decisiones DP-01 a DP-17 | **Anexo**, como referencia pendiente | `readme.md` (secciones 1–6), `prompts.md` y `docs/design-system.md` |
+| 18 | Alineación documental con las entregas de AI4Devs | **Anexo**, porque es transversal | `readme.md` (secciones 1, 2, 4, 5, 6 y 7) y `prompts.md` |
 
 **Notas:**
 - **Numeración:** los prompts 01–05 y 11–15 llevan el número que les dio el autor. Los números 06–10 los asignó la IA al documentarlos, siguiendo la secuencia.
 - **Prompts de documentación:** los prompts que solo pedían documentar otros prompts en este archivo ("Documenta en prompts.md…") no se registran como prompts propios.
-- **Prompts 16 y 17:** son transversales y se registran en el **Anexo** del final de este archivo. El 17 queda como referencia pendiente hasta conocer su resultado.
+- **Prompts 16, 17 y 18:** son transversales y se registran en el **Anexo** del final de este archivo. El 17 queda como referencia pendiente hasta conocer su resultado.
 
 ---
 
@@ -2779,3 +2780,235 @@ Justifica la clasificación.
 **Prompt 17 — Consolidación definitiva de decisiones del Product Owner**
 
 **Pendiente de registrar.** Su resultado no se conoce hasta terminar la ejecución, así que se registrará cuando el autor lo pida, como los anteriores, con su texto literal y su resultado real.
+
+**Prompt 18 — Alineación documental con las entregas de AI4Devs**
+
+- **Herramienta:** Claude Code (modelo `claude-opus-5-5`), en la misma sesión que los prompts anteriores, después de fusionar la Pull Request #1 en `main`.
+- **Objetivo:** antes de DEV-001, alinear la documentación con las tres entregas académicas sin ampliar el alcance del MVP:
+  - agrupar F1–F9 en cinco capacidades principales;
+  - documentar un plan de las tres entregas;
+  - corregir solo las referencias obsoletas inequívocas tras DP-01 a DP-17.
+- **Archivos afectados:** `readme.md` y `prompts.md`. `docs/design-system.md` solo se consultó.
+
+Texto literal del prompt:
+
+```text
+# Prompt 18 — Cali Coach: alineación documental con las entregas de AI4Devs
+
+## Rol
+
+Actúa como **Tech Lead, Product Owner técnico y revisor de documentación académica**.
+
+Estamos desarrollando **Cali Coach**, proyecto final de AI4Devs: una aplicación web mobile-first para practicantes intermedios de calistenia.
+
+La fase de diseño y especificación está avanzada. Antes de iniciar el desarrollo con **DEV-001**, necesitamos revisar la documentación existente y alinearla con las tres entregas académicas, sin ampliar el alcance del MVP.
+
+## 1. Inspección inicial obligatoria
+
+Antes de modificar cualquier archivo:
+
+1. Lee completamente `readme.md`, `prompts.md` y `docs/design-system.md`.
+2. Revisa la estructura actual del repositorio y el estado de Git.
+3. Identifica los requisitos de las entregas académicas que estén explícitamente documentados.
+4. Localiza las funcionalidades F1–F10, las historias HU, los tickets DEV y las decisiones DP.
+5. Comprueba si ya existe información equivalente a la que se propone añadir.
+
+**No dupliques contenido ni inventes requisitos académicos.**
+
+Si las instrucciones oficiales de las tres entregas no están presentes en el repositorio, utiliza únicamente los objetivos de trabajo indicados aquí y marca como pendientes de verificación los requisitos oficiales que no puedas comprobar.
+
+## 2. Agrupación de funcionalidades principales
+
+El MVP tiene nueve funcionalidades imprescindibles (F1–F9) y una mejora posterior (F10).
+
+Queremos presentar las funcionalidades imprescindibles mediante cinco capacidades principales:
+
+| Capacidad principal | Funcionalidades |
+|---|---|
+| Gestión de cuenta y disponibilidad | F1 + F2 |
+| Programas y planificación | F3 + F4 |
+| Consulta del entrenamiento | F5 |
+| Ejecución y cierre de sesiones | F6 + F7 + F9 |
+| Seguimiento del progreso | F8 |
+
+### Tareas
+
+- Comprueba que la agrupación representa correctamente las definiciones actuales de F1–F9.
+- Si detectas una asociación incorrecta, explícala antes de modificarla.
+- Añade una tabla breve de agrupación y trazabilidad en la sección apropiada de `readme.md`.
+- Conserva los identificadores F1–F10 y sus prioridades originales.
+- No elimines historias, tickets ni criterios de aceptación.
+- Mantén F10 fuera del alcance obligatorio del MVP.
+
+Esta agrupación es una forma de presentar el producto, **no una redefinición funcional**.
+
+## 3. Plan de las tres entregas
+
+Documenta una propuesta de organización del trabajo basada en las siguientes etapas.
+
+### Entrega 1 — Documentación y diseño
+
+Objetivo: disponer de una especificación coherente y trazable del MVP.
+
+Evidencias previstas:
+- Descripción del producto y funcionalidades.
+- Arquitectura técnica.
+- Modelo de datos.
+- Especificación de API.
+- Historias de usuario.
+- Tickets de desarrollo.
+- Registro de prompts y decisiones humanas.
+- Sistema de diseño.
+
+Distingue los documentos existentes de las evidencias cuya entrega formal todavía no se haya verificado.
+
+### Entrega 2 — Primer flujo funcional
+
+Objetivo: demostrar una integración real entre frontend, backend y base de datos.
+
+**Flujo propuesto:** registro de usuario desde la interfaz, validación mediante API y persistencia en PostgreSQL.
+
+Revisa si esta propuesta es coherente con los tickets DEV existentes y sus dependencias.
+
+Identifica:
+- Tickets necesarios.
+- Dependencias técnicas.
+- Pruebas de integración.
+- Evidencias necesarias para demostrar el flujo.
+
+No implementes este flujo todavía.
+
+Si los requisitos oficiales de la Entrega 2 exigen algo diferente, señala la diferencia. No afirmes que el flujo propuesto satisface requisitos académicos que no hayas podido verificar.
+
+### Entrega 3 — MVP integrado
+
+Objetivo: entregar el recorrido principal del usuario con las funcionalidades Must implementadas y verificadas.
+
+Evidencias previstas:
+- Aplicación funcional.
+- Flujos principales integrados.
+- Pruebas automatizadas.
+- Verificación responsive y de accesibilidad.
+- Despliegue.
+- Documentación y registro de prompts actualizados.
+
+Relaciona estas evidencias con los incrementos y tickets existentes, sin inventar fechas ni porcentajes de avance.
+
+## 4. Revisión de consistencia documental
+
+Busca referencias que hayan quedado obsoletas después de confirmar las decisiones DP-01 a DP-17.
+
+Presta especial atención a:
+- Decisiones descritas como pendientes cuando ya están confirmadas.
+- Referencias a supuestos antiguos sobre programas activos, calendario y disponibilidad.
+- Diferencias entre las prioridades de funcionalidades e historias.
+- Diferencias entre los contratos de API, las reglas de negocio y el sistema de diseño.
+- Dependencias de tickets y secuencia de implementación.
+
+Corrige únicamente contradicciones documentales **inequívocas**.
+
+Cuando una diferencia requiera una nueva decisión de producto, no la resuelvas por tu cuenta: regístrala como pendiente.
+
+No modifiques las 17 decisiones confirmadas ni cambies silenciosamente las reglas de negocio.
+
+## 5. Restricciones
+
+1. Modifica únicamente `readme.md` y, si es necesario para registrar este trabajo, `prompts.md`.
+2. Consulta `docs/design-system.md`, pero no lo modifiques.
+3. Conserva los encabezados y marcadores de la plantilla académica.
+4. Prefiere pequeñas adiciones o correcciones en secciones existentes.
+5. No reestructures el README completo.
+6. No cambies la arquitectura, el modelo de datos ni los contratos de API.
+7. No modifiques los criterios de aceptación ni las prioridades aprobadas.
+8. No instales dependencias.
+9. No implementes frontend, backend ni base de datos.
+10. No ejecutes DEV-001.
+11. No crees commits ni Pull Requests.
+12. No afirmes que una prueba se ejecutó si no ocurrió.
+
+## 6. Registro de uso de IA
+
+Registra este trabajo en `prompts.md` respetando su organización actual y el límite de prompts principales por sección de la plantilla.
+
+Incluye:
+- Objetivo del Prompt 18.
+- Herramienta y modelo utilizados, si pueden verificarse.
+- Texto del prompt o referencia inequívoca a él.
+- Cambios realizados.
+- Decisiones humanas que se conservaron.
+- Cuestiones pendientes.
+- Validaciones realmente ejecutadas.
+
+No sustituyas ni borres registros anteriores.
+
+## 7. Validación
+
+Al terminar:
+
+1. Ejecuta `git diff --check`.
+2. Ejecuta `git diff --stat`.
+3. Muestra `git status --short`.
+4. Comprueba que F1–F10, HU, DEV y DP conservan sus identificadores.
+5. Comprueba que los cambios se limitan a los archivos autorizados.
+6. Confirma que no se implementó código.
+7. Comprueba que la documentación no presenta como implementado lo que sigue siendo una propuesta.
+
+## 8. Informe final
+
+Entrega un informe con esta estructura:
+
+### A. Estado inicial
+Archivos revisados y estado de Git.
+
+### B. Cambios documentales
+Tabla con archivo, sección y modificación.
+
+### C. Trazabilidad
+Agrupación de las cinco capacidades y relación con F1–F9.
+
+### D. Plan de entregas
+Objetivo, evidencias y dependencias de cada entrega.
+
+### E. Inconsistencias
+Diferencia entre inconsistencias corregidas y pendientes de decisión.
+
+### F. Validaciones
+Resultados reales de los comandos y verificaciones.
+
+### G. Preparación para DEV-001
+Clasifica el resultado como:
+- **READY:** documentación coherente y sin bloqueos para DEV-001.
+- **READY WITH CONDITIONS:** puede comenzar DEV-001, pero existen pendientes no bloqueantes.
+- **BLOCKED:** hay una contradicción o dependencia que impide comenzar.
+
+Explica la clasificación y el siguiente paso recomendado.
+
+**Importante: esta tarea termina con el informe. No comiences DEV-001.**
+```
+
+**Decisiones humanas** aportadas en el prompt y conservadas:
+- La agrupación en cinco capacidades, como forma de presentar el producto y no como redefinición funcional.
+- Los objetivos de trabajo de las tres entregas, incluido el flujo propuesto para la Entrega 2: registro desde la interfaz, validación en la API y persistencia en PostgreSQL.
+- Las 17 decisiones DP, las prioridades, los criterios de aceptación y los contratos, que no se modifican.
+
+**Resultado generado por la IA:**
+- **Inspección:**
+  - el repositorio solo contiene `readme.md`, `prompts.md` y `docs/design-system.md`, sin las instrucciones oficiales de las entregas, así que los requisitos oficiales quedan **[Pendiente de verificación]**;
+  - la agrupación propuesta coincide con las definiciones de F1–F9, sin asociaciones incorrectas. Se anotan las historias que tocan varias capacidades, como HU-07, que la matriz asocia a F7.
+- **Cambios en `readme.md`:**
+  - 1.2: tabla "Capacidades principales del MVP" con su trazabilidad a historias e incrementos;
+  - sección 6: "Plan de las tres entregas académicas [Propuesta]", con evidencias, tickets, dependencias, pruebas previstas y huecos de cada entrega;
+  - correcciones de referencias obsoletas: el número de programas como [Pendiente] en la sección 4 (ya confirmado por DP-02); la nota de la sección 5 sobre decisiones [Pendiente]; el "perfil deportivo" que "se decidirá antes de la sección 3" en 2.1; la prioridad "Should *(propuesta)*" de HU-21, ya confirmada por DP-16 (resumen, matriz, historia, DEV-034 e inconsistencias); y la sección 7, que decía que no existía ninguna Pull Request.
+- **Pendiente:**
+  - verificar los requisitos oficiales de las tres entregas;
+  - decidir cómo demostrar la Entrega 2 de forma integrada, porque ningún ticket prevé un E2E del registro antes de DEV-026;
+  - decidir si la Pull Request #1, solo documental, cuenta en la sección 7;
+  - confirmar el autor de 0.1 y validar el *(supuesto)* de F1 (email y contraseña);
+  - registrar el Prompt 17.
+- **Validación:**
+  - identificadores F1–F10, HU-01–HU-23, DEV-001–DEV-039, DP-01–DP-17, T-01–T-03 y API-01–API-47 comparados con `HEAD`: los mismos conjuntos;
+  - tablas y bloques de código comprobados con un script, sin problemas;
+  - `git diff --check`, `git diff --stat` y `git status --short` ejecutados al terminar;
+  - no se escribió código y no se ejecutó ninguna prueba de aplicación.
+
+**Revisión humana:** pendiente.

@@ -113,6 +113,21 @@ Para que el alcance quepa en un proyecto académico de unas 30 horas, las funcio
 | F9 | Registro de ejecución | Anotar las series realmente hechas en cada ejercicio de la sesión del día (repeticiones o, en los ejercicios por tiempo, segundos; DP-11), sin necesidad de finalizarla. Solo en su fecha programada (DP-08) y como mucho tantas series como las prescritas (DP-10). Registrar no cambia el estado. Si la sesión termina como `partial`, sus registros se conservan. Sirve para consultar el desempeño del atleta, no solo su adherencia. | P4, P5 | Imprescindible |
 | F10 | Hitos de reconocimiento | Hitos simples calculados a partir del historial (por ejemplo, primera sesión, primera semana completa, programa finalizado). | P5 | Deseable |
 
+#### Capacidades principales del MVP
+
+Para presentar el producto, las nueve funcionalidades imprescindibles se agrupan en cinco capacidades. **Es solo una forma de presentarlas, no una redefinición:** F1–F10, sus descripciones y sus prioridades no cambian, y la cobertura detallada sigue en las matrices de las secciones 5 y 6.
+
+| Capacidad principal | Funcionalidades | Historias Must (sección 5) | Incrementos (sección 6) |
+|---------------------|-----------------|----------------------------|-------------------------|
+| Gestión de cuenta y disponibilidad | F1 + F2 | HU-04, HU-05, HU-06 y HU-07 | I1 |
+| Programas y planificación | F3 + F4 | HU-08, HU-09, HU-10, HU-11 y HU-22 | I2, I3 (HU-22 en I5) |
+| Consulta del entrenamiento | F5 | HU-12, HU-13 y HU-14 | I3, I4 (HU-14) |
+| Ejecución y cierre de sesiones | F6 + F7 + F9 | HU-15, HU-16, HU-17 y HU-18 | I4, I5 (núcleo del cierre adelantado a I3) |
+| Seguimiento del progreso | F8 | HU-19 y HU-20; HU-21 es Should (DP-16) | I6 |
+
+- **F10 (hitos, Deseable)** queda fuera de las cinco capacidades y del alcance obligatorio del MVP (DP-17, HU-23).
+- Algunas historias tocan más de una capacidad: HU-07 (zona horaria) se configura en el perfil, pero la matriz de la sección 5 la asocia a F7 porque decide cuándo vence una sesión; HU-11 cubre F4 y F5; HU-14 y HU-20 usan los registros de F9; HU-22 cubre F4, F8 y RP6. La tabla las coloca en la capacidad de su pantalla principal.
+
 #### Reglas de planificación
 
 | Días/semana | Secuencia de sesiones |
@@ -375,12 +390,12 @@ Todas están **[Confirmada]** (registro DP-01 a DP-17 en 1.2). La tercera column
 
 #### Coherencia con la sección 1
 
-La sección 1 ya está alineada con el modelo de cuatro estados de esta sección: CE3, CE4, F5–F9, RP5, RP6, la tabla "Estados de una sesión", los pasos 5 y 6 del flujo principal y su diagrama. Quedan abiertos dos puntos que no son contradicciones, sino decisiones sin tomar:
+La sección 1 ya está alineada con el modelo de cuatro estados de esta sección: CE3, CE4, F5–F9, RP5, RP6, la tabla "Estados de una sesión", los pasos 5 y 6 del flujo principal y su diagrama. Estos dos puntos estaban abiertos cuando se redactó esta sección; ninguno es ya una decisión pendiente:
 
 | Punto | Situación |
 |-------|-----------|
 | Un solo programa activo por usuario (F4) | **Confirmado** (DP-07) en las dos secciones. |
-| Contenido del "perfil deportivo" | La sección 1 no lo define más allá de la disponibilidad (F2). La arquitectura solo asume disponibilidad y zona horaria; cualquier otro dato se decidirá antes de la sección 3. |
+| Contenido del "perfil deportivo" | La sección 1 no lo define más allá de la disponibilidad (F2). La sección 3 no añade más datos: el MVP solo modela disponibilidad y zona horaria [Propuesta] (`users`, 3.2). |
 
 ### **2.2. Descripción de componentes principales:**
 
@@ -1619,7 +1634,7 @@ Lectura para cualquier usuario autenticado. No requiere reconciliación.
   }
   ```
 
-  `slots` es **derivado**: los huecos que tienen plantilla (`session_templates.slot`). Sirve para que la SPA muestre con qué números de días es compatible el programa. Todos los valores son ilustrativos: el número de programas y su contenido están [Pendiente].
+  `slots` es **derivado**: los huecos que tienen plantilla (`session_templates.slot`). Sirve para que la SPA muestre con qué números de días es compatible el programa. Todos los valores son ilustrativos: el número de programas está confirmado (3, DP-02), pero su contenido sigue por definir (1.2).
 - **Errores:** `401`.
 
 **`GET /api/programs/{programId}`**
@@ -2227,7 +2242,7 @@ Si se reenvía la misma petición, la respuesta es `409`:
 
 > Documenta 3 de las historias de usuario principales utilizadas durante el desarrollo, teniendo en cuenta las buenas prácticas de producto al respecto.
 
-> **Estado de esta sección:** son las tres historias que cubren el **flujo principal del MVP** (1.3), redactadas a partir de las secciones 1–4. Todavía no hay implementación, así que ninguna está terminada. Las pruebas citadas son **propuestas** de 2.6 y de la sección 4: no se ha escrito ni ejecutado ninguna. Las decisiones del Product Owner que siguen abiertas se marcan como **[Pendiente]**, junto con su tratamiento provisional.
+> **Estado de esta sección:** son las tres historias que cubren el **flujo principal del MVP** (1.3), redactadas a partir de las secciones 1–4. Todavía no hay implementación, así que ninguna está terminada. Las pruebas citadas son **propuestas** de 2.6 y de la sección 4: no se ha escrito ni ejecutado ninguna. Las decisiones del Product Owner que afectan a estas historias están **[Confirmada]** (DP-01 a DP-17, en 1.2); lo que sigue sin definir, como el contenido de los 3 programas, se indica en cada historia.
 
 **Historia de Usuario 1**
 
@@ -2533,7 +2548,7 @@ Si se reenvía la misma petición, la respuesta es `409`:
 - **Should Have** = Deseable, o algo que no está como funcionalidad propia en F1–F10 pero se deduce de la sección 1 (se indica en cada caso).
 - **Could Have:** no se usa, porque la sección 1 no define nada de ese nivel.
 
-Las prioridades marcadas como *(propuesta)* no vienen literalmente de la sección 1.
+Las prioridades marcadas como *(propuesta)* no vienen literalmente de la sección 1. La única que lo estaba, la de HU-21, la confirmó el Product Owner como Should (DP-16).
 
 **Nombres de pantallas.** Las historias, tanto HU-01 a HU-03 como el backlog, nombran pantallas y botones en español ("Hoy", "Calendario", "Finalizar"). Son descripciones funcionales, no los textos de la interfaz. La interfaz del MVP es solo en inglés, y su navegación confirmada es **Today · Program · Progress · Profile**:
 - "Hoy" corresponde a *Today*;
@@ -2901,7 +2916,7 @@ Las historias HU-15 a HU-17 comparten las **validaciones de estado y de fecha lo
 > **Como** atleta, **quiero** ver los programas que ya terminé, con su calendario y su progreso, **para** conservar mi historial.
 
 - **Valor:** historial a largo plazo (P5).
-- **Prioridad:** Should Have *(propuesta)*. No es una funcionalidad propia en F1–F10; se deduce del "historial de sesiones" de P5 y de HU-03 (criterio 8).
+- **Prioridad:** Should Have, confirmada por DP-16. No es una funcionalidad propia en F1–F10; se deduce del "historial de sesiones" de P5 y de HU-03 (criterio 8).
 - **Alto nivel:** HU-03.
 - **Requisitos:** F8 (P5).
 - **Endpoints:**
@@ -2987,7 +3002,7 @@ No se crean historias para lo siguiente, porque está excluido en 1.2 o necesita
 | HU-18 | Cierre automático visible | Must | HU-02, HU-03 |
 | HU-19 | Resumen de progreso | Must | HU-03 |
 | HU-20 | Prescrito frente a realizado | Must | HU-03 |
-| HU-21 | Programas anteriores | Should *(propuesta)* | HU-03 |
+| HU-21 | Programas anteriores | Should (DP-16) | HU-03 |
 | HU-22 | Resumen final e inscripción en otro programa | Must | HU-03 |
 | HU-23 | Hitos de reconocimiento | Should | — |
 
@@ -3027,7 +3042,7 @@ No se crean historias para lo siguiente, porque está excluido en 1.2 o necesita
 | HU-18 | F7 | HU-02, HU-03 | Los `GET` que reconcilian | `scheduled_sessions`, `set_logs`, `enrollments` | T-01, T-03 (consultas) | Must |
 | HU-19 | F8 | HU-03 | `GET /api/enrollments/{id}/progress` | `scheduled_sessions`, `enrollments` | T-01, T-02, T-03 (consultas) | Must |
 | HU-20 | F8, F9 | HU-03 | `GET …/progress/exercises` | `set_logs`, `template_exercises`, `exercises` | T-01, T-02, T-03 (consultas) | Must |
-| HU-21 | F8 (P5) | HU-03 | `GET /api/enrollments`, `GET …/{id}`, `GET …/{id}/sessions`, `GET …/{id}/progress` | `enrollments`, `programs`, `scheduled_sessions` | T-01, T-02 | Should *(propuesta)* |
+| HU-21 | F8 (P5) | HU-03 | `GET /api/enrollments`, `GET …/{id}`, `GET …/{id}/sessions`, `GET …/{id}/progress` | `enrollments`, `programs`, `scheduled_sessions` | T-01, T-02 | Should (DP-16) |
 | HU-22 | F4, F8, RP6 | HU-03 | `GET …/active`, `GET …/progress`, `POST /api/enrollments` | `enrollments`, `scheduled_sessions` | T-01, T-02 | Must |
 | HU-23 | F10 | — | Ninguno (por definir) | `scheduled_sessions`, `enrollments` | Ninguno de los actuales | Should |
 
@@ -3083,7 +3098,7 @@ Queda por definir el **contenido** de los 3 programas (1.2), que afecta a HU-08 
 |-------|---------|
 | Los tickets solo citan HU-01 a HU-03 | **Resuelto:** el backlog técnico de la sección 6 (DEV-001 a DEV-039) relaciona HU-04 a HU-23 con sus tickets. T-01 a T-03 siguen citando solo HU-01 a HU-03, porque son de alto nivel. |
 | La zona horaria no aparece en F1 ni en F2 | La sección 1 confirma el cierre según la zona del usuario (F7, RP5), pero ninguna funcionalidad recoge su configuración. Que sea editable es una [Propuesta] de 2.2. HU-07 se asocia a F7. |
-| El historial de programas anteriores no tiene funcionalidad propia | P5 menciona el "historial de sesiones" y HU-03 lo incluye, pero F8 no lo detalla. Por eso HU-21 lleva prioridad *(propuesta)*. |
+| El historial de programas anteriores no tiene funcionalidad propia | P5 menciona el "historial de sesiones" y HU-03 lo incluye, pero F8 no lo detalla. Por eso HU-21 llevaba prioridad *(propuesta)*; el Product Owner la confirmó como Should (DP-16). |
 | F10 no tiene endpoint | La sección 4 no define ningún contrato para los hitos. HU-23 no se puede implementar sin ampliarla. |
 | Dos niveles de prioridad frente a MoSCoW | La sección 1 usa Imprescindible y Deseable. La equivalencia con Must y Should es una propuesta de este backlog. |
 | Límite de tres historias de la plantilla | Las tres historias oficiales se mantienen bajo sus marcadores. El backlog es un apartado complementario y no sustituye a esos marcadores. |
@@ -4249,7 +4264,7 @@ El núcleo de la reconciliación (DEV-027) y su uso en la activación y en los `
 **DEV-034 — Historial de programas anteriores**
 - **Incremento:** I6.
 - **Área:** frontend.
-- **Prioridad:** Should *(propuesta)*.
+- **Prioridad:** Should (DP-16).
 - **Historias:** HU-21.
 - **Objetivo:** consultar las inscripciones `finished`, con su calendario y su progreso.
 - **Alcance:** listado desde la más reciente y detalle en modo solo lectura, reutilizando DEV-018, DEV-024 y DEV-033.
@@ -4442,13 +4457,71 @@ El núcleo de la reconciliación (DEV-027) y su uso en la activación y en los `
   - la sección 5 sitúa el cierre automático (HU-18) en I5. Aquí se ve desde I3 en la activación y en los `GET` (DEV-016, DEV-017 y DEV-027), con `skipped` en I3 y también `partial` desde I4. I5 conserva la validación ampliada (DEV-028 y DEV-029) y la interfaz específica del cierre (DEV-030);
   - la navegación de T-02 (tarea 1) y su exclusión de la "internacionalización" **se han corregido en T-02** para reflejar las decisiones confirmadas: **Today · Program · Progress · Profile**, y excluir solo los idiomas adicionales (DEV-038 y DEV-039). Su identificador y su alcance funcional no cambian.
 
+##### Plan de las tres entregas académicas [Propuesta]
+
+> **Qué es este apartado.** Organiza el backlog anterior en las tres entregas del proyecto, **sin añadir tickets ni cambiar su orden**. No incluye fechas ni porcentajes de avance.
+>
+> **[Pendiente de verificación]:** las instrucciones oficiales de las entregas de AI4Devs **no están en el repositorio**. Los objetivos de cada entrega son los de trabajo fijados por el autor, y no se ha comprobado que cumplan los requisitos oficiales: contenido exigido, formato, rama o Pull Request de entrega y fechas.
+
+**Entrega 1: documentación y diseño.** Objetivo: una especificación coherente y trazable del MVP.
+
+| Evidencia prevista | Dónde está | Estado en el repositorio |
+|--------------------|------------|--------------------------|
+| Producto y funcionalidades | Sección 1: F1–F10, capacidades principales, RP1–RP6 y registro DP-01 a DP-17 | Documentado. Faltan las capturas y el vídeo de 1.3, que necesitan la implementación |
+| Arquitectura técnica | Sección 2 | Documentada como [Propuesta]; nada está implementado |
+| Modelo de datos | Sección 3 | Documentado; no existen esquema, migraciones ni *seeds* |
+| Especificación de la API | Sección 4, con OpenAPI de los endpoints principales | Documentada |
+| Historias de usuario | Sección 5: HU-01 a HU-03 y backlog HU-04 a HU-23 | Documentadas |
+| Tickets de desarrollo | Sección 6: T-01 a T-03 y DEV-001 a DEV-039 | Documentados; ninguno empezado |
+| Prompts y decisiones humanas | `prompts.md` y registro DP de 1.2 | Documentados. El Prompt 17 está como referencia pendiente de registrar |
+| Sistema de diseño | `docs/design-system.md` | Documentado. Los tokens son una [Propuesta] y falta la comparación con el mockup |
+
+Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha verificado su entrega formal**, ni que la ficha de la sección 0 esté completa: el nombre del autor y la visibilidad del repositorio están pendientes de confirmar.
+
+**Entrega 2: primer flujo funcional.** Objetivo: demostrar una integración real entre frontend, backend y base de datos. Flujo propuesto: **registro de usuario desde la interfaz (HU-04, pantalla S-01), validación en la API (`POST /api/auth/register`) y persistencia en PostgreSQL (`users`)**.
+
+- **Coherencia con el backlog:** el flujo es coherente con I1 y no depende de ningún ticket de I2 o posteriores. Cubre HU-04, no todo I1: el perfil (DEV-005 y DEV-008) y el cierre de sesión de HU-05 no son necesarios para este flujo.
+- **Tickets necesarios:** DEV-001, DEV-002, DEV-003, DEV-004, DEV-038, DEV-039, DEV-006 y DEV-007.
+- **Dependencias técnicas,** según el orden recomendado:
+  - backend: DEV-001 → DEV-002 y DEV-003 → DEV-004;
+  - frontend: DEV-001 → DEV-038 → DEV-039 → DEV-006 → DEV-007;
+  - DEV-007 puede empezar con datos simulados, pero la demostración exige DEV-004 real.
+- **Pruebas de integración ya previstas en esos tickets** (ninguna escrita ni ejecutada):
+  - restricciones de `users` contra PostgreSQL: email normalizado y único (DEV-002);
+  - cadena de seguridad: API-01–API-06 y API-36–API-38 (DEV-003);
+  - autenticación: API-07–API-11, API-43 y los criterios de HU-04, con `409` por email duplicado y `400` por datos no válidos (DEV-004);
+  - componentes del formulario de registro (DEV-007) y CI con PostgreSQL de servicio (DEV-001).
+- **Evidencias necesarias para demostrar el flujo:**
+  - las Pull Requests de esos tickets, con la ejecución de CI visible (sección 7);
+  - los resultados reales de las pruebas de integración contra PostgreSQL;
+  - una demostración del registro desde la interfaz que muestre la fila creada en `users`, con la contraseña solo como *hash*;
+  - el borrador de 1.4 con el arranque local (definición de terminado de DEV-001) y el registro de los prompts.
+- **Huecos detectados** (no se corrigen aquí):
+  - **[Pendiente de decisión]:** ningún ticket prevé una prueba automatizada que recorra interfaz → API → base de datos antes de DEV-026, al cerrar I4. Para la Entrega 2, las opciones son una demostración manual documentada o adelantar un E2E reducido del registro; cualquiera de las dos cambia el alcance de un ticket y la decide el autor;
+  - el criterio 3 de HU-04 necesita la longitud mínima de la contraseña, una decisión técnica abierta de DEV-004 (1.2);
+  - el flujo no necesita un despliegue. DEV-036 se puede adelantar, pero no se sabe si la Entrega 2 lo exige (ver la nota de verificación).
+
+**Entrega 3: MVP integrado.** Objetivo: el recorrido principal del usuario con las historias Must implementadas y verificadas.
+
+| Evidencia prevista | Incrementos y tickets | Criterios de la sección 1 |
+|--------------------|-----------------------|---------------------------|
+| Aplicación funcional | I1–I6: todas las historias Must (HU-04 a HU-20 y HU-22) | CE1–CE4 |
+| Flujos principales integrados | DEV-026 (recorrido mínimo, I4) y DEV-035 (flujo completo de 1.3, I6) | CE1, CE4 |
+| Pruebas automatizadas | "Estrategia de calidad por tipo de prueba": unitarias, integración y contrato (API-01–API-47), y concurrencia (DEV-029, C1–C8) | CE2, CE3 |
+| Diseño adaptable y accesibilidad | CT-01 a CT-06, DEV-039 y DEV-035: 320 px y escritorio, Chromium y WebKit, y prueba manual en Safari de iOS y con lector de pantalla | CE5 |
+| Despliegue | DEV-036, con la URL en 0.4 | CE6 |
+| Documentación y prompts actualizados | DEV-037 (1.3, 1.4 y resultados reales en 2.6 y 3.2), sección 7 y `prompts.md` | — |
+
+- **Fuera del recorrido obligatorio:** HU-21 (Should, DP-16; DEV-034) y HU-23 (F10, mejora posterior, DP-17).
+- **Requisito previo de producto:** el contenido de los 3 programas debe estar definido antes de cerrar DEV-010 (1.2). Sin él, la Entrega 3 solo podría mostrar contenido provisional.
+
 ---
 
 ## 7. Pull Requests
 
 > Documenta 3 de las Pull Requests realizadas durante la ejecución del proyecto
 
-> **Estado de esta sección:** todavía no se ha creado ninguna Pull Request, porque la implementación no ha empezado. Se documentarán aquí cuando existan, a partir de los tickets de la sección 6.
+> **Estado de esta sección:** todavía no hay ninguna Pull Request de implementación, porque el desarrollo no ha empezado. Se documentarán aquí cuando existan, a partir de los tickets de la sección 6. La única Pull Request creada hasta ahora es la **#1** (`docs: consolidate Cali Coach MVP product decisions`), solo de documentación y ya fusionada en `main`. **Pendiente** de que el autor decida si cuenta como una de las tres.
 
 **Pull Request 1**
 
