@@ -768,7 +768,7 @@ flowchart LR
 
 - **Local [Implementado en DEV-001, salvo Prisma]:** PostgreSQL 17 con `docker-compose`, backend (`tsx watch`) y frontend (Vite) con sus servidores de desarrollo; el *proxy* de Vite redirige `/api` al backend. Las migraciones y la *seed* con Prisma llegarán con DEV-002 y DEV-010.
 - **Despliegue [Propuesta]:** un único servicio web en una plataforma PaaS, todavía por elegir. Express sirve la API en `/api` y el *build* estático de la SPA, con un mismo origen y sin CORS. La base de datos es un PostgreSQL gestionado. Las migraciones se ejecutan en el paso de *release*, y los secretos se guardan en variables de entorno.
-- **CI [Implementado en DEV-001]:** `.github/workflows/ci.yml` ejecuta en cada PR y en cada *push* a `main`: `npm ci`, *lint*, comprobación de tipos, tests unitarios y de componentes, tests de integración contra un PostgreSQL 17 de servicio y *build*. No usa secretos. El *smoke* E2E (Playwright, Chromium) solo se lanza manualmente con `workflow_dispatch`. **Su primera ejecución en GitHub está pendiente del PR de DEV-001.**
+- **CI [Implementado en DEV-001]:** `.github/workflows/ci.yml` ejecuta en cada PR y en cada *push* a `main`: `npm ci`, *lint*, comprobación de tipos, tests unitarios y de componentes, tests de integración contra un PostgreSQL 17 de servicio y *build*. No usa secretos. El *smoke* E2E (Playwright, Chromium) solo se lanza manualmente con `workflow_dispatch`. Primera ejecución en GitHub: en verde en el PR #3, en `workflow_dispatch` (con E2E) y en `main` tras el merge (ver sección 7).
 - **Sin** colas, *brokers*, cachés externas ni microservicios. La tarea programada opcional se ejecuta en el mismo proceso.
 
 ### **2.5. Seguridad**
@@ -841,7 +841,7 @@ Las cookies viajan solas en cada petición, así que cualquier operación que mo
 
 > **Estado:** DEV-001 añade las primeras pruebas, solo técnicas (sin reglas de negocio). La tabla de niveles que sigue a los resultados de DEV-001 es la estrategia prevista para el MVP; ninguna de sus pruebas de negocio existe todavía.
 
-**Pruebas de DEV-001 y resultados** (ejecución **local** del 2026-11-22, Node 24.13.0 y PostgreSQL 17 en Docker; la ejecución en GitHub Actions está pendiente del PR):
+**Pruebas de DEV-001 y resultados** (ejecución **local** del 2026-11-22, Node 24.13.0 y PostgreSQL 17 en Docker). **En GitHub Actions** se obtuvieron los mismos resultados en el PR #3 y en `main`, y el *smoke* E2E pasó con `workflow_dispatch` (sección 7):
 
 | Suite | Comando | Qué comprueba | Resultado local |
 |-------|---------|---------------|-----------------|
@@ -3621,7 +3621,7 @@ Las decisiones del Product Owner que afectan a cada ticket figuran en su apartad
 #### Backlog técnico ampliado del MVP
 
 > **Qué es este apartado.** Descompone los tickets de alto nivel T-01, T-02 y T-03, que se mantienen tal cual, en tickets pequeños y verificables. Están organizados por los incrementos I1–I6 de la sección 5.
-> - Es un **plan [Propuesta]**: solo DEV-001 está implementado, pendiente de su PR. Los demás tickets no están empezados y las pruebas citadas son propuestas.
+> - Es un **plan [Propuesta]**: solo DEV-001 está terminado (PR #3, fusionado). Los demás tickets no están empezados y las pruebas citadas son propuestas.
 > - No añade entidades, endpoints ni funcionalidades a lo documentado en las secciones 1–5.
 > - No incluye estimaciones de esfuerzo.
 >
@@ -3658,7 +3658,7 @@ Cada ticket añade solo lo que le es propio.
 - **Pruebas:** la propia ejecución de CI.
 - **Terminado:** además de la común, el arranque local está documentado en un borrador de 1.4.
 - **Pendiente:** la plataforma PaaS (2.4), que no lo bloquea.
-- **Estado:** implementado en la rama `feature/dev-001-scaffolding`, con las verificaciones locales en verde (2.6). Falta la ejecución de CI en el PR, que es su criterio de cierre. Decisiones técnicas aprobadas para este ticket: `pg` directo (Prisma en DEV-002), npm *workspaces*, Node 24, PostgreSQL 17, sin Prettier, *smoke* de Playwright solo en Chromium y `GET /api/health` público con `503 TEMPORARILY_UNAVAILABLE`.
+- **Estado:** **terminado.** Fusionado en `main` mediante el PR #3 (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/3), con la CI en verde en el PR, en `workflow_dispatch` (con E2E) y en `main` (2.6 y sección 7). Decisiones técnicas aprobadas para este ticket: `pg` directo (Prisma en DEV-002), npm *workspaces*, Node 24, PostgreSQL 17, sin Prettier, *smoke* de Playwright solo en Chromium y `GET /api/health` público con `503 TEMPORARILY_UNAVAILABLE`.
 
 **DEV-002 — Migración de `users`**
 - **Incremento:** I1.
@@ -4554,7 +4554,7 @@ El núcleo de la reconciliación (DEV-027) y su uso en la activación y en los `
 | Modelo de datos | Sección 3 | Documentado; no existen esquema, migraciones ni *seeds* |
 | Especificación de la API | Sección 4, con OpenAPI de los endpoints principales | Documentada |
 | Historias de usuario | Sección 5: HU-01 a HU-03 y backlog HU-04 a HU-23 | Documentadas |
-| Tickets de desarrollo | Sección 6: T-01 a T-03 y DEV-001 a DEV-039 | Documentados. DEV-001 implementado y pendiente de su PR; los demás sin empezar |
+| Tickets de desarrollo | Sección 6: T-01 a T-03 y DEV-001 a DEV-039 | Documentados. DEV-001 terminado (PR #3); los demás sin empezar |
 | Prompts y decisiones humanas | `prompts.md` y registro DP de 1.2 | Documentados. El Prompt 17 está como referencia pendiente de registrar |
 | Sistema de diseño | `docs/design-system.md` | Documentado. Los tokens son una [Propuesta] y falta la comparación con el mockup |
 
@@ -4603,17 +4603,79 @@ Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha ver
 
 > Documenta 3 de las Pull Requests realizadas durante la ejecución del proyecto
 
-> **Estado de esta sección:** todavía no hay ninguna Pull Request de implementación, porque el desarrollo no ha empezado. Se documentarán aquí cuando existan, a partir de los tickets de la sección 6. La única Pull Request creada hasta ahora es la **#1** (`docs: consolidate Cali Coach MVP product decisions`), solo de documentación y ya fusionada en `main`. **Pendiente** de que el autor decida si cuenta como una de las tres.
+> **Estado de esta sección:** documenta **todas** las Pull Requests del repositorio en orden cronológico, sin limitarse a tres. Cada una se añade al índice y con su propia ficha, siempre con evidencia verificable en GitHub. En cada ficha se separan tres tipos de evidencia: **pruebas locales** (ejecutadas en la máquina del autor), **GitHub Actions** (ejecuciones de CI con enlace) y **revisión humana** (lo que el autor revisó o decidió).
+
+#### Índice de Pull Requests
+
+| # | Título | Tipo | Rama → base | Fusionada | Merge | CI |
+|---|--------|------|-------------|-----------|-------|----|
+| [#1](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/1) | `docs: consolidate Cali Coach MVP product decisions` | Documentación | `docs/consolidate-mvp-decisions` → `main` | 2026-11-18 | `f2616d1` | No existía |
+| [#2](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/2) | `docs: prepare Cali Coach academic delivery 1` | Documentación (Entrega 1) | `feature/entrega-1-GeraGalindo` → `main` | 2026-11-20 | `bad3f88` | No existía |
+| [#3](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/3) | `feat: initialize Cali Coach scaffolding and Claude harness (DEV-001)` | Implementación (Entrega 2) | `feature/dev-001-scaffolding` → `main` | 2026-11-22 | `4a885e9` | En verde |
+
+Todas se fusionaron con *merge commit*, que es la estrategia habitual del repositorio.
+
+**Plantilla para nuevas Pull Requests:** número y título; rama; ticket o entrega; commits; contenido; pruebas locales; GitHub Actions; revisión humana; pendientes.
 
 **Pull Request 1**
 
-Pendiente.
+**#1 — `docs: consolidate Cali Coach MVP product decisions`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/1)
+
+- **Rama:** `docs/consolidate-mvp-decisions` → `main`. Un commit (`e8368d1`). Creada el 2026-11-18 y fusionada ese mismo día con *merge commit* (`f2616d1`).
+- **Propósito:** consolidar la documentación del MVP antes de DEV-001. Es solo documental, sin código ni pruebas ejecutables.
+- **Contenido:**
+  - DP-01 a DP-17 marcadas como [Confirmada] en 1.2 y aplicadas en las secciones 1–6;
+  - `docs/design-system.md`, que es nuevo;
+  - el mapa de prompts y el Anexo de `prompts.md`, con el Prompt 16. El Prompt 17 queda como referencia pendiente.
+- **Tamaño:** 3 archivos, +7365 y −50 líneas.
+- **Pruebas locales:** no aplica (sin código). La descripción del PR recoge sus validaciones documentales.
+- **GitHub Actions:** no existía la CI; ningún *check* asociado.
+- **Revisión humana:** la fusionó el autor. GitHub no registra revisiones ni comentarios.
 
 **Pull Request 2**
 
-Pendiente.
+**#2 — `docs: prepare Cali Coach academic delivery 1`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/2)
+
+- **Rama:** `feature/entrega-1-GeraGalindo` → `main`. Un commit (`ac5a392`). Creada el 2026-11-20 y fusionada ese mismo día con *merge commit* (`bad3f88`).
+- **Propósito:** preparar la **Entrega 1** de AI4Devs. Es solo documental.
+- **Contenido:**
+  - la agrupación de F1–F9 en cinco capacidades (1.2);
+  - el plan de las tres entregas (sección 6);
+  - la corrección de referencias obsoletas;
+  - el registro del Prompt 18 en el Anexo de `prompts.md`.
+- **Tamaño:** 2 archivos, +318 y −12 líneas.
+- **Pruebas locales:** no aplica (sin código). La descripción del PR recoge sus validaciones documentales.
+- **GitHub Actions:** no existía la CI; ningún *check* asociado.
+- **Revisión humana:** la fusionó el autor. GitHub no registra revisiones ni comentarios. La revisión humana del Prompt 18 sigue pendiente en `prompts.md`.
 
 **Pull Request 3**
 
-Pendiente.
+**#3 — `feat: initialize Cali Coach scaffolding and Claude harness (DEV-001)`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/3)
 
+- **Rama:** `feature/dev-001-scaffolding` → `main`. Un commit (`de54a70`). Creada y fusionada el 2026-11-22 con *merge commit* (`4a885e9`). El merge se hizo con `--match-head-commit`, para que fallara si la rama había cambiado después de la revisión.
+- **Propósito:** DEV-001 (sección 6), el primer incremento técnico de la Entrega 2. Sin funcionalidades de negocio.
+- **Contenido:**
+  - npm *workspaces* `backend`, `frontend` y `e2e`, con TypeScript y ESLint;
+  - PostgreSQL 17 con `docker-compose`;
+  - `GET /api/health` (sección 4) y la vista técnica de diagnóstico;
+  - pruebas unitarias, de componentes, de integración y E2E;
+  - GitHub Actions y `CLAUDE.md`.
+- **Tamaño:** 43 archivos.
+- **Pruebas locales** (2026-11-22, detalle en 2.6):
+  - lint, tipos y *build* sin errores;
+  - backend 5/5 y frontend 5/5;
+  - integración 2/2;
+  - E2E 1/1;
+  - pruebas manuales de `200`, `503` y `502`.
+- **GitHub Actions:**
+
+| Ejecución | Evento | Resultado |
+|-----------|--------|-----------|
+| [45019867500](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45019867500) | `pull_request` | Lint, tipos, tests (backend 5/5 y frontend 5/5), integración con PostgreSQL 17 (2/2) y *build*: en verde. E2E omitido por diseño |
+| [45019946259](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45019946259) | `workflow_dispatch` | Las mismas comprobaciones más el *smoke* E2E en Chromium (1/1): en verde |
+| [45020562284](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45020562284) | `push` a `main` tras el merge `4a885e9` | Lint, tipos, tests, integración y *build*: en verde |
+
+- **Avisos no bloqueantes:**
+  - `actions/checkout@v4` y `actions/setup-node@v4` están pensadas para Node 20, que está obsoleto, y GitHub las ejecuta forzadas en Node 24;
+  - hay avisos de obsolescencia (`DEP0040`, `DEP0169`) que vienen de dependencias de terceros.
+- **Revisión humana:** el autor aprobó los resultados locales, autorizó el commit, el push y el PR, y autorizó el merge después de revisar la CI. Lo fusionó desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). No pidió cambios de código. GitHub no registra revisiones ni comentarios.

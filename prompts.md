@@ -1070,9 +1070,17 @@ No amplíes el alcance hacia DEV-002, DEV-003 ni otros tickets.
   - `npm ci`, sin errores;
   - YAML del *workflow* validado con un *parser*;
   - pruebas manuales con `curl`: `200` directo y a través del *proxy*, `503` con la base de datos parada, `502` del *proxy* con el backend parado y salida con código 1 sin `DATABASE_URL`;
-  - **la ejecución en GitHub Actions está pendiente del PR.**
+  - **la ejecución en GitHub Actions estaba pendiente del PR** cuando se cerró la Fase B. Ahora está en verde: ver la revisión humana.
 
-**Revisión humana:** pendiente.
+**Revisión humana:**
+- **Fase A:** el autor revisó el plan y respondió a las decisiones D1–D10. Cambió dos (D1 y D8) y aprobó las demás, como se detalla en "Decisiones humanas".
+- **Fase B:** el autor aprobó los resultados de las verificaciones locales. Después autorizó, en este orden: el commit, el push y la creación del PR #3; la ejecución del E2E manual; y, tras revisar los resultados de CI, el merge en `main`.
+- **CI en GitHub Actions** (sección 7 del README):
+  - ejecución `pull_request` 45019867500, en verde;
+  - ejecución `workflow_dispatch` 45019946259, en verde, con el *smoke* E2E 1/1;
+  - ejecución `push` a `main` 45020562284, en verde, tras el merge (`4a885e9`).
+- **Lo que el autor no hizo:** no pidió cambios de código a lo implementado y no dejó una revisión formal en GitHub.
+- **Pendiente:** el Prompt 17 sigue pendiente de registrar, y DEV-002 no se ha empezado.
 
 **Prompt 3:**
 
