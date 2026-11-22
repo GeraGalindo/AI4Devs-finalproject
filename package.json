@@ -1,0 +1,35 @@
+{
+  "name": "cali-coach",
+  "private": true,
+  "type": "module",
+  "description": "Cali Coach: MVP de planificación de entrenamiento de calistenia (AI4Devs)",
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "backend",
+    "frontend",
+    "e2e"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace backend & npm run dev --workspace frontend & wait",
+    "lint": "eslint .",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspace backend --workspace frontend",
+    "test:integration": "npm run test:integration --workspace backend",
+    "test:e2e": "npm run test --workspace e2e",
+    "build": "npm run build --workspace backend --workspace frontend",
+    "db:up": "docker compose up -d --wait db",
+    "db:down": "docker compose down"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.2",
+    "eslint": "10.15.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.8",
+    "globals": "17.14.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.73.0"
+  }
+}

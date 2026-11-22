@@ -1,0 +1,21 @@
+# PostgreSQL local para desarrollo y pruebas de integración (readme 2.4).
+# Credenciales solo de desarrollo: no son secretos y no se usan fuera de local.
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: calicoach
+      POSTGRES_PASSWORD: calicoach
+      POSTGRES_DB: calicoach
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U calicoach -d calicoach"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  db-data:

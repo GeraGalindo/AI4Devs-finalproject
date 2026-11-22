@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      e2e:
+        description: 'Run the Playwright smoke test (Chromium)'
+        type: boolean
+        default: true
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# Credenciales de un PostgreSQL efímero de CI: no son secretos.
+env:
+  DATABASE_URL: postgres://calicoach:calicoach@localhost:5432/calicoach
+
+jobs:
+  checks:
+    name: Lint, typecheck, tests and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: calicoach
+          POSTGRES_PASSWORD: calicoach
+          POSTGRES_DB: calicoach
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U calicoach -d calicoach"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit and component tests
+        run: npm test
+      - name: Backend integration tests (PostgreSQL)
+        run: npm run test:integration
+      - name: Build
+        run: npm run build
+
+  e2e:
+    name: E2E smoke (Chromium)
+    if: github.event_name == 'workflow_dispatch' && inputs.e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: calicoach
+          POSTGRES_PASSWORD: calicoach
+          POSTGRES_DB: calicoach
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U calicoach -d calicoach"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Playwright smoke
+        run: npm run test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report
+          retention-days: 7
