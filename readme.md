@@ -23,7 +23,7 @@ Cali Coach
 
 ### **0.3. Descripción breve del proyecto:**
 
-Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asigna un programa de entrenamiento preconfigurado, lo distribuye en los días que el atleta puede entrenar (de 2 a 6), le muestra la sesión de cada día, registra las series realizadas y le enseña su progreso (sección 1). **Estado:** el proyecto está en fase de diseño documental; todavía no hay código implementado.
+Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asigna un programa de entrenamiento preconfigurado, lo distribuye en los días que el atleta puede entrenar (de 2 a 6), le muestra la sesión de cada día, registra las series realizadas y le enseña su progreso (sección 1). **Estado:** la especificación del MVP está documentada (Entrega 1). DEV-001 añade el andamiaje técnico: frontend, backend, PostgreSQL local, CI y una comprobación técnica de salud (`GET /api/health`). **Todavía no hay ninguna funcionalidad de negocio implementada.**
 
 ### **0.4. URL del proyecto:**
 
@@ -267,13 +267,66 @@ flowchart TD
 ### **1.4. Instrucciones de instalación:**
 > Documenta de manera precisa las instrucciones para instalar y poner en marcha el proyecto en local (librerías, backend, frontend, servidor, base de datos, migraciones y semillas de datos, etc.)
 
-> **Pendiente:** se documentarán cuando exista el código. El stack previsto es React + TypeScript + Vite (frontend), Node.js + Express (backend) y PostgreSQL (base de datos, con migraciones y semillas para los programas preconfigurados).
+> **Borrador de DEV-001.** Cubre el arranque local del andamiaje técnico. Las migraciones y las *seeds* se añadirán con DEV-002 y DEV-010, y la versión definitiva de esta sección es de DEV-037.
+
+#### Requisitos previos
+
+| Herramienta | Versión | Uso |
+|-------------|---------|-----|
+| Node.js | 24 (`.nvmrc`) | Frontend, backend y herramientas. npm 11 viene incluido |
+| Docker con Docker Compose v2 | Reciente | PostgreSQL 17 local (`docker-compose.yml`) |
+| Git | Cualquiera reciente | — |
+
+No hace falta instalar PostgreSQL en el sistema.
+
+#### Puesta en marcha
+
+```bash
+npm install                              # instala los tres workspaces: backend, frontend y e2e
+cp backend/.env.example backend/.env     # valores de desarrollo, sin secretos
+npm run db:up                            # PostgreSQL 17 en localhost:5432 (espera al healthcheck)
+npm run dev                              # backend en :3000 y Vite en :5173
+```
+
+Abre `http://localhost:5173`. La vista técnica *System status* llama a `GET /api/health` a través del *proxy* de Vite y muestra el estado del backend y de la base de datos. Para arrancar cada aplicación por separado: `npm run dev -w backend` y `npm run dev -w frontend`. `npm run db:down` detiene PostgreSQL y conserva los datos en el volumen `db-data`.
+
+#### Variables de entorno
+
+| Archivo | Variable | Valor por defecto | Descripción |
+|---------|----------|-------------------|-------------|
+| `backend/.env` | `NODE_ENV` | `development` | Entorno de ejecución |
+| `backend/.env` | `PORT` | `3000` | Puerto del backend |
+| `backend/.env` | `DATABASE_URL` | `postgres://calicoach:calicoach@localhost:5432/calicoach` | **Obligatoria.** Sin ella, el backend se niega a arrancar con un mensaje explícito |
+| `frontend/.env` (opcional) | `VITE_API_PROXY_TARGET` | `http://localhost:3000` | Destino del *proxy* `/api` de Vite |
+
+Solo se versionan los `.env.example`. Los `.env` están en `.gitignore`. Las credenciales de `docker-compose.yml` y de la CI son de desarrollo y no son secretos.
+
+#### Comprobaciones y pruebas
+
+| Comando | Qué hace | ¿Necesita PostgreSQL? |
+|---------|----------|-----------------------|
+| `npm run lint` | ESLint en todo el repositorio | No |
+| `npm run typecheck` | `tsc` en backend, frontend y e2e | No |
+| `npm test` | Unitarias del backend (Vitest + Supertest) y componentes del frontend (Vitest + React Testing Library) | No |
+| `npm run test:integration` | Integración del backend contra PostgreSQL real | Sí (`npm run db:up`) |
+| `npm run build` | Compila el backend (`backend/dist`) y el frontend (`frontend/dist`) | No |
+| `npm run test:e2e` | *Smoke* de Playwright en Chromium. Arranca el backend y Vite si no están en marcha | Sí |
+
+Antes de la primera ejecución E2E hay que descargar el navegador con `npx playwright install chromium`.
+
+#### Limitaciones conocidas
+
+- No hay migraciones, *seeds*, autenticación ni funcionalidades de negocio. La única ruta es `GET /api/health`.
+- El backend todavía no sirve el *build* de la SPA, ni tiene `helmet`, CSRF, `X-Request-Id` ni el manejador de errores global. Todo eso es de DEV-003.
+- La vista de diagnóstico es técnica, en inglés y sin i18n ni *tokens* de diseño (DEV-038 y DEV-039 la migrarán o retirarán).
+- `npm run dev` lanza los dos procesos con la shell (`&`), así que está pensado para Linux y macOS. En Windows, arranca cada aplicación por separado.
+- No hay despliegue (DEV-036).
 
 ---
 
 ## 2. Arquitectura del Sistema
 
-> **Estado de esta sección:** describe la **arquitectura propuesta para el MVP**. Todavía no existe código, así que nada de lo que sigue está implementado ni probado. Las etiquetas indican el origen de cada decisión:
+> **Estado de esta sección:** describe la **arquitectura propuesta para el MVP**. Solo existe el andamiaje técnico de DEV-001 (estructura, entorno local, CI y `GET /api/health`; ver 2.3, 2.4 y 2.6). Ningún componente de negocio está implementado ni probado. Las etiquetas indican el origen de cada decisión:
 > - **[Confirmada]:** decisión del equipo o del Product Owner.
 > - **[Propuesta]:** recomendación técnica pendiente de validar al implementar.
 > - **[Pendiente]:** necesita una decisión de producto.
@@ -688,11 +741,18 @@ La regla `partial` / `skipped` está en `sessionLifecycle.resolveClosure` y el r
 - Cada módulo expone únicamente su servicio. Los demás módulos no importan sus repositorios.
 - Los tests unitarios están junto al código (`*.test.ts`). Los de integración y E2E, en carpetas propias.
 
+**Estado tras DEV-001.** Existe el subconjunto mínimo de esta estructura, sin carpetas vacías: cada ticket creará las suyas.
+- **Raíz:** `package.json` con npm *workspaces* (`backend`, `frontend`, `e2e`), `tsconfig.base.json`, `eslint.config.js`, `docker-compose.yml`, `.github/workflows/ci.yml` y `CLAUDE.md`.
+- **Backend:** `src/app.ts`, `src/server.ts`, `src/shared/config.ts`, `src/shared/db.ts` (con `pg`; Prisma llega con DEV-002), `src/modules/health/` y `tests/integration/`.
+- **Frontend:** `src/app/App.tsx` y `src/features/diagnostics/`.
+- **E2E:** `playwright.config.ts` y `tests/`.
+- Todavía no existen `domain/`, `jobs/`, `prisma/`, `locales/` ni los módulos de negocio.
+
 ### **2.4. Infraestructura y despliegue**
 
 > Detalla la infraestructura del proyecto, incluyendo un diagrama en el formato que creas conveniente, y explica el proceso de despliegue que se sigue
 
-> Todavía no hay infraestructura ni despliegue. Lo que sigue es una propuesta mínima, alineada con CE6 (aplicación accesible mediante una URL).
+> Todavía no hay despliegue. El entorno local y la CI existen desde DEV-001 (ver 1.4). El resto es una propuesta mínima, alineada con CE6 (aplicación accesible mediante una URL).
 
 ```mermaid
 flowchart LR
@@ -706,9 +766,9 @@ flowchart LR
     N --> PG[("PostgreSQL gestionado")]
 ```
 
-- **Local [Propuesta]:** PostgreSQL con `docker-compose`, backend y frontend con sus servidores de desarrollo (el *proxy* de Vite redirige `/api` al backend), y migraciones más *seed* con Prisma.
+- **Local [Implementado en DEV-001, salvo Prisma]:** PostgreSQL 17 con `docker-compose`, backend (`tsx watch`) y frontend (Vite) con sus servidores de desarrollo; el *proxy* de Vite redirige `/api` al backend. Las migraciones y la *seed* con Prisma llegarán con DEV-002 y DEV-010.
 - **Despliegue [Propuesta]:** un único servicio web en una plataforma PaaS, todavía por elegir. Express sirve la API en `/api` y el *build* estático de la SPA, con un mismo origen y sin CORS. La base de datos es un PostgreSQL gestionado. Las migraciones se ejecutan en el paso de *release*, y los secretos se guardan en variables de entorno.
-- **CI [Propuesta]:** GitHub Actions ejecuta *lint*, comprobación de tipos y tests unitarios y de integración (con un PostgreSQL de servicio) en cada PR. Las pruebas E2E se lanzan manualmente o antes de la entrega.
+- **CI [Implementado en DEV-001]:** `.github/workflows/ci.yml` ejecuta en cada PR y en cada *push* a `main`: `npm ci`, *lint*, comprobación de tipos, tests unitarios y de componentes, tests de integración contra un PostgreSQL 17 de servicio y *build*. No usa secretos. El *smoke* E2E (Playwright, Chromium) solo se lanza manualmente con `workflow_dispatch`. **Su primera ejecución en GitHub está pendiente del PR de DEV-001.**
 - **Sin** colas, *brokers*, cachés externas ni microservicios. La tarea programada opcional se ejecuta en el mismo proceso.
 
 ### **2.5. Seguridad**
@@ -779,7 +839,17 @@ Las cookies viajan solas en cada petición, así que cualquier operación que mo
 
 > Describe brevemente algunos de los tests realizados
 
-> **Todavía no se ha escrito ni ejecutado ningún test.** Esta es la estrategia prevista. Los resultados se documentarán cuando existan.
+> **Estado:** DEV-001 añade las primeras pruebas, solo técnicas (sin reglas de negocio). La tabla de niveles que sigue a los resultados de DEV-001 es la estrategia prevista para el MVP; ninguna de sus pruebas de negocio existe todavía.
+
+**Pruebas de DEV-001 y resultados** (ejecución **local** del 2026-11-22, Node 24.13.0 y PostgreSQL 17 en Docker; la ejecución en GitHub Actions está pendiente del PR):
+
+| Suite | Comando | Qué comprueba | Resultado local |
+|-------|---------|---------------|-----------------|
+| Backend, unitarias | `npm test` | `GET /api/health`: `200` con la BD disponible; `503 TEMPORARILY_UNAVAILABLE` sin filtrar el error interno; configuración (`DATABASE_URL` obligatoria y `PORT` válido) | 5/5 |
+| Frontend, componentes | `npm test` | Vista de diagnóstico: todo correcto, BD caída (`503`), error de red, error del *proxy* sin JSON y reintento | 5/5 |
+| Backend, integración | `npm run test:integration` | `200` contra PostgreSQL real y `503` contra un puerto cerrado | 2/2 |
+| E2E *smoke* | `npm run test:e2e` | La SPA llega al backend y a PostgreSQL a través del *proxy* de Vite (Chromium) | 1/1, también con `CI=1` |
+
 
 | Nivel | Herramienta | Qué se prueba | Casos clave |
 |-------|-------------|---------------|-------------|
@@ -1388,7 +1458,7 @@ Todas están **[Confirmada]** (registro DP-01 a DP-17 en 1.2). **Ninguna exige c
 
 > Si tu backend se comunica a través de API, describe los endpoints principales (máximo 3) en formato OpenAPI. Opcionalmente puedes añadir un ejemplo de petición y de respuesta para mayor claridad
 
-> **Estado de esta sección:** describe el **contrato REST propuesto** para el MVP. No existe código y ningún endpoint está implementado ni probado. Etiquetas, como en las secciones 2 y 3:
+> **Estado de esta sección:** describe el **contrato REST propuesto** para el MVP. Ningún endpoint de negocio está implementado. Solo existe el endpoint técnico `GET /api/health` (DEV-001). Etiquetas, como en las secciones 2 y 3:
 > - **[Confirmada]:** reglas de producto.
 > - **[Propuesta]:** rutas, formatos y códigos HTTP. Es el valor por defecto de toda la sección.
 > - **[Pendiente]:** necesita una decisión del Product Owner.
@@ -1406,7 +1476,7 @@ Todas están **[Confirmada]** (registro DP-01 a DP-17 en 1.2). **Ninguna exige c
   - fechas de calendario: `"YYYY-MM-DD"`, la fecha local del usuario, sin hora;
   - instantes: ISO 8601 en UTC (`"2026-11-20T18:05:12.000Z"`);
   - días de la semana: enteros de 0 a 6, con 0 = domingo (3.1).
-- **Autenticación:** todas las rutas requieren sesión salvo `POST /api/auth/register` y `POST /api/auth/login`. El `userId` sale siempre del JWT (2.5).
+- **Autenticación:** todas las rutas requieren sesión salvo `POST /api/auth/register`, `POST /api/auth/login` y el endpoint técnico `GET /api/health`. Esta última excepción se aprobó en DEV-001 porque el endpoint no lee ni devuelve datos de usuario. El `userId` sale siempre del JWT (2.5).
 - **Reconciliación previa** (2.2): antes de responder, ejecutan `reconcile(userId, now)` (T-cierre) en una transacción propia:
   - estas lecturas: `GET /api/enrollments`, `/api/enrollments/active`, `/api/enrollments/{id}`, `/api/enrollments/{id}/sessions`, `/api/sessions/today`, `/api/sessions/{id}`, `/api/enrollments/{id}/progress` y `/api/enrollments/{id}/progress/exercises`;
   - la activación (`POST /api/enrollments`);
@@ -1444,6 +1514,7 @@ Todas están **[Confirmada]** (registro DP-01 a DP-17 en 1.2). **Ninguna exige c
 | Registros | `DELETE /api/sessions/{sessionId}/sets/{setId}` | Borrar una serie | `204` |
 | Progreso | `GET /api/enrollments/{enrollmentId}/progress` | Resumen: semana, recuentos por estado y adherencia | `200` |
 | Progreso | `GET /api/enrollments/{enrollmentId}/progress/exercises` | Desempeño por ejercicio: prescrito frente a realizado | `200` |
+| Técnico | `GET /api/health` | Comprobar que el backend responde y que PostgreSQL es accesible. Público, sin datos de usuario (DEV-001) | `200` |
 
 No hay rutas de escritura del catálogo ni de administración (2.5). Tampoco hay rutas para reabrir, reprogramar o cambiar el estado de sesiones cerradas, porque están fuera del alcance del MVP (1.2).
 
@@ -1551,12 +1622,22 @@ Todas las respuestas de error usan la misma estructura:
 | `422` | Petición bien formada pero **incompatible con las reglas de negocio** o con los datos a los que hace referencia | `PROFILE_INCOMPLETE`, `PROGRAM_NOT_FOUND`, `PROGRAM_INCOMPATIBLE`, `PRESCRIPTION_MISMATCH`, `MEASUREMENT_MISMATCH`, `SET_NUMBER_OUT_OF_RANGE` |
 | `429` | Límite de peticiones superado, con `Retry-After` | `RATE_LIMITED` |
 | `500` | Error no controlado, sin detalles en producción | `INTERNAL_ERROR` |
-| `503` | Bloqueo no resuelto tras el reintento acotado (`40P01`/`55P03`, 2.2). La transacción se anuló y no se guardó nada | `TEMPORARILY_UNAVAILABLE` |
+| `503` | Bloqueo no resuelto tras el reintento acotado (`40P01`/`55P03`, 2.2). La transacción se anuló y no se guardó nada. En `GET /api/health`, PostgreSQL no es accesible | `TEMPORARILY_UNAVAILABLE` |
 
 **Criterio entre `409` y `422`:**
 - `409` cuando el problema es el estado actual del recurso al que se dirige la petición: la sesión ya está cerrada o no es de hoy, ya hay un programa activo, la serie ya existe. Repetir la petición más tarde podría tener otro resultado. Es el criterio de 2.2 para "no `planned`" o "fecha distinta de hoy".
 - `422` cuando el contenido de la petición no encaja con las reglas o con los datos que referencia: una prescripción de otra plantilla, un programa sin plantillas para el N del usuario, un perfil sin disponibilidad. Repetir la misma petición dará el mismo error mientras no cambien esos datos.
 - Una referencia del **cuerpo** que no existe (`programId`, `templateExerciseId`) responde `422`. `404` se reserva para los recursos de la **ruta**.
+
+#### Técnico
+
+**`GET /api/health`** [Implementado en DEV-001]
+- **Propósito:** comprobación técnica de integración, no funcionalidad de negocio. Lo usan la vista de diagnóstico y el *smoke* E2E.
+- **Autenticación:** no requiere (excepción documentada en las convenciones generales). No pasa por CSRF porque es un `GET` sin efectos.
+- **Comportamiento:** ejecuta `SELECT 1` con un tiempo máximo de 2 s. Responde con `Cache-Control: no-store`.
+- **Respuesta `200`:** `{ "status": "ok", "database": "up" }`.
+- **Respuesta `503`:** `{ "error": { "code": "TEMPORARILY_UNAVAILABLE", "message": "Database is unavailable.", "details": { "database": "down" } } }`. No incluye la causa interna ni la cadena de conexión, que solo van al *log*.
+- **Pendiente:** el campo `requestId` del formato de errores se añadirá cuando exista `X-Request-Id` (DEV-003).
 
 #### Autenticación
 
@@ -3109,7 +3190,7 @@ Queda por definir el **contenido** de los 3 programas (1.2), que afecta a HU-08 
 
 > Documenta 3 de los tickets de trabajo principales del desarrollo, uno de backend, uno de frontend, y uno de bases de datos. Da todo el detalle requerido para desarrollar la tarea de inicio a fin teniendo en cuenta las buenas prácticas al respecto.
 
-> **Estado de esta sección:** son los **tres tickets técnicos previstos** para implementar las historias HU-01 a HU-03. Ninguno está empezado: no hay código, migraciones ni pruebas. Las pruebas citadas son **propuestas** de 2.6, 3.2 y la sección 4. La "Definición de terminado" describe condiciones **futuras** para cerrar cada ticket, no condiciones ya cumplidas. Las especificaciones detalladas no se repiten aquí: cada ticket remite a la sección correspondiente.
+> **Estado de esta sección:** son los **tres tickets técnicos previstos** para implementar las historias HU-01 a HU-03. Ninguno está empezado: solo existe el andamiaje técnico de DEV-001, sin migraciones ni pruebas de negocio. Las pruebas citadas son **propuestas** de 2.6, 3.2 y la sección 4. La "Definición de terminado" describe condiciones **futuras** para cerrar cada ticket, no condiciones ya cumplidas. Las especificaciones detalladas no se repiten aquí: cada ticket remite a la sección correspondiente.
 >
 > Los tickets se numeran según la plantilla (backend, frontend, base de datos). El **orden de implementación recomendado** es distinto: T-03 → T-01 → T-02 (ver "Dependencias y orden de implementación").
 
@@ -3540,7 +3621,7 @@ Las decisiones del Product Owner que afectan a cada ticket figuran en su apartad
 #### Backlog técnico ampliado del MVP
 
 > **Qué es este apartado.** Descompone los tickets de alto nivel T-01, T-02 y T-03, que se mantienen tal cual, en tickets pequeños y verificables. Están organizados por los incrementos I1–I6 de la sección 5.
-> - Es un **plan [Propuesta]**: ningún ticket está empezado y las pruebas citadas son propuestas.
+> - Es un **plan [Propuesta]**: solo DEV-001 está implementado, pendiente de su PR. Los demás tickets no están empezados y las pruebas citadas son propuestas.
 > - No añade entidades, endpoints ni funcionalidades a lo documentado en las secciones 1–5.
 > - No incluye estimaciones de esfuerzo.
 >
@@ -3577,6 +3658,7 @@ Cada ticket añade solo lo que le es propio.
 - **Pruebas:** la propia ejecución de CI.
 - **Terminado:** además de la común, el arranque local está documentado en un borrador de 1.4.
 - **Pendiente:** la plataforma PaaS (2.4), que no lo bloquea.
+- **Estado:** implementado en la rama `feature/dev-001-scaffolding`, con las verificaciones locales en verde (2.6). Falta la ejecución de CI en el PR, que es su criterio de cierre. Decisiones técnicas aprobadas para este ticket: `pg` directo (Prisma en DEV-002), npm *workspaces*, Node 24, PostgreSQL 17, sin Prettier, *smoke* de Playwright solo en Chromium y `GET /api/health` público con `503 TEMPORARILY_UNAVAILABLE`.
 
 **DEV-002 — Migración de `users`**
 - **Incremento:** I1.
@@ -4472,7 +4554,7 @@ El núcleo de la reconciliación (DEV-027) y su uso en la activación y en los `
 | Modelo de datos | Sección 3 | Documentado; no existen esquema, migraciones ni *seeds* |
 | Especificación de la API | Sección 4, con OpenAPI de los endpoints principales | Documentada |
 | Historias de usuario | Sección 5: HU-01 a HU-03 y backlog HU-04 a HU-23 | Documentadas |
-| Tickets de desarrollo | Sección 6: T-01 a T-03 y DEV-001 a DEV-039 | Documentados; ninguno empezado |
+| Tickets de desarrollo | Sección 6: T-01 a T-03 y DEV-001 a DEV-039 | Documentados. DEV-001 implementado y pendiente de su PR; los demás sin empezar |
 | Prompts y decisiones humanas | `prompts.md` y registro DP de 1.2 | Documentados. El Prompt 17 está como referencia pendiente de registrar |
 | Sistema de diseño | `docs/design-system.md` | Documentado. Los tokens son una [Propuesta] y falta la comparación con el mockup |
 

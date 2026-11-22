@@ -36,11 +36,13 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 | 16 | Consolidación documental antes de implementar | **Anexo**, porque es transversal | `readme.md` (secciones 0–7), `prompts.md` y `docs/design-system.md` |
 | 17 | Consolidación de las decisiones DP-01 a DP-17 | **Anexo**, como referencia pendiente | `readme.md` (secciones 1–6), `prompts.md` y `docs/design-system.md` |
 | 18 | Alineación documental con las entregas de AI4Devs | **Anexo**, porque es transversal | `readme.md` (secciones 1, 2, 4, 5, 6 y 7) y `prompts.md` |
+| 19 | DEV-001: *scaffolding* técnico, CI y *harness* inicial | Sección 2.4, Prompt 2 | Código nuevo (`backend/`, `frontend/`, `e2e/`, CI y configuración), `CLAUDE.md` (nuevo), `readme.md` (0.3, 1.4, 2.1, 2.3, 2.4, 2.6, 4 y 6) y `prompts.md` |
 
 **Notas:**
 - **Numeración:** los prompts 01–05 y 11–15 llevan el número que les dio el autor. Los números 06–10 los asignó la IA al documentarlos, siguiendo la secuencia.
 - **Prompts de documentación:** los prompts que solo pedían documentar otros prompts en este archivo ("Documenta en prompts.md…") no se registran como prompts propios.
 - **Prompts 16, 17 y 18:** son transversales y se registran en el **Anexo** del final de este archivo. El 17 queda como referencia pendiente hasta conocer su resultado.
+- **Prompt 19:** es el primero de implementación. Se registra en 2.4 (Infraestructura y despliegue), cuyo hueco estaba libre, e incluye el prompt de la Fase A y la aprobación de la Fase B, que forman un único encargo.
 
 ---
 
@@ -796,15 +798,281 @@ No declares pruebas funcionales ejecutadas: esta tarea es exclusivamente documen
 
 **Prompt 1:** ver 2.1, Prompt 1 (Prompt 03). Estructura de repositorio propuesta, con el frontend organizado por *features* y el backend por módulos y capas.
 
-**Prompt 2:**
+**Prompt 2:** ver 2.4, Prompt 2 (Prompt 19). Primer subconjunto real de la estructura: npm *workspaces* `backend`, `frontend` y `e2e`, sin carpetas vacías.
 
 **Prompt 3:**
 
 ### **2.4. Infraestructura y despliegue**
 
-**Prompt 1:** ver 2.1, Prompt 1 (Prompt 03). Propuesta de entorno local, despliegue en un único servicio PaaS (aún por elegir) y CI con GitHub Actions. No hay infraestructura creada.
+**Prompt 1:** ver 2.1, Prompt 1 (Prompt 03). Propuesta de entorno local, despliegue en un único servicio PaaS (aún por elegir) y CI con GitHub Actions. En ese momento no había infraestructura creada.
 
 **Prompt 2:**
+
+*Prompt 19 — DEV-001: scaffolding técnico, herramientas, CI y harness inicial*
+
+- **Herramienta:** Claude Code (modelo `claude-opus-5-5`), en una sesión nueva.
+- **Objetivo:** implementar DEV-001 en dos fases: un análisis con plan (Fase A) y, tras la aprobación del autor, la implementación (Fase B). Es el primer incremento técnico de la Entrega 2 y no incluye ninguna funcionalidad de negocio.
+- **Archivos afectados:** nuevos `package.json`, `package-lock.json`, `.npmrc`, `.nvmrc`, `.editorconfig`, `.gitignore`, `tsconfig.base.json`, `eslint.config.js`, `docker-compose.yml`, `.github/workflows/ci.yml`, `CLAUDE.md`, `backend/`, `frontend/` y `e2e/`. Modificados: `readme.md` (0.3, 1.4, 2.1, 2.3, 2.4, 2.6, 4 y 6) y `prompts.md` (este registro y el mapa).
+
+Texto literal del prompt (Fase A):
+
+```text
+# DEV-001 — Scaffolding técnico, herramientas, CI y harness inicial
+
+## Rol
+
+Actúa como **Senior Full-Stack Developer** del proyecto **Cali Coach**, desarrollado como proyecto final del programa AI4Devs.
+
+Tu responsabilidad es analizar, proponer, implementar y verificar soluciones técnicas, respetando las decisiones del Product Owner y la documentación aprobada.
+
+No tomes decisiones de producto por tu cuenta.
+
+## 1. Contexto del proyecto
+
+**Repositorio:** `GeraGalindo/AI4Devs-finalproject`
+
+**Rama base:** `main`
+
+La Entrega 1 ya fue fusionada en `main` y contiene la definición del producto, requisitos, decisiones y arquitectura aprobadas.
+
+El objetivo de la Entrega 2 es:
+
+> Archivos actualizados, scaffolds de arquitectura conectados y al menos una funcionalidad real de extremo a extremo, aunque el flujo principal todavía esté incompleto.
+
+DEV-001 es el primer incremento técnico de esta entrega. Su propósito es establecer la infraestructura necesaria para implementar posteriormente las funcionalidades del MVP.
+
+**DEV-001 no debe implementar todavía una funcionalidad de negocio E2E.**
+
+## 2. Fase A — Análisis obligatorio
+
+Antes de modificar cualquier archivo:
+
+1. Comprueba la rama actual, el estado de Git y la sincronización con `origin/main`.
+2. Inspecciona todos los archivos relevantes del repositorio.
+3. Lee `readme.md`, `prompts.md` y cualquier documentación de requisitos o arquitectura.
+4. Identifica las tecnologías y convenciones aprobadas.
+5. Determina qué componentes técnicos ya existen y cuáles faltan.
+6. Identifica dependencias, riesgos, decisiones pendientes y posibles conflictos con el alcance del MVP.
+
+No presupongas que el repositorio está vacío ni que una tecnología está aprobada si la documentación no lo confirma.
+
+### Entregable de la Fase A
+
+Presenta un plan que incluya:
+
+- Estado actual del repositorio.
+- Arquitectura técnica identificada.
+- Estructura de carpetas propuesta.
+- Dependencias necesarias y su justificación.
+- Configuración de desarrollo local.
+- Estrategia de pruebas y CI.
+- Contenido propuesto para `CLAUDE.md`.
+- Criterios de aceptación verificables.
+- Riesgos, dudas o decisiones que requieran aprobación.
+
+**Detente al terminar la Fase A. No modifiques archivos, instales dependencias, crees ramas ni ejecutes acciones que alteren el repositorio hasta recibir aprobación explícita.**
+
+## 3. Fase B — Implementación, previa aprobación
+
+Una vez aprobado el plan, implementa exclusivamente el alcance siguiente.
+
+### 3.1 Estructura técnica
+
+Prepara los componentes de la arquitectura aprobada:
+
+- Frontend con React, TypeScript y Vite.
+- Backend con Node.js, Express y TypeScript.
+- PostgreSQL como base de datos.
+- Configuración de desarrollo local reproducible.
+- Gestión de variables de entorno mediante archivos de ejemplo sin secretos.
+
+Organiza el código con una estructura sencilla y mantenible. No añadas capas, servicios o herramientas sin una necesidad concreta.
+
+### 3.2 Conexión entre componentes
+
+Implementa una comprobación técnica mínima que permita verificar:
+
+1. Que el frontend puede comunicarse con el backend.
+2. Que el backend puede establecer conexión con PostgreSQL.
+3. Que los errores de conexión se gestionan de forma explícita.
+
+Puede utilizarse un endpoint técnico de estado y una vista mínima de diagnóstico.
+
+Esto constituye una verificación de integración técnica, **no una funcionalidad de negocio E2E**.
+
+### 3.3 Harness inicial de Claude Code
+
+Crea un archivo `CLAUDE.md` con instrucciones específicas del proyecto.
+
+Debe cubrir:
+
+- Propósito de Cali Coach y límites del MVP.
+- Referencias a la documentación aprobada como fuente de verdad.
+- Rol y responsabilidades de Claude.
+- Convenciones de estructura y calidad del código.
+- Reglas para trabajar con Git y ramas.
+- Política de análisis antes de modificar código.
+- Estrategia de pruebas y validación.
+- Reglas básicas de seguridad, privacidad y gestión de secretos.
+- Registro de decisiones y trazabilidad de prompts.
+- Condiciones para considerar una tarea terminada.
+
+Las instrucciones deben ser concretas, verificables y evitar contradicciones con el repositorio.
+
+No crees agentes, skills, hooks o evals solamente para completar una estructura visual.
+
+Si detectas un caso que justifique alguno de estos componentes, documéntalo como propuesta para un incremento posterior.
+
+### 3.4 Calidad y CI
+
+Configura los mecanismos necesarios para:
+
+- Ejecutar lint.
+- Comprobar tipos de TypeScript.
+- Ejecutar pruebas automatizadas.
+- Compilar frontend y backend.
+- Verificar la integración del backend con PostgreSQL.
+- Ejecutar las comprobaciones relevantes mediante GitHub Actions.
+
+La configuración de CI debe ser reproducible y no depender de secretos locales.
+
+### 3.5 Documentación
+
+Actualiza los archivos correspondientes con:
+
+- Requisitos previos de instalación.
+- Comandos para iniciar frontend, backend y base de datos.
+- Variables de entorno necesarias.
+- Procedimiento para ejecutar las pruebas.
+- Explicación de la estructura técnica.
+- Limitaciones conocidas.
+
+Actualiza `prompts.md` respetando las convenciones existentes y registrando la asistencia de IA utilizada durante DEV-001.
+
+## 4. Restricciones de alcance
+
+No implementes en DEV-001:
+
+- Registro o inicio de sesión de usuarios.
+- Autenticación o autorización.
+- Migraciones de tablas de negocio.
+- Catálogo de programas.
+- Sesiones de entrenamiento.
+- Registro de series o repeticiones.
+- Cálculo de adherencia.
+- Gamificación.
+- Agentes o skills especializados sin justificación.
+
+Respeta todas las decisiones de producto aprobadas en la Entrega 1.
+
+Si una decisión técnica relevante no está documentada, solicita aprobación antes de introducirla.
+
+## 5. Validación y criterios de aceptación
+
+DEV-001 podrá considerarse terminado cuando se demuestre que:
+
+- [ ] La estructura técnica corresponde a la arquitectura aprobada.
+- [ ] El frontend inicia correctamente.
+- [ ] El backend inicia correctamente.
+- [ ] El frontend puede comunicarse con el backend.
+- [ ] El backend puede conectarse a PostgreSQL.
+- [ ] Los errores de conexión se gestionan correctamente.
+- [ ] Lint y comprobación de tipos pasan.
+- [ ] Las pruebas automatizadas pasan.
+- [ ] Frontend y backend compilan correctamente.
+- [ ] GitHub Actions ejecuta las verificaciones configuradas.
+- [ ] `CLAUDE.md` contiene instrucciones útiles y coherentes.
+- [ ] La documentación permite reproducir el entorno.
+- [ ] `prompts.md` registra el trabajo realizado.
+
+No marques un criterio como cumplido sin evidencia de verificación.
+
+Distingue claramente entre comprobaciones locales y resultados de CI.
+
+## 6. Entrega de resultados
+
+Al finalizar la implementación, presenta:
+
+1. Resumen de los cambios realizados.
+2. Lista de archivos creados y modificados.
+3. Comandos de verificación ejecutados y sus resultados.
+4. Criterios de aceptación cumplidos y pendientes.
+5. Riesgos o limitaciones.
+6. Recomendaciones para DEV-002.
+
+No realices commit, push ni crees un Pull Request sin autorización explícita.
+
+## Instrucción inmediata
+
+**Ejecuta únicamente la Fase A: analiza el repositorio y presenta el plan de implementación de DEV-001. Espera mi aprobación antes de continuar.**
+```
+
+Texto literal de la aprobación (Fase B):
+
+```text
+He revisado tu análisis de DEV-001 y **apruebo comenzar la Fase B**, con las siguientes decisiones:
+
+- **D1 — Aprobado con modificación:** crear `GET /api/health` como endpoint técnico público. Para el error 503 reutilizar `TEMPORARILY_UNAVAILABLE` conforme al contrato existente. Documentar la excepción de autenticación.
+- **D2 — Aprobado:** utilizar `pg` directamente. Prisma se incorporará en DEV-002.
+- **D3 — Aprobado:** utilizar npm workspaces.
+- **D4 — Aprobado:** configurar Playwright con una prueba smoke en Chromium, ejecutable manualmente y mediante `workflow_dispatch`.
+- **D5 — Aprobado:** no incorporar Prettier.
+- **D6 — Aprobado:** Node 24 y PostgreSQL 17.
+- **D7 — Aprobado:** vista técnica de diagnóstico en inglés, sin introducir todavía i18n ni design tokens.
+- **D8 — Aprobado con modificación:** registrar el trabajo en `prompts.md` utilizando el siguiente identificador disponible, sin duplicar numeración. Mantener el Prompt 17 pendiente sin inventar contenido.
+- **D9 — Aprobado:** actualizar puntualmente las secciones relevantes del README y documentar los resultados reales.
+- **D10 — Aprobado:** crear la rama `feature/dev-001-scaffolding` desde `main` actualizado.
+
+Implementa exclusivamente DEV-001 conforme al plan presentado.
+
+Al finalizar:
+
+1. Ejecuta las verificaciones locales.
+2. Presenta los resultados y cualquier prueba pendiente.
+3. Comprueba los criterios de aceptación.
+4. Actualiza la documentación y la trazabilidad.
+5. Presenta un resumen de archivos modificados y riesgos pendientes.
+
+**No hagas commit, push ni crees un Pull Request todavía.** Espera mi autorización después de revisar los resultados.
+
+No amplíes el alcance hacia DEV-002, DEV-003 ni otros tickets.
+```
+
+**Decisiones humanas** (respuesta del autor a las decisiones D1–D10 que planteó la IA en la Fase A):
+- **D1, con modificación:** `GET /api/health` es público y técnico. La IA había propuesto un código nuevo, `DATABASE_UNAVAILABLE`; el autor decidió reutilizar `503 TEMPORARILY_UNAVAILABLE` del contrato existente y documentar la excepción de autenticación.
+- **D2–D7:** `pg` directo (Prisma en DEV-002), npm *workspaces*, *smoke* de Playwright solo en Chromium con ejecución manual o `workflow_dispatch`, sin Prettier, Node 24 y PostgreSQL 17, y una vista de diagnóstico en inglés sin i18n ni *tokens*.
+- **D8, con modificación:** usar el siguiente identificador libre (19) sin duplicar numeración y mantener el Prompt 17 pendiente sin inventar su contenido.
+- **D9 y D10:** actualizaciones puntuales del README con resultados reales, y la rama `feature/dev-001-scaffolding` desde `main` actualizado.
+- No hacer commit, push ni PR hasta revisar los resultados.
+
+**Resultado generado por la IA:**
+- **Fase A:**
+  - el repositorio solo tenía documentación: ni código, ni CI, ni `.gitignore`;
+  - la IA detectó que `GET /api/health` no figuraba en la sección 4, donde todas las rutas requieren sesión salvo `register` y `login`. Detectó también el solapamiento con DEV-003 (errores, `helmet`, configuración segura) y que el criterio de CI de DEV-001 solo se puede verificar con un PR.
+- **Fase B:**
+  - **raíz:** npm *workspaces* (`backend`, `frontend`, `e2e`), TypeScript `strict` compartido, ESLint (*flat config* con `typescript-eslint` y las reglas de React Hooks), `docker-compose.yml` con PostgreSQL 17 y *healthcheck*, y versiones exactas (`.npmrc`);
+  - **backend:** Express 5 con `createApp({ checkDatabase })`, `pg` con un `SELECT 1` limitado a 2 s y `GET /api/health`, que responde `200` o `503 TEMPORARILY_UNAVAILABLE` sin filtrar la causa. Configuración mínima que se niega a arrancar sin `DATABASE_URL` y cierre ordenado con `SIGINT`/`SIGTERM`;
+  - **frontend:** React 19 y Vite 8, con el *proxy* `/api` y una vista *System status* que distingue tres casos: todo correcto, base de datos caída y backend inaccesible;
+  - **pruebas:** unitarias del backend (Supertest), componentes (React Testing Library), integración contra PostgreSQL real y un *smoke* de Playwright;
+  - **CI:** `.github/workflows/ci.yml` con un PostgreSQL 17 de servicio, sin secretos, y un job E2E solo con `workflow_dispatch`;
+  - **`CLAUDE.md`:** el *harness* del proyecto. Un *hook* contra el `push` a `main` y una *skill* para registrar prompts quedan como propuestas, sin implementar;
+  - **README:** borrador de 1.4, estado en 0.3, 2.1, 2.3, 2.4 y 2.6, ficha de `GET /api/health` y su excepción en la sección 4, y el estado de DEV-001 en la sección 6.
+- **Correcciones durante la implementación:**
+  - `npm` no tiene `--parallel`, así que `npm run dev` lanza los dos procesos con la shell;
+  - `npm test` dejó de incluir el *workspace* `e2e`;
+  - `@types/node` se alineó con Node 24;
+  - la vista de diagnóstico se reescribió para no llamar a `setState` de forma síncrona dentro de un efecto (regla `react-hooks/set-state-in-effect`).
+- **Validación (local, 2026-11-22):**
+  - `lint`, `typecheck` y `build`, sin errores;
+  - `npm test`: 5/5 del backend y 5/5 del frontend;
+  - `npm run test:integration`: 2/2;
+  - `npm run test:e2e`: 1/1, también con `CI=1` y los servidores arrancados desde cero;
+  - `npm ci`, sin errores;
+  - YAML del *workflow* validado con un *parser*;
+  - pruebas manuales con `curl`: `200` directo y a través del *proxy*, `503` con la base de datos parada, `502` del *proxy* con el backend parado y salida con código 1 sin `DATABASE_URL`;
+  - **la ejecución en GitHub Actions está pendiente del PR.**
+
+**Revisión humana:** pendiente.
 
 **Prompt 3:**
 
