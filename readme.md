@@ -4603,38 +4603,79 @@ Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha ver
 
 > Documenta 3 de las Pull Requests realizadas durante la ejecución del proyecto
 
-> **Estado de esta sección:** la primera Pull Request de implementación es la **#3** (DEV-001). Antes se fusionaron dos Pull Requests solo de documentación: la **#1** (`docs: consolidate Cali Coach MVP product decisions`) y la **#2** (`docs: prepare Cali Coach academic delivery 1`). **Pendiente** de que el autor decida qué tres Pull Requests se documentan finalmente aquí; la #3 ocupa provisionalmente el primer hueco.
+> **Estado de esta sección:** documenta **todas** las Pull Requests del repositorio en orden cronológico, sin limitarse a tres. Cada una se añade al índice y con su propia ficha, siempre con evidencia verificable en GitHub. En cada ficha se separan tres tipos de evidencia: **pruebas locales** (ejecutadas en la máquina del autor), **GitHub Actions** (ejecuciones de CI con enlace) y **revisión humana** (lo que el autor revisó o decidió).
+
+#### Índice de Pull Requests
+
+| # | Título | Tipo | Rama → base | Fusionada | Merge | CI |
+|---|--------|------|-------------|-----------|-------|----|
+| [#1](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/1) | `docs: consolidate Cali Coach MVP product decisions` | Documentación | `docs/consolidate-mvp-decisions` → `main` | 2026-11-18 | `f2616d1` | No existía |
+| [#2](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/2) | `docs: prepare Cali Coach academic delivery 1` | Documentación (Entrega 1) | `feature/entrega-1-GeraGalindo` → `main` | 2026-11-20 | `bad3f88` | No existía |
+| [#3](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/3) | `feat: initialize Cali Coach scaffolding and Claude harness (DEV-001)` | Implementación (Entrega 2) | `feature/dev-001-scaffolding` → `main` | 2026-11-22 | `4a885e9` | En verde |
+
+Todas se fusionaron con *merge commit*, que es la estrategia habitual del repositorio.
+
+**Plantilla para nuevas Pull Requests:** número y título; rama; ticket o entrega; commits; contenido; pruebas locales; GitHub Actions; revisión humana; pendientes.
 
 **Pull Request 1**
 
+**#1 — `docs: consolidate Cali Coach MVP product decisions`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/1)
+
+- **Rama:** `docs/consolidate-mvp-decisions` → `main`. Un commit (`e8368d1`). Creada el 2026-11-18 y fusionada ese mismo día con *merge commit* (`f2616d1`).
+- **Propósito:** consolidar la documentación del MVP antes de DEV-001. Es solo documental, sin código ni pruebas ejecutables.
+- **Contenido:**
+  - DP-01 a DP-17 marcadas como [Confirmada] en 1.2 y aplicadas en las secciones 1–6;
+  - `docs/design-system.md`, que es nuevo;
+  - el mapa de prompts y el Anexo de `prompts.md`, con el Prompt 16. El Prompt 17 queda como referencia pendiente.
+- **Tamaño:** 3 archivos, +7365 y −50 líneas.
+- **Pruebas locales:** no aplica (sin código). La descripción del PR recoge sus validaciones documentales.
+- **GitHub Actions:** no existía la CI; ningún *check* asociado.
+- **Revisión humana:** la fusionó el autor. GitHub no registra revisiones ni comentarios.
+
+**Pull Request 2**
+
+**#2 — `docs: prepare Cali Coach academic delivery 1`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/2)
+
+- **Rama:** `feature/entrega-1-GeraGalindo` → `main`. Un commit (`ac5a392`). Creada el 2026-11-20 y fusionada ese mismo día con *merge commit* (`bad3f88`).
+- **Propósito:** preparar la **Entrega 1** de AI4Devs. Es solo documental.
+- **Contenido:**
+  - la agrupación de F1–F9 en cinco capacidades (1.2);
+  - el plan de las tres entregas (sección 6);
+  - la corrección de referencias obsoletas;
+  - el registro del Prompt 18 en el Anexo de `prompts.md`.
+- **Tamaño:** 2 archivos, +318 y −12 líneas.
+- **Pruebas locales:** no aplica (sin código). La descripción del PR recoge sus validaciones documentales.
+- **GitHub Actions:** no existía la CI; ningún *check* asociado.
+- **Revisión humana:** la fusionó el autor. GitHub no registra revisiones ni comentarios. La revisión humana del Prompt 18 sigue pendiente en `prompts.md`.
+
+**Pull Request 3**
+
 **#3 — `feat: initialize Cali Coach scaffolding and Claude harness (DEV-001)`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/3)
 
-- **Rama:** `feature/dev-001-scaffolding` → `main`. Un commit (`de54a70`), fusionado el 2026-11-22 con *merge commit* (`4a885e9`), la estrategia habitual del repositorio.
-- **Ticket:** DEV-001 (sección 6), primer incremento técnico de la Entrega 2. Sin funcionalidades de negocio.
+- **Rama:** `feature/dev-001-scaffolding` → `main`. Un commit (`de54a70`). Creada y fusionada el 2026-11-22 con *merge commit* (`4a885e9`). El merge se hizo con `--match-head-commit`, para que fallara si la rama había cambiado después de la revisión.
+- **Propósito:** DEV-001 (sección 6), el primer incremento técnico de la Entrega 2. Sin funcionalidades de negocio.
 - **Contenido:**
   - npm *workspaces* `backend`, `frontend` y `e2e`, con TypeScript y ESLint;
   - PostgreSQL 17 con `docker-compose`;
   - `GET /api/health` (sección 4) y la vista técnica de diagnóstico;
   - pruebas unitarias, de componentes, de integración y E2E;
   - GitHub Actions y `CLAUDE.md`.
-- **Evidencia de CI (GitHub Actions):**
+- **Tamaño:** 43 archivos.
+- **Pruebas locales** (2026-11-22, detalle en 2.6):
+  - lint, tipos y *build* sin errores;
+  - backend 5/5 y frontend 5/5;
+  - integración 2/2;
+  - E2E 1/1;
+  - pruebas manuales de `200`, `503` y `502`.
+- **GitHub Actions:**
 
 | Ejecución | Evento | Resultado |
 |-----------|--------|-----------|
 | [45019867500](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45019867500) | `pull_request` | Lint, tipos, tests (backend 5/5 y frontend 5/5), integración con PostgreSQL 17 (2/2) y *build*: en verde. E2E omitido por diseño |
 | [45019946259](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45019946259) | `workflow_dispatch` | Las mismas comprobaciones más el *smoke* E2E en Chromium (1/1): en verde |
-| [45020562284](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45020562284) | `push` a `main` tras el merge | Lint, tipos, tests, integración y *build*: en verde |
+| [45020562284](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45020562284) | `push` a `main` tras el merge `4a885e9` | Lint, tipos, tests, integración y *build*: en verde |
 
 - **Avisos no bloqueantes:**
   - `actions/checkout@v4` y `actions/setup-node@v4` están pensadas para Node 20, que está obsoleto, y GitHub las ejecuta forzadas en Node 24;
   - hay avisos de obsolescencia (`DEP0040`, `DEP0169`) que vienen de dependencias de terceros.
-- **Revisión:** el autor revisó los resultados locales y de CI antes de autorizar el commit, el push y el merge. No hubo revisión formal en GitHub: el campo *review* del PR está vacío.
-
-**Pull Request 2**
-
-Pendiente.
-
-**Pull Request 3**
-
-Pendiente.
-
+- **Revisión humana:** el autor aprobó los resultados locales, autorizó el commit, el push y el PR, y autorizó el merge después de revisar la CI. Lo fusionó desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). No pidió cambios de código. GitHub no registra revisiones ni comentarios.
