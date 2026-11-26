@@ -23,7 +23,7 @@ Cali Coach
 
 ### **0.3. Descripción breve del proyecto:**
 
-Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asigna un programa de entrenamiento preconfigurado, lo distribuye en los días que el atleta puede entrenar (de 2 a 6), le muestra la sesión de cada día, registra las series realizadas y le enseña su progreso (sección 1). **Estado:** la especificación del MVP está documentada (Entrega 1). DEV-001 añade el andamiaje técnico: frontend, backend, PostgreSQL local, CI y una comprobación técnica de salud (`GET /api/health`). DEV-002 añade Prisma y la primera migración (tabla `users`). **Todavía no hay ninguna funcionalidad de negocio implementada.**
+Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asigna un programa de entrenamiento preconfigurado, lo distribuye en los días que el atleta puede entrenar (de 2 a 6), le muestra la sesión de cada día, registra las series realizadas y le enseña su progreso (sección 1). **Estado:** la especificación del MVP está documentada (Entrega 1). DEV-001 añade el andamiaje técnico: frontend, backend, PostgreSQL local, CI y una comprobación técnica de salud (`GET /api/health`). DEV-002 añade Prisma y la primera migración (tabla `users`). DEV-003 añade la base común del backend: configuración segura, CSRF, reglas de cuerpo, validación, formato de errores, cabeceras de seguridad y el servicio del *build* de la SPA. **Todavía no hay ninguna funcionalidad de negocio implementada.**
 
 ### **0.4. URL del proyecto:**
 
@@ -267,7 +267,7 @@ flowchart TD
 ### **1.4. Instrucciones de instalación:**
 > Documenta de manera precisa las instrucciones para instalar y poner en marcha el proyecto en local (librerías, backend, frontend, servidor, base de datos, migraciones y semillas de datos, etc.)
 
-> **Borrador de DEV-001, ampliado en DEV-002.** Cubre el arranque local del andamiaje técnico y las migraciones de Prisma. Las *seeds* se añadirán con DEV-010, y la versión definitiva de esta sección es de DEV-037.
+> **Borrador de DEV-001, ampliado en DEV-002 y DEV-003.** Cubre el arranque local del andamiaje técnico, las migraciones de Prisma y la configuración segura del backend. Las *seeds* se añadirán con DEV-010, y la versión definitiva de esta sección es de DEV-037.
 
 #### Requisitos previos
 
@@ -289,7 +289,9 @@ npm run db:migrate                       # aplica las migraciones versionadas (p
 npm run dev                              # backend en :3000 y Vite en :5173
 ```
 
-Si ya tenías un `backend/.env` de DEV-001, añade la variable `TEST_DATABASE_URL` de `backend/.env.example`.
+Si ya tenías un `backend/.env` de DEV-001 o DEV-002, compáralo con `backend/.env.example`: hacen falta `TEST_DATABASE_URL` (DEV-002) y `NODE_ENV` (obligatoria desde DEV-003; `APP_ORIGIN` tiene valor por defecto en desarrollo).
+
+Para probar la SPA tal como se servirá en producción (mismo origen, con la CSP de `helmet`), compila con `npm run build` y arranca el backend compilado con `APP_ORIGIN=http://localhost:3000 npm run start --workspace backend`: Express sirve `frontend/dist` en `http://localhost:3000`. `APP_ORIGIN` debe ser ese origen para que la comprobación CSRF acepte las peticiones de la SPA.
 
 Abre `http://localhost:5173`. La vista técnica *System status* llama a `GET /api/health` a través del *proxy* de Vite y muestra el estado del backend y de la base de datos. Para arrancar cada aplicación por separado: `npm run dev -w backend` y `npm run dev -w frontend`. `npm run db:down` detiene PostgreSQL y conserva los datos en el volumen `db-data`.
 
@@ -297,11 +299,14 @@ Abre `http://localhost:5173`. La vista técnica *System status* llama a `GET /ap
 
 | Archivo | Variable | Valor por defecto | Descripción |
 |---------|----------|-------------------|-------------|
-| `backend/.env` | `NODE_ENV` | `development` | Entorno de ejecución |
+| `backend/.env` | `NODE_ENV` | — | **Obligatoria:** `development`, `test` o `production`. Sin ella, o con otro valor, el backend no arranca. Los scripts `dev`, `test` y `test:integration` la fijan |
+| `backend/.env` | `APP_ORIGIN` | `http://localhost:5173` solo en `development`/`test` | Origen exacto de la SPA para la comprobación CSRF. **Obligatoria en `production`**, con `https` y sin ruta, *query*, fragmento ni credenciales |
 | `backend/.env` | `PORT` | `3000` | Puerto del backend |
 | `backend/.env` | `DATABASE_URL` | `postgres://calicoach:calicoach@localhost:5432/calicoach` | **Obligatoria.** Sin ella, el backend se niega a arrancar con un mensaje explícito. También es la base sobre la que actúan los comandos `db:*` |
 | `backend/.env` | `TEST_DATABASE_URL` | `postgres://calicoach:calicoach@localhost:5432/calicoach_test` | **Obligatoria para `test:integration`.** Base desechable: su nombre debe terminar en `_test` y ser distinta de `DATABASE_URL`, o las pruebas se niegan a ejecutarse. Las pruebas la crean si no existe y le aplican las migraciones |
 | `frontend/.env` (opcional) | `VITE_API_PROXY_TARGET` | `http://localhost:3000` | Destino del *proxy* `/api` de Vite |
+
+La cookie de sesión no se configura con variables: es `session` sin `Secure` en `development`/`test` y `__Host-session` con `Secure` en `production` (sección 4). La emitirá DEV-004.
 
 Solo se versionan los `.env.example`. Los `.env` están en `.gitignore`. Las credenciales de `docker-compose.yml` y de la CI son de desarrollo y no son secretos.
 
@@ -314,7 +319,7 @@ Solo se versionan los `.env.example`. Los `.env` están en `.gitignore`. Las cre
 | `npm test` | Unitarias del backend (Vitest + Supertest) y componentes del frontend (Vitest + React Testing Library) | No |
 | `npm run test:integration` | Integración del backend contra PostgreSQL real, en la base `TEST_DATABASE_URL` | Sí (`npm run db:up`) |
 | `npm run build` | Compila el backend (`backend/dist`) y el frontend (`frontend/dist`) | No |
-| `npm run test:e2e` | *Smoke* de Playwright en Chromium. Arranca el backend y Vite si no están en marcha | Sí |
+| `npm run test:e2e` | Playwright en Chromium, con dos proyectos: `chromium` (*smoke* a través del *proxy* de Vite) y `spa-build` (el *build* real servido por Express en `:3100`, con la CSP de `helmet`; compila antes de arrancar). Arranca los servidores que no estén en marcha | Sí |
 
 Antes de la primera ejecución E2E hay que descargar el navegador con `npx playwright install chromium`.
 
@@ -334,9 +339,10 @@ El esquema está en `backend/prisma/schema.prisma` y las migraciones en `backend
 - Solo existe la tabla `users` (DEV-002). No hay *seeds*, autenticación ni funcionalidades de negocio. La única ruta es `GET /api/health`.
 - Prisma 7 lee como `[]` un `users.available_weekdays` que en PostgreSQL es `NULL`. Los repositorios de DEV-004 y DEV-005 deberán convertirlo en `null` (3.2).
 - El `package.json` raíz fuerza `effect` 3.22.1 (*override*) para corregir la vulnerabilidad GHSA-7589-6fvf-x4pw del CLI de Prisma 7.10.1 (2.6).
-- El backend todavía no sirve el *build* de la SPA, ni tiene `helmet`, CSRF, `X-Request-Id` ni el manejador de errores global. Todo eso es de DEV-003.
+- El backend sirve el *build* de la SPA y aplica `helmet`, CSRF, las reglas de cuerpo y el formato de errores (DEV-003), pero aún no hay autenticación ni límite de peticiones (DEV-004), ni `trust proxy` (DEV-036).
 - La vista de diagnóstico es técnica, en inglés y sin i18n ni *tokens* de diseño (DEV-038 y DEV-039 la migrarán o retirarán).
 - `npm run dev` lanza los dos procesos con la shell (`&`), así que está pensado para Linux y macOS. En Windows, arranca cada aplicación por separado.
+- Los scripts del backend `dev`, `test` y `test:integration` fijan el entorno con la sintaxis `NODE_ENV=… comando`, que también es de Linux y macOS. En Windows no funcionan desde `cmd` ni PowerShell; hay que usar WSL o una shell POSIX como Git Bash. No se ha añadido `cross-env` (decisión de la revisión de DEV-003).
 - No hay despliegue (DEV-036).
 
 ---
@@ -766,7 +772,10 @@ La regla `partial` / `skipped` está en `sessionLifecycle.resolveClosure` y el r
 
 **Añadido en DEV-002.**
 - **Backend:** `prisma.config.ts`, `prisma/schema.prisma` y `prisma/migrations/` (tabla `users`); `src/shared/prisma.ts` con la factoría `createPrisma(pool)`, que reutiliza el pool de `db.ts` y todavía no se usa en las rutas; `src/generated/prisma/` (Prisma Client, generado en `npm install` y fuera de Git); `tests/support/` (salvaguardas de la base de pruebas).
-- Todavía no existen `domain/`, `jobs/`, las *seeds*, `locales/` ni los módulos de negocio.
+
+**Añadido en DEV-003.**
+- **Backend:** `src/domain/clock.ts` (interfaz `Clock`, `systemClock` y `fixedClock`; el primer archivo de `domain/`) y `src/shared/http/` (`errors.ts`, `request-id.ts`, `csrf.ts`, `body.ts`, `validate.ts`, `security-headers.ts`, `spa.ts` y `error-handler.ts`). `src/shared/config.ts` incorpora `NODE_ENV`, `APP_ORIGIN`, la cookie de sesión y el arranque seguro.
+- Todavía no existen `jobs/`, las *seeds*, `locales/` ni los módulos de negocio.
 
 ### **2.4. Infraestructura y despliegue**
 
@@ -795,7 +804,7 @@ flowchart LR
 
 > Enumera y describe las prácticas de seguridad principales que se han implementado en el proyecto, añadiendo ejemplos si procede
 
-> Son medidas **previstas** y aún no implementadas.
+> Son medidas **previstas**. Desde DEV-003 están implementadas las comunes: cabeceras de `helmet` con CSP estricta, protección CSRF, regla de cuerpo y tipo de contenido, validación con Zod, manejador de errores sin trazas, arranque seguro y el servicio de la SPA bajo el mismo origen (ver "Implementación en DEV-003", al final de esta sección). Contraseñas, JWT, límite de peticiones y autorización por usuario llegan con DEV-004 y siguientes.
 
 | Área | Medida [Propuesta] |
 |------|--------------------|
@@ -855,6 +864,17 @@ Las cookies viajan solas en cada petición, así que cualquier operación que mo
 - Si el dominio por defecto de la plataforma PaaS **no** está en la *Public Suffix List*, otras aplicaciones bajo el mismo dominio padre serían *same-site* y `SameSite=Lax` no protegería. Las comprobaciones de `Origin` y de la cabecera personalizada siguen protegiendo. Se recomienda un dominio propio.
 - Capacitor (`capacitor://localhost`) tendrá otro origen. Su autenticación se rediseñará en esa fase y queda fuera del MVP.
 
+#### Implementación en DEV-003
+
+- **Orden de los controles** (sección 4): `X-Request-Id` y `helmet` → CSRF en todo `POST`, `PUT`, `PATCH` y `DELETE` bajo `/api` → cuerpo y tipo de contenido por ruta (`jsonBody` o `noBody`) → validación Zod (`validate`) → servicio → `404` en JSON y manejador central de errores. El límite de peticiones y la autenticación se insertarán entre el cuerpo y la validación (DEV-004).
+- **CSRF:** `Origin` igual a `APP_ORIGIN` (`null` se rechaza); sin `Origin`, `Sec-Fetch-Site: same-origin` o un `Referer` del mismo origen; y siempre `X-CSRF-Protection: 1` (cualquier otro valor también se rechaza) → `403 CSRF_REJECTED`. Se evalúa antes de leer el cuerpo, así que un `Origin` ajeno con JSON mal formado recibe `403`.
+- **Cuerpo:** las operaciones con cuerpo exigen `application/json` (→ `415`), JSON válido (→ `400 MALFORMED_JSON`) y como máximo **16 KB** (→ `413 PAYLOAD_TOO_LARGE`). Las operaciones sin cuerpo no exigen `Content-Type` y rechazan cualquier cuerpo no vacío, incluido `{}` o uno por fragmentos (→ `400 VALIDATION_ERROR`).
+- **Errores:** `{ error: { code, message, details?, requestId } }` con `Content-Type: application/json`. El `requestId` coincide con la cabecera `X-Request-Id`, un UUID nuevo en cada respuesta que ignora el valor del cliente. Un error no controlado responde `500 INTERNAL_ERROR` sin traza, SQL ni mensaje interno **en ningún entorno**; la causa va al *log* con el `requestId`.
+- **`helmet`:** CSP `default-src 'self'` sin `'unsafe-inline'` (tampoco en estilos: la vista de diagnóstico usa una hoja de estilos), `object-src 'none'` y `frame-ancestors 'none'`. HSTS y `upgrade-insecure-requests` solo con `NODE_ENV=production`. `trust proxy` sigue desactivado hasta DEV-036.
+- **Arranque seguro:** `NODE_ENV` obligatorio (`development`, `test` o `production`) y, en `production`, `APP_ORIGIN` con `https`, o el servidor no arranca. La cookie es fija por entorno, sin variables: en `production` siempre es `__Host-session` con `Secure`, así que no se puede relajar.
+- **`Clock`:** se inyecta con `createApp({ clock })` y solo se admite un reloj distinto del del sistema con `NODE_ENV=test`. No hay variables ni endpoints para controlarlo.
+- **SPA:** Express sirve `frontend/dist` si existe. Las rutas `GET` sin extensión de fichero reciben `index.html`; `/api` nunca se intercepta, y un recurso estático inexistente responde `404`. El proyecto E2E `spa-build` lo comprueba con el *build* real en Chromium, sin violaciones de CSP.
+
 ### **2.6. Tests**
 
 > Describe brevemente algunos de los tests realizados
@@ -890,6 +910,22 @@ Otras comprobaciones locales de DEV-002:
   - **Entrada del *lockfile* ajustada a mano.** Con npm *workspaces*, npm 11.6.2 (y también npm 12) ignora el *override* si ya existe un `package-lock.json`, incluso tras desinstalar y reinstalar Prisma; solo lo aplica al regenerar el *lockfile* desde cero, lo que cambiaba 15 dependencias transitivas ajenas a DEV-002 (entre ellas una segunda copia de `vite`). Por eso se sustituyó solo la entrada `node_modules/effect` por la que npm resuelve con el *override* (3.22.1, `resolved` e `integrity` del registro). `npm ci` desde cero produce siempre el mismo árbol, y `npm install`, `npm update` o `npm dedupe` posteriores conservan 3.22.1.
   - **`npm ls` marca `effect` como `invalid`** y termina con código 1, porque compara la versión instalada con la exacta que declara `@prisma/config` (3.20.0) sin aplicar el *override*. Ocurre también en una instalación limpia con *workspaces* (sin ellos, npm muestra `overridden`). Es un problema de cómo npm presenta el árbol: `npm ci`, `npm audit` y las operaciones de Prisma funcionan.
   - **Retirada:** el *override* se eliminará en un ticket de mantenimiento, después de verificar una versión estable de Prisma que incorpore la corrección.
+
+**Pruebas de DEV-003 y resultados** (ejecución **local** del 2026-11-26, Node 24.13.0 y PostgreSQL 17.12 en Docker). **Pendiente de verificar en GitHub Actions** hasta que exista el PR. Las pruebas de la API usan rutas de prueba que solo inyectan los tests (`createApp({ extraApiRoutes })`) y no necesitan PostgreSQL:
+
+| Suite | Archivo | Qué comprueba | Resultado local |
+|-------|---------|---------------|-----------------|
+| Configuración | `src/shared/config.test.ts` | Las 3 pruebas de DEV-001 y 24 nuevas: `NODE_ENV` obligatorio y limitado; `APP_ORIGIN` por defecto en desarrollo, obligatorio y `https` en producción, sin ruta, *query*, fragmento ni credenciales; cookie fija por entorno, que no se puede relajar en producción con variables de entorno | 27/27 |
+| `Clock` | `src/domain/clock.test.ts` | Reloj del sistema, reloj fijo inmutable y rechazo de instantes no válidos | 4/4 |
+| Contrato común | `src/app.contract.test.ts` | API-01–API-05 (CSRF y `415`); operaciones sin cuerpo (sin `Content-Type`, con cuerpo JSON, de texto, `{}` o por fragmentos); `400 MALFORMED_JSON`; `413` con más de 16 KB; precedencia de los controles; API-36–API-38 (formato, `details.fields`, `uuid` de ruta, días repetidos, `404` JSON y `500` en producción sin traza ni SQL); `X-Request-Id`; cabeceras de `helmet`; inyección del `Clock`; servicio de la SPA | 67/67 |
+| Salud (DEV-001) | `src/modules/health/health.test.ts` y `tests/integration/health.test.ts` | Sin cambios en las aserciones: solo reciben la configuración que ahora exige `createApp` | 2/2 y 2/2 |
+
+| SPA real con la CSP (E2E) | `e2e/tests/spa-build.csp.spec.ts` (proyecto `spa-build`) | El *build* real servido por Express: `/` y `/today` devuelven la aplicación, que llega al backend y a PostgreSQL; la CSP contiene las directivas aprobadas, sin `unsafe-inline` ni `unsafe-eval`; los recursos de `/assets/` cargan con `200`, la hoja de estilos se aplica, y no hay violaciones de CSP (`securitypolicyviolation`) ni errores en la consola; un control positivo comprueba que un estilo en línea sí se detecta como violación; `/api/*` no queda interceptado; un recurso estático inexistente responde `404` | 5/5 |
+
+Otras comprobaciones locales de DEV-003:
+- **Regresión:** *lint*, tipos y *build* sin errores; componentes del frontend 5/5; integración con PostgreSQL 36/36 (DEV-001 y DEV-002) en `calicoach_test`, con la base de desarrollo sin tocar; *smoke* E2E de DEV-001 1/1. El E2E completo (6/6) se ejecutó con `CI=1` y los servidores arrancados desde cero.
+- **Arranque seguro con el servidor compilado:** sin `NODE_ENV`, con `NODE_ENV=staging`, en producción sin `APP_ORIGIN` o con `APP_ORIGIN` `http`, el proceso termina con código 1 y un mensaje explícito. Con una configuración de producción válida arranca, y las antiguas variables de la cookie no tienen ningún efecto.
+- **Dependencias:** `helmet` 8.3.0 (nueva) y `zod` 4.6.7 (ya estaba en el *lockfile* como dependencia transitiva), con versión exacta. Ninguna otra versión del *lockfile* cambia, `effect` sigue en 3.22.1 y `npm audit --audit-level=high` informa de 0 vulnerabilidades.
 
 
 | Nivel | Herramienta | Qué se prueba | Casos clave |
@@ -1503,7 +1539,7 @@ Todas están **[Confirmada]** (registro DP-01 a DP-17 en 1.2). **Ninguna exige c
 
 > Si tu backend se comunica a través de API, describe los endpoints principales (máximo 3) en formato OpenAPI. Opcionalmente puedes añadir un ejemplo de petición y de respuesta para mayor claridad
 
-> **Estado de esta sección:** describe el **contrato REST propuesto** para el MVP. Ningún endpoint de negocio está implementado. Solo existe el endpoint técnico `GET /api/health` (DEV-001). Etiquetas, como en las secciones 2 y 3:
+> **Estado de esta sección:** describe el **contrato REST propuesto** para el MVP. Ningún endpoint de negocio está implementado. Solo existe el endpoint técnico `GET /api/health` (DEV-001). Desde DEV-003 están implementadas las convenciones comunes: orden de los controles, CSRF, cuerpo y tipo de contenido, validación Zod, `404` en JSON y formato de errores con `requestId` (2.5, "Implementación en DEV-003"). Etiquetas, como en las secciones 2 y 3:
 > - **[Confirmada]:** reglas de producto.
 > - **[Propuesta]:** rutas, formatos y códigos HTTP. Es el valor por defecto de toda la sección.
 > - **[Pendiente]:** necesita una decisión del Product Owner.
@@ -1681,8 +1717,8 @@ Todas las respuestas de error usan la misma estructura:
 - **Autenticación:** no requiere (excepción documentada en las convenciones generales). No pasa por CSRF porque es un `GET` sin efectos.
 - **Comportamiento:** ejecuta `SELECT 1` con un tiempo máximo de 2 s. Responde con `Cache-Control: no-store`.
 - **Respuesta `200`:** `{ "status": "ok", "database": "up" }`.
-- **Respuesta `503`:** `{ "error": { "code": "TEMPORARILY_UNAVAILABLE", "message": "Database is unavailable.", "details": { "database": "down" } } }`. No incluye la causa interna ni la cadena de conexión, que solo van al *log*.
-- **Pendiente:** el campo `requestId` del formato de errores se añadirá cuando exista `X-Request-Id` (DEV-003).
+- **Respuesta `503`:** `{ "error": { "code": "TEMPORARILY_UNAVAILABLE", "message": "Database is unavailable.", "details": { "database": "down" }, "requestId": "<uuid>" } }`. No incluye la causa interna ni la cadena de conexión, que solo van al *log*.
+- **Desde DEV-003:** todas sus respuestas llevan `X-Request-Id` y las cabeceras de `helmet`, y el `503` incluye `requestId` con el mismo valor.
 
 #### Autenticación
 
@@ -3755,6 +3791,18 @@ Cada ticket añade solo lo que le es propio.
   - API-01–API-06 y API-36–API-38 sobre rutas de prueba;
   - unitarias de configuración.
 - **Pendiente:** ninguno.
+- **Estado:** **implementado en local, pendiente de PR** (rama `feature/dev-003-backend-foundation`). Decisiones técnicas aprobadas para este ticket:
+  - D1: `helmet` 8.3.0 y `zod` 4.6.7, versiones exactas y sujetas a `npm audit`; sin `cors`;
+  - D2: `APP_ORIGIN` obligatorio fuera de `development`/`test`, `https` y sin ruta ni credenciales en producción; `http://localhost:5173` por defecto en `development`/`test`;
+  - D3: cookie fija por entorno, sin variables para cambiarla: `session` sin `Secure` en `development`/`test` y `__Host-session` con `Secure` en producción; la cookie no se emite todavía (DEV-004). Una primera versión admitía `SESSION_COOKIE_NAME` y `SESSION_COOKIE_SECURE` en desarrollo; el autor pidió quitarlas en la revisión;
+  - D4: `NODE_ENV` obligatorio y limitado a `development`, `test` y `production`, fijado de forma explícita en los scripts y en la CI;
+  - D5: `Clock` solo por inyección programática, sin variables ni endpoints de control del reloj;
+  - D6: rutas de prueba inyectadas solo desde los tests; API-06 (*login CSRF*) se cubre en DEV-004;
+  - D7: cuerpos JSON de 16 KB como máximo, con `413`;
+  - D8: CSP estricta sin `'unsafe-inline'`; los estilos de la vista de diagnóstico pasan a CSS; sin HSTS ni `upgrade-insecure-requests` en `development`/`test`; comprobación automatizada con el proyecto E2E `spa-build`;
+  - D9: Express sirve `frontend/dist` con *fallback* a `index.html`, sin interceptar `/api` ni ocultar recursos estáticos inexistentes;
+  - D10: `X-Request-Id` siempre nuevo, ignorando el del cliente;
+  - D11: `trust proxy` desactivado hasta DEV-036, sin variables nuevas.
 
 **DEV-004 — Autenticación: registro, inicio, sesión actual y cierre**
 - **Incremento:** I1.
@@ -4668,6 +4716,7 @@ Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha ver
 | [#3](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/3) | `feat: initialize Cali Coach scaffolding and Claude harness (DEV-001)` | Implementación (Entrega 2) | `feature/dev-001-scaffolding` → `main` | 2026-11-22 | `4a885e9` | En verde |
 | [#4](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/4) | `docs: record DEV-001 closure and pull request history` | Documentación (cierre de DEV-001) | `docs/dev-001-closure` → `main` | 2026-11-22 | `bdc273a` | En verde |
 | [#5](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/5) | `feat: add users persistence with Prisma 7 (DEV-002)` | Implementación (Entrega 2) | `feature/dev-002-users-persistence` → `main` | 2026-11-26 | `44e228f` | En verde |
+| [#6](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/6) | `docs: record DEV-002 closure and PR #5 evidence` | Documentación (cierre de DEV-002) | `docs/dev-002-closure` → `main` | 2026-11-26 | `fc95091` | En verde |
 
 Todas se fusionaron con *merge commit*, que es la estrategia habitual del repositorio.
 
@@ -4786,3 +4835,24 @@ Todas se fusionaron con *merge commit*, que es la estrategia habitual del reposi
 | [45877301836](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45877301836) | `push` a `main` tras el merge `44e228f` | Las mismas comprobaciones: en verde |
 
 - **Revisión humana:** el autor revisó los resultados por etapas (B1, B2/B3 y una revisión de reproducibilidad del *lockfile*), eligió la alternativa A para el *override* de `effect`, autorizó el commit, el push y el PR y, tras revisar la CI, autorizó el merge. Lo fusionó desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
+
+**Pull Request 6**
+
+**#6 — `docs: record DEV-002 closure and PR #5 evidence`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/6)
+
+- **Rama:** `docs/dev-002-closure` → `main`. Un commit (`574e73e`). Creada y fusionada el 2026-11-26 con *merge commit* (`fc95091`).
+- **Propósito:** cerrar la documentación de DEV-002 después del merge del PR #5. Es solo documental.
+- **Contenido:**
+  - el PR #5 en esta sección 7 (índice y ficha);
+  - DEV-002 "terminado" en la sección 6, y la CI de DEV-002 en verde en 2.4 y 2.6;
+  - la aprobación final, la evidencia de CI y el cierre en el Prompt 20 de `prompts.md`. Los Prompts 16–18 no cambian.
+- **Tamaño:** 2 archivos, +40 y −5 líneas.
+- **Pruebas locales:** no aplica (sin código). `git diff --check` sin errores.
+- **GitHub Actions:**
+
+| Ejecución | Evento | Resultado |
+|-----------|--------|-----------|
+| [45879456609](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45879456609) | `pull_request` (`574e73e`) | En verde. E2E omitido por diseño |
+| [45879963777](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45879963777) | `push` a `main` tras el merge `fc95091` | En verde |
+
+- **Revisión humana:** el autor aprobó el diff documental antes del commit y autorizó publicar el PR. **El merge lo hizo el autor manualmente en GitHub** (`merged_by`: el autor), no desde la sesión de Claude Code. GitHub no registra revisiones ni comentarios.

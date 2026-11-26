@@ -20,6 +20,8 @@ permissions:
 
 # Credenciales de un PostgreSQL efímero de CI: no son secretos.
 # DATABASE_URL hace de base "de desarrollo"; las pruebas de integración usan solo TEST_DATABASE_URL.
+# NODE_ENV es obligatorio en el backend (DEV-003): los scripts test, test:integration y dev lo
+# fijan, y los pasos que cargan la configuración lo declaran también de forma explícita.
 env:
   DATABASE_URL: postgres://calicoach:calicoach@localhost:5432/calicoach
   TEST_DATABASE_URL: postgres://calicoach:calicoach@localhost:5432/calicoach_test
@@ -58,6 +60,8 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
       - name: Unit and component tests
+        env:
+          NODE_ENV: test
         run: npm test
       - name: Apply migrations (prisma migrate deploy)
         run: npm run db:migrate
@@ -66,6 +70,8 @@ jobs:
       - name: Schema drift check (does not cover manual CHECK constraints)
         run: npm run db:drift
       - name: Test database guard refuses the development database
+        env:
+          NODE_ENV: test
         run: |
           if TEST_DATABASE_URL="$DATABASE_URL" npm run test:integration > guard.log 2>&1; then
             echo "The guard accepted DATABASE_URL as the test database" && exit 1
@@ -79,6 +85,8 @@ jobs:
           psql -h localhost -U calicoach -d calicoach -v ON_ERROR_STOP=1 -c
           "INSERT INTO users (email, password_hash, timezone) VALUES ('sentinel@ci.invalid', 'n/a', 'UTC')"
       - name: Backend integration tests (PostgreSQL, calicoach_test)
+        env:
+          NODE_ENV: test
         run: npm run test:integration
       - name: Development database untouched by the tests
         env:
@@ -117,6 +125,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      # El backend arranca con `npm run dev` (NODE_ENV=development y APP_ORIGIN por defecto).
       - name: Playwright smoke
         run: npm run test:e2e
       - if: failure()

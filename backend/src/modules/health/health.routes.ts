@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import type { DatabaseCheck } from '../../shared/db.js';
+import { sendError } from '../../shared/http/errors.js';
 
 export interface HealthOk {
   status: 'ok';
@@ -21,13 +22,7 @@ export function healthRouter(checkDatabase: DatabaseCheck): Router {
       res.status(200).json(body);
     } catch (err) {
       console.error('[health] database check failed:', err instanceof Error ? err.message : err);
-      res.status(503).json({
-        error: {
-          code: 'TEMPORARILY_UNAVAILABLE',
-          message: 'Database is unavailable.',
-          details: { database: 'down' },
-        },
-      });
+      sendError(res, 503, 'TEMPORARILY_UNAVAILABLE', 'Database is unavailable.', { database: 'down' });
     }
   });
 

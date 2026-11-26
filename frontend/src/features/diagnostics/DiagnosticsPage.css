@@ -1,0 +1,10 @@
+/*
+ * Estilos de la vista técnica de diagnóstico (DEV-001). Están en una hoja de estilos y no en
+ * línea porque la CSP del backend no admite 'unsafe-inline' (DEV-003, D8).
+ */
+.diagnostics {
+  font-family: system-ui, sans-serif;
+  padding: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+}

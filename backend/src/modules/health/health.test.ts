@@ -2,9 +2,11 @@ import request from 'supertest';
 import { describe, expect, it, vi } from 'vitest';
 import { createApp } from '../../app.js';
 
+const config = { nodeEnv: 'test', appOrigin: 'http://localhost:5173' } as const;
+
 describe('GET /api/health', () => {
   it('responds 200 when the database check succeeds', async () => {
-    const app = createApp({ checkDatabase: vi.fn().mockResolvedValue(undefined) });
+    const app = createApp({ config, checkDatabase: vi.fn().mockResolvedValue(undefined) });
 
     const res = await request(app).get('/api/health');
 
@@ -16,6 +18,7 @@ describe('GET /api/health', () => {
   it('responds 503 TEMPORARILY_UNAVAILABLE without leaking internals when the database check fails', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     const app = createApp({
+      config,
       checkDatabase: vi.fn().mockRejectedValue(new Error('connect ECONNREFUSED postgres://secret@db:5432')),
     });
 

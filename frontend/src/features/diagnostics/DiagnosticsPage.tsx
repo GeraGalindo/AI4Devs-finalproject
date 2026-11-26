@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { checkHealth, type HealthResult } from './checkHealth';
+import './DiagnosticsPage.css';
 
 type State = { kind: 'loading' } | HealthResult;
 
@@ -28,7 +29,7 @@ export function DiagnosticsPage({ fetchFn }: { fetchFn?: typeof fetch }) {
   }, []);
 
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: '16px', maxWidth: '480px', margin: '0 auto' }}>
+    <main className="diagnostics">
       <h1>Cali Coach — System status</h1>
       <p role="status" aria-live="polite" data-testid="health-status">
         {describe(state)}

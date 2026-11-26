@@ -38,6 +38,7 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 | 18 | Alineación documental con las entregas de AI4Devs | **Anexo**, porque es transversal | `readme.md` (secciones 1, 2, 4, 5, 6 y 7) y `prompts.md` |
 | 19 | DEV-001: *scaffolding* técnico, CI y *harness* inicial | Sección 2.4, Prompt 2 | Código nuevo (`backend/`, `frontend/`, `e2e/`, CI y configuración), `CLAUDE.md` (nuevo), `readme.md` (0.3, 1.4, 2.1, 2.3, 2.4, 2.6, 4 y 6) y `prompts.md` |
 | 20 | DEV-002: persistencia de `users` con Prisma 7 | Sección 3, Prompt 3 | Código nuevo (`backend/prisma/`, `prisma.config.ts`, `src/shared/prisma.ts`, pruebas de integración y de soporte), `package.json`, `package-lock.json`, CI, `CLAUDE.md`, `readme.md` (0.3, 1.4, 2, 2.3, 2.4, 2.6, 3.1, 3.2, 6 y 7) y `prompts.md` |
+| 21 | DEV-003: base del backend (configuración segura, *middleware* y errores) | Sección 4, Prompt 3 | Código nuevo (`backend/src/domain/clock.ts`, `backend/src/shared/http/`, pruebas), `backend/src/app.ts`, `server.ts`, `config.ts`, `/api/health`, la vista de diagnóstico (CSS), dependencias, CI, `CLAUDE.md`, `readme.md` (0.3, 1.4, 2.3, 2.5, 2.6, 4, 6 y 7) y `prompts.md` |
 
 **Notas:**
 - **Numeración:** los prompts 01–05 y 11–15 llevan el número que les dio el autor. Los números 06–10 los asignó la IA al documentarlos, siguiendo la secuencia.
@@ -45,6 +46,7 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 - **Prompts 16, 17 y 18:** son transversales y se registran en el **Anexo** del final de este archivo. El 17 queda como referencia pendiente hasta conocer su resultado.
 - **Prompt 19:** es el primero de implementación. Se registra en 2.4 (Infraestructura y despliegue), cuyo hueco estaba libre, e incluye el prompt de la Fase A y la aprobación de la Fase B, que forman un único encargo.
 - **Prompt 20:** DEV-002 se registra en la sección 3 (Modelo de datos), cuyo hueco del Prompt 3 estaba libre. Incluye el prompt de la Fase A y las dos aprobaciones (antes de B1 y antes de B2), que forman un único encargo.
+- **Prompt 21:** DEV-003 se registra en la sección 4 (Especificación de la API), cuyo hueco del Prompt 3 estaba libre, porque implementa las convenciones comunes del contrato. Incluye el prompt de análisis (que también verificó el merge del PR #6) y la aprobación de la implementación.
 
 ---
 
@@ -1776,7 +1778,7 @@ Si aparece un problema que requiera cambiar el contrato de datos, introducir una
 
 ### 4. Especificación de la API
 
-> Los dos prompts de esta sección definieron y revisaron el contrato REST. El Prompt 2 modificó también la sección 2 de `readme.md` (2.2, 2.5 y 2.6) para alinearla con el contrato. Se documenta solo aquí, porque los huecos de la sección 2 ya están ocupados por los prompts 03–05. El hueco del Prompt 3 queda libre.
+> Los dos prompts de esta sección definieron y revisaron el contrato REST. El Prompt 2 modificó también la sección 2 de `readme.md` (2.2, 2.5 y 2.6) para alinearla con el contrato. Se documenta solo aquí, porque los huecos de la sección 2 ya están ocupados por los prompts 03–05. El Prompt 3 es el Prompt 21 (DEV-003), que implementa las convenciones comunes del contrato.
 
 **Prompt 1:**
 
@@ -2066,6 +2068,200 @@ No avances a la sección 5.
   - no se generó código y no se ejecutaron pruebas.
 
 **Prompt 3:**
+
+*Prompt 21 — DEV-003: base del backend (configuración segura, middleware y errores)*
+
+- **Herramienta:** Claude Code (modelo `claude-opus-5-5`), en la misma sesión que DEV-001 y DEV-002.
+- **Objetivo:** verificar el merge del PR #6 (cierre de DEV-002), analizar DEV-003 sin modificar archivos y, tras la aprobación de las decisiones D1–D11, implementarlo en cuatro etapas: configuración segura y `Clock`; *middleware*, Zod, CSRF, reglas de contenido, `requestId` y errores; `helmet`, CSP y la SPA; CI, documentación y este registro. Sin autenticación, límite de peticiones ni otros tickets.
+- **Archivos afectados:** nuevos `backend/src/domain/clock.ts` y su prueba, `backend/src/shared/http/` (`errors.ts`, `request-id.ts`, `csrf.ts`, `body.ts`, `validate.ts`, `security-headers.ts`, `spa.ts` y `error-handler.ts`), `backend/src/app.contract.test.ts`, `frontend/src/features/diagnostics/DiagnosticsPage.css` y `e2e/tests/spa-build.csp.spec.ts`. Modificados: `e2e/playwright.config.ts` (proyecto `spa-build`), `e2e/tsconfig.json` (tipos DOM), `backend/src/app.ts`, `server.ts`, `shared/config.ts` y su prueba, `modules/health/health.routes.ts`, las dos pruebas de salud (solo para pasar la configuración), `DiagnosticsPage.tsx`, `backend/package.json` (`helmet`, `zod` y `NODE_ENV` en los scripts), `package-lock.json`, `backend/.env.example`, `.github/workflows/ci.yml`, `CLAUDE.md`, `readme.md` (0.3, 1.4, 2.3, 2.5, 2.6, 4, 6 y 7) y `prompts.md` (este registro y el mapa).
+
+Texto literal del prompt (análisis):
+
+```text
+# Cali Coach — Verificación del PR #6 y análisis de DEV-003
+
+El Product Owner ya realizó manualmente el merge del PR #6 en GitHub:
+
+https://github.com/GeraGalindo/AI4Devs-finalproject/pull/6
+
+**No debes intentar hacer nuevamente el merge.**
+
+## Fase 1 — Verificación y sincronización
+
+1. Confirma que el PR #6 aparece como MERGED en GitHub.
+2. Identifica el merge commit y verifica que incluye el commit aprobado `574e73e`.
+3. Ejecuta `git fetch origin` y actualiza la rama local `main` mediante fast-forward, sin sobrescribir cambios locales.
+4. Confirma que `main` coincide con `origin/main`.
+5. Verifica que el árbol de trabajo está limpio.
+6. Comprueba el resultado de GitHub Actions sobre `main` después del merge.
+7. Confirma que DEV-002 está completamente cerrado, incluyendo su documentación.
+
+Si encuentras conflictos, cambios inesperados o una CI fallida, detente y consulta antes de continuar.
+
+## Fase 2 — Análisis técnico de DEV-003 (solo lectura)
+
+Una vez confirmado el merge y la CI de `main`, comienza exclusivamente el análisis de DEV-003.
+
+Consulta el backlog y la arquitectura existentes para identificar:
+
+- Alcance y criterios de aceptación exactos de DEV-003.
+- Dependencias con DEV-001 y DEV-002.
+- Estado actual del backend Express.
+- Requisitos de seguridad, manejo de errores y configuración.
+- Archivos que sería necesario modificar.
+- Pruebas necesarias y riesgos de regresión.
+- Decisiones técnicas que requieren aprobación del Product Owner.
+- Propuesta de implementación por etapas.
+
+Prioriza mantener el alcance del ticket y reutilizar las convenciones del proyecto.
+
+## Restricciones
+
+- No implementes DEV-003 todavía.
+- No modifiques archivos durante el análisis.
+- No crees una rama de implementación sin autorización.
+- No comiences DEV-004.
+- No hagas commits ni crees Pull Requests.
+- No ejecutes operaciones destructivas sobre las bases de datos.
+
+## Entregable
+
+Presenta:
+
+1. Estado del PR #6 y hash del merge.
+2. Hash actualizado de `main` y resultado de su CI.
+3. Confirmación del cierre de DEV-002.
+4. Informe de análisis técnico de DEV-003.
+5. Decisiones que requieren aprobación antes de implementar.
+
+Detente después del informe y espera mi revisión.
+```
+
+Texto literal de la aprobación (implementación):
+
+```text
+# Cali Coach — DEV-003: aprobación de decisiones e implementación
+
+He revisado tu análisis técnico de DEV-003.
+
+Apruebo continuar con la implementación de **DEV-003 — Seguridad y manejo de errores del backend**, con las decisiones y condiciones siguientes.
+
+## Decisiones D1–D11
+
+- **D1:** aprobar helmet 8.3.0 y zod 4.6.7, fijados a versiones exactas y sujetos a npm audit. No añadir cors.
+- **D2:** aprobar APP_ORIGIN obligatorio fuera de development/test. En producción debe ser HTTPS y representar un origen válido, sin ruta ni credenciales. En development/test puede usarse http://localhost:5173 por defecto.
+- **D3:** aprobar configuración de cookie según entorno: session en development/test y __Host-session con Secure en producción. Rechazar cualquier override inseguro fuera de development/test. No emitir todavía cookies.
+- **D4:** NODE_ENV obligatorio, limitado a development, test y production. Actualizar explícitamente scripts, tests y CI.
+- **D5:** implementar Clock mediante inyección programática. No añadir CLOCK_FIXED_NOW ni endpoints de control del reloj.
+- **D6:** inyectar rutas de prueba exclusivamente desde los tests. Cubrir API-01–05 y posponer API-06 a DEV-004.
+- **D7:** limitar cuerpos JSON a 16 KB y responder 413 cuando corresponda.
+- **D8:** utilizar CSP estricta, sin unsafe-inline para estilos. Mover los estilos inline de la vista de diagnóstico a CSS. Desactivar HSTS y upgrade-insecure-requests en development/test. Verificar que la SPA funciona con la CSP aplicada.
+- **D9:** servir frontend/dist si existe y devolver index.html para rutas GET de la SPA, sin interceptar /api ni ocultar errores de recursos estáticos.
+- **D10:** generar siempre un UUID nuevo como X-Request-Id, ignorando cualquier valor proporcionado por el cliente.
+- **D11:** posponer trust proxy a DEV-036. Mantenerlo desactivado y no introducir variables adicionales en DEV-003.
+
+## Condiciones de seguridad
+
+1. Mantener el contrato de errores `{ error: { code, message, requestId } }`, con details cuando corresponda.
+2. No exponer trazas, SQL ni información sensible en respuestas de producción.
+3. Aplicar los controles CSRF y de contenido en el orden establecido en el contrato.
+4. Verificar que las peticiones con Origin inválido y JSON malformado reciben el rechazo CSRF previsto.
+5. Verificar el comportamiento de peticiones sin cuerpo, con cuerpo inesperado, JSON malformado y contenido demasiado grande.
+6. Comprobar que todas las respuestas de API, incluidos errores y /api/health, tienen un requestId coherente con la cabecera.
+7. No relajar los controles para hacer pasar las pruebas.
+8. Preservar el aislamiento de bases de datos establecido en DEV-002.
+
+## Implementación autorizada
+
+Puedes crear la rama:
+
+`feature/dev-003-backend-foundation`
+
+Desde `main` en `fc95091`, después de comprobar que continúa sincronizada con origin/main.
+
+Implementa las cuatro etapas propuestas:
+
+1. Configuración segura y Clock.
+2. Middleware, validación Zod, CSRF, reglas de contenido, requestId y errores.
+3. Helmet, CSP y servicio de SPA.
+4. CI, documentación y Prompt 21.
+
+Registra también el PR #6 en la sección 7 del README, como parte de la actualización documental de DEV-003.
+
+No alteres los Prompts 17 y 18.
+
+## Validación
+
+Ejecuta:
+
+- Lint, typecheck y build.
+- Pruebas unitarias de configuración y Clock.
+- Pruebas API-01–05 y API-36–38.
+- Pruebas de precedencia de errores y seguridad.
+- Regresión de DEV-001 y DEV-002.
+- Integración con PostgreSQL real.
+- E2E smoke.
+- npm audit --audit-level=high.
+- git diff --check.
+
+Si aparecen incompatibilidades que exijan cambiar contratos, reducir controles de seguridad o ampliar el alcance, detente y consulta.
+
+## Entregable
+
+Al terminar presenta:
+
+1. Archivos creados y modificados.
+2. Decisiones implementadas.
+3. Resultados de pruebas y criterios de aceptación.
+4. Riesgos o limitaciones restantes.
+5. Resumen del diff.
+6. Estado de Git.
+
+**No hagas commit, push ni crees un PR todavía.**
+
+Espera mi revisión y autorización antes de publicar.
+```
+
+**Decisiones humanas** (respuesta del autor a las decisiones D1–D11 que planteó la IA en el análisis):
+- **D1:** `helmet` 8.3.0 y `zod` 4.6.7 con versión exacta y sujetos a `npm audit`; sin `cors`.
+- **D2:** `APP_ORIGIN` obligatorio fuera de `development`/`test`; en producción, `https` y un origen válido sin ruta ni credenciales; `http://localhost:5173` por defecto en `development`/`test`.
+- **D3:** cookie `session` en `development`/`test` y `__Host-session` con `Secure` en producción, rechazando cualquier valor inseguro fuera de `development`/`test`; sin emitir cookies todavía.
+- **D4:** `NODE_ENV` obligatorio y limitado a `development`, `test` y `production`, actualizando scripts, pruebas y CI.
+- **D5, con modificación:** `Clock` solo por inyección programática. La IA había propuesto además, como opción, una variable `CLOCK_FIXED_NOW`; el autor la descartó, igual que los endpoints de control del reloj.
+- **D6:** rutas de prueba inyectadas solo desde los tests; API-01–05 en DEV-003 y API-06 en DEV-004.
+- **D7:** 16 KB como máximo y `413`.
+- **D8:** de las dos opciones planteadas, la CSP estricta sin `'unsafe-inline'`, moviendo los estilos de la vista de diagnóstico a CSS; sin HSTS ni `upgrade-insecure-requests` en `development`/`test`, y comprobando la SPA con la CSP aplicada.
+- **D9:** servir `frontend/dist` con *fallback* a `index.html`, sin interceptar `/api` ni ocultar errores de recursos estáticos.
+- **D10:** `X-Request-Id` siempre nuevo, ignorando el del cliente.
+- **D11:** `trust proxy` pospuesto a DEV-036, sin variables nuevas.
+- Condiciones adicionales: mantener el contrato de errores, no exponer trazas ni SQL, respetar el orden de los controles, verificar la precedencia (un `Origin` inválido con JSON mal formado recibe `403`), comprobar el `requestId` en todas las respuestas, no relajar controles para pasar pruebas, preservar el aislamiento de DEV-002 y registrar el PR #6 en la sección 7.
+
+**Resultado generado por la IA:**
+- **Verificación del PR #6:** fusionado manualmente por el autor (`fc95091`, que incluye `574e73e`), `main` sincronizada por *fast-forward* y CI de `main` en verde. Detectó que el PR #6 faltaba en la sección 7.
+- **Análisis:** alcance y criterios de DEV-003; frontera con DEV-004 (límite de peticiones, autenticación y JWT); el riesgo de que `NODE_ENV` tomara `development` por defecto, lo que habría activado la cookie relajada en un despliegue mal configurado; el `requestId` pendiente en `/api/health`; los estilos en línea de la vista de diagnóstico frente a la CSP; y once decisiones.
+- **Etapa 1:** `loadConfig` con `NODE_ENV` obligatorio, `APP_ORIGIN` validado y normalizado, configuración de la cookie y arranque seguro; `domain/clock.ts` con `systemClock` y `fixedClock`.
+- **Etapa 2:** `requestId`, CSRF, `jsonBody` y `noBody` (incluidos los cuerpos por fragmentos), `validate` con Zod, `AppError` y `sendError`, `404` en JSON y un manejador central que traduce los errores de `express.json` y nunca expone trazas. `createApp({ config, checkDatabase, clock, spaDir, extraApiRoutes })`, que rechaza un `Clock` propio fuera de `NODE_ENV=test`.
+- **Etapa 3:** `helmet` con CSP explícita y estricta, HSTS solo en producción, el servicio de la SPA y la vista de diagnóstico con una hoja de estilos.
+- **Etapa 4:** `NODE_ENV` explícito en la CI, documentación y este registro.
+- **Correcciones durante la implementación:**
+  - `jsonBody` era un *array* de *middleware* y TypeScript no infería los tipos de los manejadores siguientes; pasó a ser un único *middleware*;
+  - una prueba enviaba un `X-Request-Id` con salto de línea, que Node rechaza antes de enviarlo; se cambió el valor de prueba, sin tocar el control;
+  - ESLint pidió `import type` para `zod` en `validate.ts`;
+  - una frase de `CLAUDE.md` sobre el reloj se matizó para no contradecir el `DEFAULT now()` de `users`.
+- **Validación (local, 2026-11-26; detalle en el README, 2.6):**
+  - `lint`, `typecheck` y `build`, sin errores;
+  - primera entrega: `npm test` 102/102 del backend y 5/5 del frontend, integración 36/36, E2E 1/1, la SPA con la CSP comprobada a mano en Chromium y el arranque inseguro rechazado en seis casos;
+  - tras la revisión (ver "Revisión humana"): `npm test` 100/100 del backend (95 nuevas) y 5/5 del frontend; `npm run test:integration` 36/36 en `calicoach_test`, con la base de desarrollo sin tocar; `npm run test:e2e` 6/6 con `CI=1` (el *smoke* de DEV-001 y 5 pruebas automatizadas de la SPA con la CSP); el arranque inseguro con el servidor compilado termina con código 1 en los cuatro casos que quedan;
+  - `npm audit --audit-level=high`: 0 vulnerabilidades;
+  - **la ejecución en GitHub Actions está pendiente del PR.**
+
+**Revisión humana:**
+- **Análisis:** el autor aprobó D1–D4 y D6–D11 y aprobó D5 con modificación (sin `CLOCK_FIXED_NOW`), y añadió condiciones de seguridad y de verificación.
+- **Implementación (primera revisión):** el autor aprobó provisionalmente D1–D11 y los resultados locales, y pidió tres ajustes antes del commit:
+  - **cookie:** quitar `SESSION_COOKIE_NAME` y `SESSION_COOKIE_SECURE` salvo que el contrato las exigiera. La IA comprobó que la sección 4 fija la cookie solo con `NODE_ENV` y `APP_ORIGIN`, así que no había conflicto; la cookie pasó a ser fija por entorno, y una prueba comprueba que esas variables no relajan la configuración de producción;
+  - **CSP:** convertir la comprobación manual en una prueba automatizada. La IA añadió el proyecto Playwright `spa-build`, que compila y sirve el *build* real con Express, sin dependencias nuevas; incluye un control positivo que demuestra que el detector de violaciones funciona;
+  - **scripts:** documentar que `NODE_ENV=…` en los scripts es de Linux y macOS, sin añadir `cross-env`.
+- **Implementación (tras los ajustes):** **pendiente** de que el autor revise los resultados y decida sobre el commit, el push y el PR.
 
 ---
 
