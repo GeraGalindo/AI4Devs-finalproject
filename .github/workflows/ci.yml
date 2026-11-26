@@ -19,8 +19,10 @@ permissions:
   contents: read
 
 # Credenciales de un PostgreSQL efímero de CI: no son secretos.
+# DATABASE_URL hace de base "de desarrollo"; las pruebas de integración usan solo TEST_DATABASE_URL.
 env:
   DATABASE_URL: postgres://calicoach:calicoach@localhost:5432/calicoach
+  TEST_DATABASE_URL: postgres://calicoach:calicoach@localhost:5432/calicoach_test
 
 jobs:
   checks:
@@ -48,14 +50,43 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      # Falla con vulnerabilidades de severidad alta o crítica (incluye las dependencias de desarrollo).
+      - name: Security audit (high and critical)
+        run: npm audit --audit-level=high
       - name: Lint
         run: npm run lint
       - name: Typecheck
         run: npm run typecheck
       - name: Unit and component tests
         run: npm test
-      - name: Backend integration tests (PostgreSQL)
+      - name: Apply migrations (prisma migrate deploy)
+        run: npm run db:migrate
+      - name: Migration status
+        run: npm run db:status
+      - name: Schema drift check (does not cover manual CHECK constraints)
+        run: npm run db:drift
+      - name: Test database guard refuses the development database
+        run: |
+          if TEST_DATABASE_URL="$DATABASE_URL" npm run test:integration > guard.log 2>&1; then
+            echo "The guard accepted DATABASE_URL as the test database" && exit 1
+          fi
+          grep -q 'must end with _test' guard.log
+      # Fila centinela en la base "de desarrollo": si las pruebas la tocaran (TRUNCATE), desaparecería.
+      - name: Insert a sentinel row in the development database
+        env:
+          PGPASSWORD: calicoach
+        run: >-
+          psql -h localhost -U calicoach -d calicoach -v ON_ERROR_STOP=1 -c
+          "INSERT INTO users (email, password_hash, timezone) VALUES ('sentinel@ci.invalid', 'n/a', 'UTC')"
+      - name: Backend integration tests (PostgreSQL, calicoach_test)
         run: npm run test:integration
+      - name: Development database untouched by the tests
+        env:
+          PGPASSWORD: calicoach
+        run: |
+          rows=$(psql -h localhost -U calicoach -d calicoach -tAc "SELECT count(*) FROM users WHERE email = 'sentinel@ci.invalid'")
+          echo "sentinel rows in calicoach: $rows"
+          test "$rows" = "1"
       - name: Build
         run: npm run build
 

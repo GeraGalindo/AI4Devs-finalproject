@@ -69,16 +69,33 @@ Comandos (desde la raíz):
 | `npm run lint` | No |
 | `npm run typecheck` | No |
 | `npm test` (unitarias y componentes) | No |
-| `npm run test:integration` | Sí: `npm run db:up` y `backend/.env` |
+| `npm run test:integration` | Sí: `npm run db:up` y `backend/.env` con `TEST_DATABASE_URL` |
 | `npm run build` | No |
 | `npm run test:e2e` (Chromium; requiere `npx playwright install chromium`) | Sí |
+| `npm run db:migrate`, `db:status`, `db:drift` | Sí (sobre `DATABASE_URL`) |
 
 - Antes de dar algo por terminado, ejecuta como mínimo `lint`, `typecheck`, `test`, `test:integration` y `build`, y muestra el resultado real.
 - Las pruebas de integración y de concurrencia van **siempre contra PostgreSQL real**, nunca contra *mocks* de la base de datos (2.6).
 - Cada ticket añade sus propias pruebas (sección 6, "Calidad en cada incremento").
 - En los informes, **distingue lo verificado en local de lo verificado en CI**. No marques un criterio como cumplido sin evidencia.
 
-## 8. Seguridad, privacidad y secretos
+## 8. Base de datos y migraciones (Prisma 7)
+
+- El esquema está en `backend/prisma/schema.prisma` y la configuración en `backend/prisma.config.ts`. El cliente se genera en `backend/src/generated/prisma` (no se versiona; `npm install` ejecuta `prisma generate`).
+- **Nunca uses `prisma db push`** ni edites una migración ya aplicada o publicada: cada cambio es una migración nueva y versionada.
+- Procedimiento para una migración:
+  1. Cambia el esquema y crea la migración **sin aplicarla**, contra una base desechable: `DATABASE_URL=<base desechable> npm run db:migrate:create --workspace backend -- --name <nombre>`.
+  2. Revisa el SQL generado y añade al final el bloque `-- >>> SQL manual … -- <<< SQL manual` con lo que Prisma no expresa (`CHECK`, índices parciales, claves compuestas especiales), con **nombres explícitos** (`<tabla>_<regla>_chk`, `ux_…`).
+  3. Aplícala y comprueba: `npm run db:migrate`, `npm run db:status` y `npm run db:drift` (código 0 = sin diferencias).
+  4. Añade pruebas de integración que comprueben los objetos en el catálogo (`information_schema`, `pg_constraint`, `pg_index`) y que cada restricción rechaza datos con su SQLSTATE (`23514`, `23505`, `23502`).
+- `db:drift` **no** detecta los `CHECK` ni el SQL manual: no sustituye a las pruebas de restricciones.
+- Las migraciones desde cero solo se prueban sobre bases desechables. Las pruebas de integración usan `TEST_DATABASE_URL` (base `*_test`, distinta de `DATABASE_URL`); `tests/support/test-database.ts` la crea, la migra y se niega a vaciar tablas fuera de una base `*_test`. No relajes esas salvaguardas.
+- `@updatedAt` lo gestiona Prisma: un `UPDATE` en SQL directo debe fijar `updated_at = now()` a mano.
+- Prisma 7 devuelve `[]` cuando un *array* de PostgreSQL es `NULL` (`users.available_weekdays`). Los repositorios convierten `[]` en `null` antes de devolver datos al dominio o la API; las consultas "sin configurar" usan `IS NULL` en SQL. La prueba canario de `tests/integration/prisma.test.ts` avisa si ese comportamiento cambia.
+- `createPrisma(pool)` (`src/shared/prisma.ts`) reutiliza el pool de `pg`. Al cerrar: `prisma.$disconnect()` y después `pool.end()`.
+- El *override* de `effect` en el `package.json` raíz corrige GHSA-7589-6fvf-x4pw en el CLI de Prisma 7.10.1. Su entrada del *lockfile* se ajustó a mano (npm con *workspaces* no aplica el *override* sobre un *lockfile* existente) y `npm ls` la marca como `invalid`: ver `readme.md` 2.6. No regeneres el *lockfile* entero. El *override* se retira en un ticket de mantenimiento cuando una versión estable de Prisma incluya la corrección. La CI ejecuta `npm audit --audit-level=high`.
+
+## 9. Seguridad, privacidad y secretos
 
 - Sin secretos en el repositorio: solo `.env.example` con valores de desarrollo.
 - No registres contraseñas, *hashes*, tokens, cadenas de conexión ni datos personales en *logs* ni en respuestas de error.
@@ -86,13 +103,13 @@ Comandos (desde la raíz):
 - Medidas previstas en 2.5 (CSRF, cookie `__Host-session`, `helmet`, límites de peticiones): no las relajes ni las desactives "temporalmente".
 - No envíes datos del usuario ni del proyecto a servicios externos.
 
-## 9. Trazabilidad
+## 10. Trazabilidad
 
 - Registra en `prompts.md` cada prompt relevante, con sus convenciones: herramienta y modelo, objetivo, archivos afectados, texto literal, decisiones humanas, resultado de la IA, validación y revisión humana. Usa el **siguiente número libre** sin renumerar el historial y actualiza el "Mapa de prompts registrados".
 - No inventes contenido de prompts que no tengas (el Prompt 17 sigue pendiente).
 - Las desviaciones respecto al README se documentan en la sección afectada. Las decisiones técnicas aprobadas se anotan en el ticket correspondiente de la sección 6.
 
-## 10. Definición de terminado
+## 11. Definición de terminado
 
 Una tarea está terminada cuando:
 1. el alcance del ticket está implementado, y nada más;
@@ -101,7 +118,8 @@ Una tarea está terminada cuando:
 4. el README (1.4, 2.6 o la sección afectada) y `prompts.md` están actualizados;
 5. tras la autorización del usuario, el PR se ha creado y la CI de GitHub Actions ha pasado (definición común de terminado, sección 6).
 
-## 11. Propuestas para incrementos posteriores (no implementadas)
+## 12. Propuestas para incrementos posteriores (no implementadas)
 
 - **Hook `PreToolUse`** que bloquee `git push` a `main` y `git commit` sin autorización, si aparecen errores de este tipo.
 - **Skill "registrar prompt"** para `prompts.md`, si esa tarea se repite en cada ticket.
+- **Skill `prisma-migration`** con el procedimiento de la sección 8, una vez validado en DEV-002 (decisión D6).

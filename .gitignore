@@ -5,6 +5,9 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# Prisma Client generado (npm install ejecuta `prisma generate`)
+backend/src/generated/
+
 # Variables de entorno (solo se versionan los .env.example)
 .env
 .env.*

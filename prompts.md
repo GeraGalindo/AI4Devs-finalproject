@@ -37,12 +37,14 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 | 17 | Consolidación de las decisiones DP-01 a DP-17 | **Anexo**, como referencia pendiente | `readme.md` (secciones 1–6), `prompts.md` y `docs/design-system.md` |
 | 18 | Alineación documental con las entregas de AI4Devs | **Anexo**, porque es transversal | `readme.md` (secciones 1, 2, 4, 5, 6 y 7) y `prompts.md` |
 | 19 | DEV-001: *scaffolding* técnico, CI y *harness* inicial | Sección 2.4, Prompt 2 | Código nuevo (`backend/`, `frontend/`, `e2e/`, CI y configuración), `CLAUDE.md` (nuevo), `readme.md` (0.3, 1.4, 2.1, 2.3, 2.4, 2.6, 4 y 6) y `prompts.md` |
+| 20 | DEV-002: persistencia de `users` con Prisma 7 | Sección 3, Prompt 3 | Código nuevo (`backend/prisma/`, `prisma.config.ts`, `src/shared/prisma.ts`, pruebas de integración y de soporte), `package.json`, `package-lock.json`, CI, `CLAUDE.md`, `readme.md` (0.3, 1.4, 2, 2.3, 2.4, 2.6, 3.1, 3.2, 6 y 7) y `prompts.md` |
 
 **Notas:**
 - **Numeración:** los prompts 01–05 y 11–15 llevan el número que les dio el autor. Los números 06–10 los asignó la IA al documentarlos, siguiendo la secuencia.
 - **Prompts de documentación:** los prompts que solo pedían documentar otros prompts en este archivo ("Documenta en prompts.md…") no se registran como prompts propios.
 - **Prompts 16, 17 y 18:** son transversales y se registran en el **Anexo** del final de este archivo. El 17 queda como referencia pendiente hasta conocer su resultado.
 - **Prompt 19:** es el primero de implementación. Se registra en 2.4 (Infraestructura y despliegue), cuyo hueco estaba libre, e incluye el prompt de la Fase A y la aprobación de la Fase B, que forman un único encargo.
+- **Prompt 20:** DEV-002 se registra en la sección 3 (Modelo de datos), cuyo hueco del Prompt 3 estaba libre. Incluye el prompt de la Fase A y las dos aprobaciones (antes de B1 y antes de B2), que forman un único encargo.
 
 ---
 
@@ -1104,7 +1106,7 @@ No amplíes el alcance hacia DEV-002, DEV-003 ni otros tickets.
 
 ### 3. Modelo de Datos
 
-> Los dos prompts de esta sección modificaron solo la sección 3 de `readme.md` (3.1 y 3.2). El hueco del Prompt 3 queda libre.
+> Los Prompts 1 y 2 de esta sección modificaron solo la sección 3 de `readme.md` (3.1 y 3.2). El Prompt 3 es el Prompt 20 (DEV-002), la primera implementación del modelo de datos.
 
 **Prompt 1:**
 
@@ -1348,6 +1350,423 @@ No continúes con la sección 4.
   - la prueba de integración y los `EXPLAIN` solo están propuestos: **no se han escrito ni ejecutado**.
 
 **Prompt 3:**
+
+*Prompt 20 — DEV-002: persistencia de `users` con Prisma 7*
+
+- **Herramienta:** Claude Code (modelo `claude-opus-5-5`), en la misma sesión que DEV-001.
+- **Objetivo:** implementar DEV-002 por fases: análisis con plan (Fase A); tras la aprobación, una validación técnica (B1) con parada obligatoria si había incompatibilidades o riesgos; y, tras una segunda aprobación, la implementación (B2) y la validación (B3). Sin registro, login, *hashing* ni otros tickets.
+- **Archivos afectados:** nuevos `backend/prisma.config.ts`, `backend/prisma/schema.prisma`, `backend/prisma/migrations/` (`migration_lock.toml` y `20261126175055_create_users`), `backend/src/shared/prisma.ts`, `backend/tests/support/` (`test-database.ts`, `global-setup.ts` y `pg-error.ts`) y `backend/tests/integration/` (`test-database-guard.test.ts`, `users.schema.test.ts`, `users.constraints.test.ts` y `prisma.test.ts`). Modificados: `package.json` (scripts `db:*` y *override* de `effect`), `package-lock.json`, `backend/package.json`, `backend/tsconfig.json`, `backend/vitest.config.ts`, `backend/.env.example`, `.gitignore`, `eslint.config.js`, `.github/workflows/ci.yml`, `CLAUDE.md` (nueva sección 8), `readme.md` (0.3, 1.4, 2, 2.3, 2.4, 2.6, 3.1, 3.2, 6 y 7) y `prompts.md` (este registro y el mapa).
+
+Texto literal del prompt (Fase A):
+
+```text
+# DEV-002 — Persistencia de usuarios
+## Fase A: Análisis técnico y propuesta de implementación
+
+### Rol
+
+Actúa como **Senior Backend Developer especializado en PostgreSQL, Prisma, TypeScript y migraciones de bases de datos** para el proyecto Cali Coach.
+
+Debes respetar las instrucciones del archivo `CLAUDE.md`, la arquitectura aprobada y las decisiones de producto documentadas.
+
+Tu responsabilidad en esta fase es investigar, identificar riesgos y preparar un plan de implementación verificable.
+
+**No implementes código hasta recibir aprobación explícita.**
+
+## 1. Contexto
+
+**Proyecto:** Cali Coach
+**Repositorio:** `GeraGalindo/AI4Devs-finalproject`
+**Rama base:** `main`
+**Ticket:** DEV-002 — Persistencia de usuarios
+
+DEV-001 está terminado y fusionado en `main`.
+
+La infraestructura existente incluye:
+
+- Frontend React + TypeScript + Vite.
+- Backend Express + TypeScript.
+- PostgreSQL 17 mediante Docker Compose.
+- npm workspaces.
+- Vitest, Supertest, React Testing Library y Playwright.
+- GitHub Actions para lint, typecheck, tests, integración y build.
+- `CLAUDE.md` como harness inicial.
+
+El objetivo de DEV-002 es introducir la persistencia de usuarios conforme al alcance exacto del ticket y la arquitectura aprobada.
+
+## 2. Fase A — Inspección obligatoria
+
+Antes de proponer cambios:
+
+1. Comprueba la rama actual, el estado del repositorio y su sincronización con `origin/main`.
+2. Lee `CLAUDE.md` y las secciones relevantes de `readme.md`.
+3. Localiza la definición exacta de DEV-002, sus criterios de aceptación y dependencias.
+4. Revisa el modelo de datos aprobado, especialmente la entidad `users`.
+5. Identifica las restricciones, índices, tipos de datos y reglas de integridad documentadas.
+6. Inspecciona la configuración actual de PostgreSQL, el acceso mediante `pg` y las pruebas de integración existentes.
+7. Comprueba si ya existe alguna configuración, esquema o migración de Prisma.
+8. Identifica las convenciones de `prompts.md` para registrar el trabajo.
+
+Distingue expresamente entre:
+
+- **[Confirmado]:** definido y aprobado en la documentación.
+- **[Propuesto]:** solución técnica todavía no aprobada.
+- **[Pendiente]:** información ausente o que requiere decisión.
+
+No inventes columnas, restricciones, índices ni relaciones.
+
+## 3. Análisis del modelo de usuarios
+
+A partir de la documentación aprobada, presenta una tabla con:
+
+- Nombre exacto de cada columna.
+- Tipo de dato propuesto en PostgreSQL.
+- Representación correspondiente en Prisma.
+- Nulabilidad.
+- Valor por defecto, si aplica.
+- Restricciones e índices.
+- Justificación y referencia documental.
+
+Analiza específicamente:
+
+- Identificador primario.
+- Unicidad y normalización del correo electrónico.
+- Almacenamiento seguro de credenciales, si corresponde al ticket.
+- Campos obligatorios y opcionales.
+- Fechas de creación y actualización.
+- Restricciones `CHECK`, `UNIQUE` y `NOT NULL`.
+- Posibles dependencias con tablas futuras.
+
+Si algún campo o regla no está documentado, identifícalo como decisión pendiente en lugar de asumirlo.
+
+## 4. Estrategia de Prisma y migraciones
+
+Propón cómo incorporar Prisma al backend existente.
+
+Incluye:
+
+1. Dependencias necesarias y versiones compatibles.
+2. Ubicación del esquema Prisma.
+3. Configuración de `DATABASE_URL`.
+4. Generación y uso de Prisma Client.
+5. Estrategia de migraciones versionadas.
+6. Comandos para crear, aplicar y verificar migraciones.
+7. Procedimiento para reconstruir una base de datos de desarrollo desde cero.
+8. Estrategia para conservar las restricciones SQL que Prisma no pueda representar directamente.
+9. Procedimiento para detectar diferencias entre el esquema esperado y el real.
+
+**No utilices `prisma db push` como sustituto de las migraciones versionadas.**
+
+No modifiques todavía la base de datos.
+
+## 5. Integración con la arquitectura existente
+
+Analiza cómo incorporar Prisma sin romper DEV-001.
+
+Explica:
+
+- Cómo convivirá Prisma con el pool `pg` existente.
+- Qué responsabilidades tendrá cada mecanismo de acceso a datos.
+- Cómo se gestionarán las conexiones y el cierre ordenado.
+- Qué cambios serían necesarios en los scripts del backend.
+- Qué modificaciones necesitaría GitHub Actions para aplicar migraciones antes de las pruebas.
+- Qué elementos pertenecen a DEV-002 y cuáles deben reservarse para tickets posteriores.
+
+No implementes todavía endpoints de registro, login ni autenticación.
+
+## 6. Estrategia de pruebas
+
+Diseña pruebas que verifiquen el comportamiento real de PostgreSQL, no solamente los modelos de Prisma.
+
+Considera:
+
+- Aplicación correcta de la migración en una base limpia.
+- Existencia de la tabla y sus columnas.
+- Tipos de datos y nulabilidad.
+- Restricciones `UNIQUE`, `NOT NULL` y `CHECK` aprobadas.
+- Inserción de registros válidos.
+- Rechazo de registros inválidos.
+- Funcionamiento de Prisma Client.
+- Compatibilidad con el endpoint `/api/health`.
+- Ejecución de las pruebas en GitHub Actions.
+- Aislamiento y limpieza de datos entre pruebas.
+
+Distingue entre pruebas unitarias, de integración y verificaciones de migración.
+
+Para cada prueba, indica qué evidencia demostraría que el criterio se cumple.
+
+## 7. Seguridad y privacidad
+
+Analiza los riesgos relevantes:
+
+- Almacenamiento de contraseñas.
+- Exposición de datos personales en logs.
+- Manejo de errores de base de datos.
+- Gestión de credenciales y secretos.
+- Acceso a datos mediante consultas parametrizadas.
+- Privilegios de la cuenta de PostgreSQL.
+- Tratamiento de información sensible en datos de prueba.
+
+No implementes autenticación ni decisiones de seguridad que correspondan a otros tickets.
+
+## 8. Harness y trazabilidad
+
+Revisa si `CLAUDE.md` contiene instrucciones suficientes para desarrollar y verificar migraciones.
+
+Identifica si conviene incorporar alguna instrucción adicional.
+
+Evalúa también si este ticket justifica crear una skill reutilizable para migraciones PostgreSQL/Prisma.
+
+Si propones una skill, explica:
+
+- Qué problema repetitivo resolvería.
+- Cuándo debería utilizarse.
+- Qué comprobaciones obligatorias incluiría.
+- Qué ventajas tendría frente a instrucciones generales en `CLAUDE.md`.
+
+No crees la skill todavía.
+
+## 9. Entregable obligatorio — Plan de implementación
+
+Presenta tu análisis con la siguiente estructura:
+
+1. Estado actual del repositorio.
+2. Alcance exacto y criterios de aceptación de DEV-002.
+3. Modelo `users` documentado.
+4. Propuesta de esquema PostgreSQL y Prisma.
+5. Estrategia de migraciones.
+6. Integración con backend y CI existentes.
+7. Plan de pruebas y validaciones.
+8. Seguridad y riesgos.
+9. Evaluación de posibles mejoras del harness.
+10. Archivos que crearías o modificarías.
+11. Dependencias con otros tickets.
+12. Decisiones que requieren aprobación del Product Owner.
+
+Para cada decisión pendiente, utiliza un identificador D1, D2, D3, etc., e incluye:
+
+- Problema o decisión.
+- Opciones posibles.
+- Ventajas y riesgos.
+- Recomendación técnica.
+- Impacto en el MVP.
+
+No presentes una recomendación como si ya estuviera aprobada.
+
+## 10. Restricciones
+
+- No modificar archivos.
+- No instalar dependencias.
+- No crear ramas.
+- No generar migraciones.
+- No ejecutar comandos que alteren datos o el esquema.
+- No realizar commits, push ni Pull Requests.
+- No implementar endpoints ni funcionalidades de negocio.
+- No ampliar el alcance de DEV-002.
+- No modificar `CLAUDE.md` ni `prompts.md` durante esta fase.
+
+Puedes ejecutar comandos de inspección y consultas de solo lectura.
+
+## Instrucción inmediata
+
+**Ejecuta únicamente la Fase A.**
+
+Inspecciona el repositorio, identifica el contrato de datos real y presenta el plan de implementación de DEV-002.
+
+Detente después de presentar el análisis y espera mi aprobación explícita antes de comenzar la Fase B.
+```
+
+Texto literal de la primera aprobación (antes de B1):
+
+```text
+He revisado tu análisis de DEV-002 y apruebo el plan con las siguientes decisiones y condiciones.
+
+### Decisiones D1–D7
+
+- **D1 — Aprobada con condición:** conservar `available_weekdays` nullable en PostgreSQL. Antes de completar la implementación, verifica experimentalmente la compatibilidad de Prisma con valores NULL en arrays PostgreSQL. No cambies el contrato a NOT NULL ni utilices valores sustitutos sin aprobación.
+- **D2 — Aprobada:** utilizar `@updatedAt` y documentar que las actualizaciones mediante SQL directo deberán gestionar explícitamente `updated_at`.
+- **D3 — Aprobada:** crear la factory `createPrisma(pool)` y sus pruebas. No integrarla todavía en las rutas de la aplicación.
+- **D4 — Aprobada con condiciones:** utilizar una base `calicoach_test` separada, con `TEST_DATABASE_URL`. El setup debe impedir que operaciones destructivas afecten a la base de desarrollo. Verifica también que el aislamiento funciona en CI.
+- **D5 — Aprobada:** utilizar nombres explícitos para las restricciones SQL manuales.
+- **D6 — Aprobada:** añadir reglas de migraciones a `CLAUDE.md`. Crear la skill reutilizable después de validar el procedimiento en DEV-002.
+- **D7 — Aprobada:** utilizar `feature/dev-002-users-persistence` desde `main` actualizado.
+
+### Condiciones adicionales
+
+1. Confirma las versiones y compatibilidad de Prisma, Prisma Client y `@prisma/adapter-pg`.
+2. No utilices `prisma db push` para gestionar el esquema.
+3. Conserva las migraciones versionadas y el SQL manual.
+4. Verifica las restricciones directamente en PostgreSQL, incluyendo su existencia en `pg_constraint`.
+5. Ejecuta pruebas de migración desde cero únicamente sobre una base desechable.
+6. Conserva el comportamiento de `/api/health` y todas las pruebas de DEV-001.
+7. No implementes registro, login, hashing ni funcionalidades de otros tickets.
+8. Registra el trabajo como Prompt 20 siguiendo las convenciones existentes, sin modificar los Prompts 17 y 18.
+
+### Secuencia de implementación
+
+**Etapa B1 — Validación técnica**
+
+Prepara un experimento aislado y reproducible para comprobar la representación y lectura de `available_weekdays = NULL` con Prisma 7.
+
+Comprueba también el diseño de aislamiento de las pruebas.
+
+Presenta los resultados y cualquier limitación antes de continuar.
+
+**Detente después de B1 si existe una incompatibilidad, una modificación necesaria del contrato o un riesgo no resuelto. Solicita mi aprobación antes de decidir una alternativa.**
+
+**Etapa B2 — Implementación**
+
+Si B1 confirma que el diseño aprobado es viable, implementa el esquema, las migraciones, las restricciones, la factory de Prisma, las pruebas y los cambios de CI.
+
+**Etapa B3 — Validación**
+
+Ejecuta lint, typecheck, pruebas unitarias, integración real, verificaciones de migración, comprobación de restricciones y build.
+
+Presenta evidencias y criterios de aceptación.
+
+No hagas commit, push ni crees un Pull Request sin mi autorización explícita.
+
+### Instrucción inmediata
+
+Comienza con la Etapa B1. No continúes a B2 si la compatibilidad de Prisma o el aislamiento de las pruebas no están resueltos.
+```
+
+Texto literal de la segunda aprobación (resultados de B1 y autorización de B2):
+
+```text
+# DEV-002 — Aprobación de decisiones B1 y autorización condicionada de B2
+
+He revisado los resultados de la Etapa B1 y apruebo las siguientes decisiones.
+
+## D1 — available_weekdays
+
+Apruebo la opción A:
+
+- Mantener `available_weekdays` nullable en PostgreSQL.
+- Conservar el CHECK de cardinalidad y rango.
+- Documentar que Prisma 7 devuelve `[]` cuando PostgreSQL contiene NULL.
+- Añadir una prueba de integración que detecte cambios en este comportamiento.
+- Establecer que los futuros repositorios de usuarios deberán convertir `[]` en `null` antes de devolver datos al dominio o la API.
+- No implementar todavía los repositorios de DEV-004 o DEV-005.
+- No modificar el contrato de datos aprobado.
+
+## Seguridad de dependencias
+
+Autorizo evaluar el override de `effect`, pero su incorporación queda condicionada a la validación.
+
+Antes de aplicarlo:
+
+1. Verifica la versión corregida utilizando la información de la advisory de seguridad y el árbol real de dependencias.
+2. Confirma que el override es compatible con Prisma 7.10.1.
+3. Comprueba que elimina las vulnerabilidades reportadas sin introducir otras nuevas.
+4. Ejecuta las operaciones relevantes de Prisma: generate, migrate deploy, migrate status y migrate diff.
+5. Documenta el resultado y la justificación.
+
+Si no se confirma la compatibilidad o la corrección de la vulnerabilidad, detente y presenta alternativas. No aceptes automáticamente vulnerabilidades altas ni cambies a Prisma 6 sin autorización.
+
+## UNIQUE de email
+
+Apruebo verificar el índice único mediante `pg_index`.
+
+La prueba debe comprobar:
+
+- Nombre y existencia del índice.
+- Que realmente es único.
+- Que un segundo registro con el mismo email se rechaza.
+- Que el error corresponde a SQLSTATE 23505.
+
+## Autorización de implementación B2
+
+Puedes continuar con la implementación de DEV-002 en la rama `feature/dev-002-users-persistence`, respetando el plan aprobado y las salvaguardas de aislamiento de pruebas.
+
+Implementa:
+
+- Prisma y su configuración.
+- Modelo `users` conforme al contrato aprobado.
+- Migración versionada con SQL manual.
+- Factory de Prisma compartiendo el pool existente.
+- Base de pruebas independiente y protegida.
+- Tests de esquema, restricciones y comportamiento de Prisma.
+- Scripts de migraciones y validaciones.
+- Integración de migraciones y pruebas en CI.
+- Reglas de migración en `CLAUDE.md`.
+- Documentación y Prompt 20.
+
+No implementes endpoints de registro, login, hashing ni otros tickets.
+
+## Validación B3
+
+Cuando termines, ejecuta las verificaciones acordadas, incluyendo:
+
+- Lint, typecheck y build.
+- Pruebas existentes de DEV-001.
+- Pruebas nuevas de DEV-002 contra PostgreSQL real.
+- Migración reproducible desde una base desechable.
+- Verificación de CHECK mediante `pg_constraint`.
+- Verificación de UNIQUE mediante `pg_index`.
+- Verificación de drift, sin considerarla sustituto de las pruebas de restricciones.
+- Comprobación de aislamiento entre desarrollo y pruebas.
+- Auditoría de dependencias.
+
+Presenta el resultado, los archivos modificados, los criterios de aceptación y cualquier desviación del plan.
+
+**No hagas commit, push ni crees un PR hasta que revise los resultados y lo autorice expresamente.**
+
+Si aparece un problema que requiera cambiar el contrato de datos, introducir una vulnerabilidad conocida o ampliar el alcance, detente y consúltame.
+```
+
+**Decisiones humanas:**
+- **Primera aprobación (D1–D7):**
+  - D1, con condición: `available_weekdays` sigue nullable y había que comprobar con un experimento cómo trata Prisma los `NULL`, sin pasar a NOT NULL ni usar valores sustitutos sin aprobación;
+  - D2 (`@updatedAt`), D3 (`createPrisma(pool)` sin conectarla a las rutas), D5 (nombres explícitos), D6 (reglas en `CLAUDE.md`, *skill* después) y D7 (rama `feature/dev-002-users-persistence`) aprobadas;
+  - D4, con condiciones: base `calicoach_test` con `TEST_DATABASE_URL`, protegida frente a la de desarrollo, también en CI;
+  - secuencia B1 → parada → B2 → B3, y las condiciones adicionales 1–8.
+- **Segunda aprobación (tras B1):**
+  - D1: opción A. Prisma lee `NULL` como `[]`; se documenta, se vigila con una prueba y los futuros repositorios convertirán `[]` en `null`. Rechazadas, de momento, la lectura con SQL directo (B) y el cambio de contrato (C);
+  - seguridad: evaluar el *override* de `effect`, aplicándolo solo si se comprueban la versión corregida, la compatibilidad con Prisma 7.10.1 y la desaparición de las vulnerabilidades; sin aceptar vulnerabilidades altas ni pasar a Prisma 6;
+  - UNIQUE de `email`: comprobarlo en `pg_index` (nombre, unicidad, rechazo del duplicado y SQLSTATE `23505`).
+
+**Resultado generado por la IA:**
+- **Fase A:** plan con la tabla de columnas, la estrategia de migraciones sin `db push`, la integración con el pool de `pg`, las pruebas y las decisiones D1–D7. Detectó la duda de cómo trata Prisma 7 los *arrays* `NULL` y la necesidad de aislar las pruebas destructivas de la base de desarrollo.
+- **Etapa B1** (experimento aislado en bases desechables, fuera del repositorio):
+  - versiones: `prisma`, `@prisma/client` y `@prisma/adapter-pg` 7.10.1, compatibles con Node 24.13 y `pg` 8.23.1. La etiqueta `latest` de `prisma` apuntaba a una 8.0.0-rc, así que la versión se fija a mano;
+  - PostgreSQL guarda `NULL`, pero Prisma lo devuelve como `[]`, no permite filtrar por `null` y no permite escribir `null`;
+  - el UNIQUE de `email` es un índice único (`pg_index`), no una restricción de `pg_constraint`;
+  - prototipo de las salvaguardas de la base de pruebas: rechazó todos los casos inseguros;
+  - `npm audit`: 3 vulnerabilidades altas nuevas (GHSA-7589-6fvf-x4pw en `effect`, solo en el CLI de Prisma);
+  - la IA se detuvo y pidió decisión sobre los tres puntos.
+- **Etapa B2:**
+  - esquema `users` y migración generada con `migrate dev --create-only` sobre una base desechable, con el bloque de SQL manual de los tres `CHECK` con nombre;
+  - `prisma.config.ts` que funciona sin `DATABASE_URL` para `generate` (necesario en el `postinstall` de `npm ci`);
+  - `createPrisma(pool)` sobre el pool existente;
+  - salvaguardas (`TEST_DATABASE_URL` con sufijo `_test`, distinta de `DATABASE_URL`; `TRUNCATE` solo si `current_database()` termina en `_test`) y un `globalSetup` que crea y migra la base de pruebas;
+  - 34 pruebas nuevas de integración (salvaguardas, catálogo, restricciones con SQLSTATE, Prisma y el canario de `NULL` → `[]`);
+  - CI: migraciones, estado, *drift*, rechazo de la base de desarrollo como base de pruebas y fila centinela;
+  - sección 8 de `CLAUDE.md` y documentación del README.
+- **Correcciones durante la implementación:**
+  - npm no aplicaba el *override* sobre la entrada ya existente del *lockfile*, y al borrarla eliminó `effect` sin avisar (un "0 vulnerabilidades" engañoso). Regenerar el *lockfile* entero habría cambiado 15 dependencias transitivas (entre ellas `vite`), así que solo se sustituyó la entrada de `effect` por la que resuelve npm con el *override* (3.22.1, *integrity* comprobada en el registro). El resto del *lockfile* no cambió de versión;
+  - con `env('DATABASE_URL')`, `prisma generate` fallaba sin `.env`; el *datasource* se omite cuando falta la variable;
+  - la consulta de `pg_index` devolvía `name[]` como texto; se convierte a `text[]`;
+  - la comprobación de CI "base de desarrollo intacta" contaba 0 filas, lo que no detectaría un `TRUNCATE`; se cambió por una fila centinela.
+- **Validación (local, 2026-11-26; detalle en el README, 2.6):**
+  - `npm ci` desde cero, `lint`, `typecheck` y `build`, sin errores;
+  - `npm test`: 5/5 del backend y 5/5 del frontend (DEV-001, sin cambios);
+  - `npm run test:integration`: 36/36 (2 de DEV-001 y 34 nuevas), en `calicoach_test`;
+  - `npm run test:e2e`: 1/1;
+  - migración desde cero en una base desechable, idempotente, con `migrate status` al día y *drift* 0; `CHECK` en `pg_constraint` y `users_email_key` en `pg_index`;
+  - aislamiento comprobado con una fila centinela en una base "de desarrollo" desechable; la base local `calicoach` no se modificó;
+  - `npm audit`: 0 vulnerabilidades con el *override*;
+  - **la ejecución en GitHub Actions está pendiente del PR.**
+
+**Revisión humana:**
+- **Fase A:** el autor aprobó el plan con condiciones en D1 y D4 y añadió la secuencia B1 → B2 → B3 con parada obligatoria.
+- **Etapa B1:** el autor revisó los resultados y decidió la opción A para D1, el *override* condicionado de `effect` y la comprobación del UNIQUE en `pg_index`.
+- **Etapas B2 y B3:** el autor aprobó **provisionalmente** la implementación y las pruebas, y pidió antes del commit una revisión de reproducibilidad y trazabilidad: el `invalid` de `npm ls`, el *lockfile*, la ubicación del Prompt 20 y el diff final.
+  - **Resultado de esa revisión (IA):** npm con *workspaces* ignora el *override* si existe un *lockfile*, así que la entrada de `effect` se ajustó a mano; `npm ci` es reproducible; `npm ls` marca `invalid` aunque `npm ci`, `npm audit` y Prisma funcionan; no hay versión de `effect` corregida dentro del rango exacto que declara `@prisma/config`. Alternativas: A (mantener el *override* y auditar en CI), B (regenerar el *lockfile* entero) y C (Prisma `7.11.0-dev.4`).
+  - **Decisión del autor:** alternativa **A**. Mantener Prisma 7.10.1 y `effect` 3.22.1 con el *override* y el *lockfile* validado, sin regenerarlo ni usar versiones de desarrollo; añadir `npm audit --audit-level=high` a GitHub Actions; documentar el ajuste manual del *lockfile* y el `invalid` de `npm ls` (README, 2.6); y retirar el *override* en un ticket de mantenimiento cuando una versión estable de Prisma incorpore la corrección.
+  - **Limitaciones conocidas del *override*:** el *lockfile* no se puede reproducir solo con comandos de npm sin regenerarlo entero, `npm ls` termina con código 1 y npm no hace cumplir el *override* (lo que fija la versión es el *lockfile*). La auditoría de la CI detecta una vuelta a una versión vulnerable.
+  - El autor autorizó después el commit, el push y el PR, sin merge.
+- **Aprobación final:** **pendiente** de que la CI del PR pase y de la revisión del autor antes del merge.
 
 ---
 
