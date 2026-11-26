@@ -1756,7 +1756,7 @@ Si aparece un problema que requiera cambiar el contrato de datos, introducir una
   - migración desde cero en una base desechable, idempotente, con `migrate status` al día y *drift* 0; `CHECK` en `pg_constraint` y `users_email_key` en `pg_index`;
   - aislamiento comprobado con una fila centinela en una base "de desarrollo" desechable; la base local `calicoach` no se modificó;
   - `npm audit`: 0 vulnerabilidades con el *override*;
-  - **la ejecución en GitHub Actions está pendiente del PR.**
+  - **la ejecución en GitHub Actions estaba pendiente del PR** cuando se cerró B3. Ahora está en verde: ver la revisión humana.
 
 **Revisión humana:**
 - **Fase A:** el autor aprobó el plan con condiciones en D1 y D4 y añadió la secuencia B1 → B2 → B3 con parada obligatoria.
@@ -1766,7 +1766,11 @@ Si aparece un problema que requiera cambiar el contrato de datos, introducir una
   - **Decisión del autor:** alternativa **A**. Mantener Prisma 7.10.1 y `effect` 3.22.1 con el *override* y el *lockfile* validado, sin regenerarlo ni usar versiones de desarrollo; añadir `npm audit --audit-level=high` a GitHub Actions; documentar el ajuste manual del *lockfile* y el `invalid` de `npm ls` (README, 2.6); y retirar el *override* en un ticket de mantenimiento cuando una versión estable de Prisma incorpore la corrección.
   - **Limitaciones conocidas del *override*:** el *lockfile* no se puede reproducir solo con comandos de npm sin regenerarlo entero, `npm ls` termina con código 1 y npm no hace cumplir el *override* (lo que fija la versión es el *lockfile*). La auditoría de la CI detecta una vuelta a una versión vulnerable.
   - El autor autorizó después el commit, el push y el PR, sin merge.
-- **Aprobación final:** **pendiente** de que la CI del PR pase y de la revisión del autor antes del merge.
+- **Aprobación final:** el autor revisó los resultados del PR #5, aprobó DEV-002 y autorizó el merge. Antes del merge se comprobó que el PR apuntaba a `main`, que el commit era el revisado (`0adbbdc`) y que la CI seguía en verde. El merge se hizo con `--match-head-commit` (`44e228f`).
+- **CI en GitHub Actions** (sección 7 del README):
+  - ejecución `pull_request` 45876701111, en verde: auditoría sin vulnerabilidades altas, migraciones, *drift*, salvaguarda, integración 36/36 y fila centinela intacta;
+  - ejecución `push` a `main` 45877301836, en verde, tras el merge.
+- **Cierre:** DEV-002 queda **terminado**. El *override* de `effect` se mantiene hasta un ticket de mantenimiento. DEV-003 y DEV-004 no se han empezado.
 
 ---
 

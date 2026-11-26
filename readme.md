@@ -788,7 +788,7 @@ flowchart LR
 
 - **Local [Implementado en DEV-001 y DEV-002]:** PostgreSQL 17 con `docker-compose`, backend (`tsx watch`) y frontend (Vite) con sus servidores de desarrollo; el *proxy* de Vite redirige `/api` al backend. Las migraciones de Prisma se aplican con `npm run db:migrate` (DEV-002); la *seed* llegará con DEV-010.
 - **Despliegue [Propuesta]:** un único servicio web en una plataforma PaaS, todavía por elegir. Express sirve la API en `/api` y el *build* estático de la SPA, con un mismo origen y sin CORS. La base de datos es un PostgreSQL gestionado. Las migraciones se ejecutan en el paso de *release*, y los secretos se guardan en variables de entorno.
-- **CI [Implementado en DEV-001]:** `.github/workflows/ci.yml` ejecuta en cada PR y en cada *push* a `main`: `npm ci`, *lint*, comprobación de tipos, tests unitarios y de componentes, tests de integración contra un PostgreSQL 17 de servicio y *build*. No usa secretos. El *smoke* E2E (Playwright, Chromium) solo se lanza manualmente con `workflow_dispatch`. Primera ejecución en GitHub: en verde en el PR #3, en `workflow_dispatch` (con E2E) y en `main` tras el merge (ver sección 7). **Ampliada en DEV-002 (pendiente de ejecutarse en GitHub):** aplica las migraciones (`db:migrate`), muestra su estado (`db:status`), comprueba el *drift* (`db:drift`), verifica que la salvaguarda rechaza la base de desarrollo como base de pruebas, ejecuta la integración en `calicoach_test` y comprueba que una fila centinela de la base de desarrollo sigue intacta.
+- **CI [Implementado en DEV-001]:** `.github/workflows/ci.yml` ejecuta en cada PR y en cada *push* a `main`: `npm ci`, *lint*, comprobación de tipos, tests unitarios y de componentes, tests de integración contra un PostgreSQL 17 de servicio y *build*. No usa secretos. El *smoke* E2E (Playwright, Chromium) solo se lanza manualmente con `workflow_dispatch`. Primera ejecución en GitHub: en verde en el PR #3, en `workflow_dispatch` (con E2E) y en `main` tras el merge (ver sección 7). **Ampliada en DEV-002 (en verde en el PR #5 y en `main`, sección 7):** aplica las migraciones (`db:migrate`), muestra su estado (`db:status`), comprueba el *drift* (`db:drift`), verifica que la salvaguarda rechaza la base de desarrollo como base de pruebas, ejecuta la integración en `calicoach_test` y comprueba que una fila centinela de la base de desarrollo sigue intacta.
 - **Sin** colas, *brokers*, cachés externas ni microservicios. La tarea programada opcional se ejecuta en el mismo proceso.
 
 ### **2.5. Seguridad**
@@ -870,7 +870,7 @@ Las cookies viajan solas en cada petición, así que cualquier operación que mo
 | Backend, integración | `npm run test:integration` | `200` contra PostgreSQL real y `503` contra un puerto cerrado | 2/2 |
 | E2E *smoke* | `npm run test:e2e` | La SPA llega al backend y a PostgreSQL a través del *proxy* de Vite (Chromium) | 1/1, también con `CI=1` |
 
-**Pruebas de DEV-002 y resultados** (ejecución **local** del 2026-11-26, Node 24.13.0 y PostgreSQL 17.12 en Docker). **Pendiente de verificar en GitHub Actions** hasta que exista el PR. Las pruebas de integración usan solo la base `calicoach_test` (`TEST_DATABASE_URL`):
+**Pruebas de DEV-002 y resultados** (ejecución **local** del 2026-11-26, Node 24.13.0 y PostgreSQL 17.12 en Docker). **En GitHub Actions** se obtuvieron los mismos resultados en el PR #5 y en `main` (auditoría sin vulnerabilidades altas, migraciones, *drift*, salvaguarda, integración 36/36 y fila centinela intacta; sección 7). Las pruebas de integración usan solo la base `calicoach_test` (`TEST_DATABASE_URL`):
 
 | Suite | Archivo | Qué comprueba | Resultado local |
 |-------|---------|---------------|-----------------|
@@ -3722,7 +3722,7 @@ Cada ticket añade solo lo que le es propio.
   - integración de cada restricción (T-03, criterio 2);
   - un test de que existen los objetos añadidos con SQL manual (3.2).
 - **Pendiente:** ninguno.
-- **Estado:** **implementado en local, pendiente de PR** (rama `feature/dev-002-users-persistence`). Decisiones técnicas aprobadas para este ticket:
+- **Estado:** **terminado.** Fusionado en `main` mediante el PR #5 (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/5), con la CI en verde en el PR y en `main` (2.6 y sección 7). Decisiones técnicas aprobadas para este ticket:
   - Prisma 7.10.1 (`prisma`, `@prisma/client` y `@prisma/adapter-pg`, versiones exactas), con `prisma.config.ts` y el cliente generado en `backend/src/generated/prisma`;
   - D1: `available_weekdays` sigue nullable; Prisma lo lee como `[]` y los repositorios de DEV-004 y DEV-005 lo convertirán en `null` (3.2). Una prueba canario vigila ese comportamiento;
   - D2: `updated_at` con `@updatedAt`; un `UPDATE` en SQL directo lo fija a mano;
@@ -4667,6 +4667,7 @@ Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha ver
 | [#2](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/2) | `docs: prepare Cali Coach academic delivery 1` | Documentación (Entrega 1) | `feature/entrega-1-GeraGalindo` → `main` | 2026-11-20 | `bad3f88` | No existía |
 | [#3](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/3) | `feat: initialize Cali Coach scaffolding and Claude harness (DEV-001)` | Implementación (Entrega 2) | `feature/dev-001-scaffolding` → `main` | 2026-11-22 | `4a885e9` | En verde |
 | [#4](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/4) | `docs: record DEV-001 closure and pull request history` | Documentación (cierre de DEV-001) | `docs/dev-001-closure` → `main` | 2026-11-22 | `bdc273a` | En verde |
+| [#5](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/5) | `feat: add users persistence with Prisma 7 (DEV-002)` | Implementación (Entrega 2) | `feature/dev-002-users-persistence` → `main` | 2026-11-26 | `44e228f` | En verde |
 
 Todas se fusionaron con *merge commit*, que es la estrategia habitual del repositorio.
 
@@ -4755,3 +4756,33 @@ Todas se fusionaron con *merge commit*, que es la estrategia habitual del reposi
 | [45021678347](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45021678347) | `push` a `main` tras el merge `bdc273a` | En verde |
 
 - **Revisión humana:** el autor revisó el PR, aprobó su contenido y autorizó el merge. Lo fusionó desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
+
+**Pull Request 5**
+
+**#5 — `feat: add users persistence with Prisma 7 (DEV-002)`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/5)
+
+- **Rama:** `feature/dev-002-users-persistence` → `main`. Un commit (`0adbbdc`). Creada y fusionada el 2026-11-26 con *merge commit* (`44e228f`). El merge se hizo con `--match-head-commit`, para que fallara si la rama había cambiado después de la revisión.
+- **Propósito:** DEV-002 (sección 6), la persistencia de `users`. Sin endpoints ni funcionalidades de negocio.
+- **Contenido:**
+  - Prisma 7.10.1 con `prisma.config.ts` y el cliente generado en `postinstall`;
+  - la migración `20261126175055_create_users`, con SQL manual para los tres `CHECK` con nombre (3.2);
+  - la factoría `createPrisma(pool)`, todavía sin usar en las rutas;
+  - pruebas de integración en `calicoach_test`, con salvaguardas frente a la base de desarrollo;
+  - CI con auditoría de seguridad, migraciones, *drift*, salvaguarda y fila centinela;
+  - el *override* de `effect` 3.22.1 (GHSA-7589-6fvf-x4pw) y sus limitaciones (2.6);
+  - `CLAUDE.md` (sección 8, migraciones), el README y el Prompt 20.
+- **Tamaño:** 24 archivos, +2638 y −40 líneas (incluye `package-lock.json`).
+- **Pruebas locales** (2026-11-26, detalle en 2.6):
+  - `npm ci` desde cero, lint, tipos y *build* sin errores;
+  - backend 5/5 y frontend 5/5;
+  - integración 36/36 (2 de DEV-001 y 34 nuevas);
+  - E2E 1/1;
+  - migración desde cero, *drift* 0, `CHECK` en `pg_constraint`, `users_email_key` en `pg_index`, aislamiento con fila centinela y `npm audit --audit-level=high` sin vulnerabilidades.
+- **GitHub Actions:**
+
+| Ejecución | Evento | Resultado |
+|-----------|--------|-----------|
+| [45876701111](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45876701111) | `pull_request` (`0adbbdc`) | Auditoría (0 vulnerabilidades), lint, tipos, tests (5/5 y 5/5), migraciones y estado, *drift* sin diferencias, salvaguarda que rechaza la base de desarrollo, integración en `calicoach_test` (36/36), fila centinela intacta y *build*: en verde. E2E omitido por diseño |
+| [45877301836](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45877301836) | `push` a `main` tras el merge `44e228f` | Las mismas comprobaciones: en verde |
+
+- **Revisión humana:** el autor revisó los resultados por etapas (B1, B2/B3 y una revisión de reproducibilidad del *lockfile*), eligió la alternativa A para el *override* de `effect`, autorizó el commit, el push y el PR y, tras revisar la CI, autorizó el merge. Lo fusionó desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
