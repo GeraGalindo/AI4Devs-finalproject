@@ -2,6 +2,8 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "types": ["node"],
+    // Las funciones de page.evaluate() y addInitScript() se ejecutan en el navegador.
+    "lib": ["ES2023", "DOM"],
     "noEmit": true
   },
   "include": ["playwright.config.ts", "tests"]

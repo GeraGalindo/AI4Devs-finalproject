@@ -46,7 +46,7 @@ Antes de editar código o documentación:
   - `domain/` no importa Express, `pg`, Prisma ni ningún otro módulo.
   - Un módulo solo expone su servicio; nadie importa repositorios ajenos.
   - Los repositorios filtran **siempre** por `user_id`, con SQL parametrizado.
-  - Dependencias como la base de datos o el reloj se inyectan (ver `createApp({ checkDatabase })`) para poder probarlas.
+  - Dependencias como la base de datos o el reloj se inyectan (ver `createApp({ config, checkDatabase, clock })`) para poder probarlas. Un `Clock` propio solo se admite con `NODE_ENV=test`; los servicios toman de él el "ahora" de las reglas de negocio (2.2), no de `new Date()` ni de `now()` en SQL.
 - **Frontend:** organizado por *features* (`src/features/<feature>/`). El backend es la fuente de verdad de estados y fechas: la SPA no los calcula.
 - **Tests:** las unitarias van junto al código (`*.test.ts(x)`), las de integración en `backend/tests/integration/` y las E2E en `e2e/tests/`.
 - **Dependencias:** exactas (`.npmrc` con `save-exact`). No añadas librerías sin necesidad concreta ni sin aprobación si no están en la sección 2.
@@ -71,7 +71,7 @@ Comandos (desde la raíz):
 | `npm test` (unitarias y componentes) | No |
 | `npm run test:integration` | Sí: `npm run db:up` y `backend/.env` con `TEST_DATABASE_URL` |
 | `npm run build` | No |
-| `npm run test:e2e` (Chromium; requiere `npx playwright install chromium`) | Sí |
+| `npm run test:e2e` (Chromium: *smoke* por Vite y `spa-build`, el *build* real con la CSP; requiere `npx playwright install chromium`) | Sí |
 | `npm run db:migrate`, `db:status`, `db:drift` | Sí (sobre `DATABASE_URL`) |
 
 - Antes de dar algo por terminado, ejecuta como mínimo `lint`, `typecheck`, `test`, `test:integration` y `build`, y muestra el resultado real.
@@ -100,7 +100,10 @@ Comandos (desde la raíz):
 - Sin secretos en el repositorio: solo `.env.example` con valores de desarrollo.
 - No registres contraseñas, *hashes*, tokens, cadenas de conexión ni datos personales en *logs* ni en respuestas de error.
 - Los errores siguen el formato `{ error: { code, message, details?, requestId } }` de la sección 4, sin trazas ni SQL.
-- Medidas previstas en 2.5 (CSRF, cookie `__Host-session`, `helmet`, límites de peticiones): no las relajes ni las desactives "temporalmente".
+- Medidas de 2.5 (CSRF, cookie `__Host-session`, `helmet` con CSP estricta, límites de peticiones): no las relajes ni las desactives "temporalmente", tampoco para que pase una prueba.
+- **Rutas nuevas** (implementado en DEV-003, `src/shared/http/`): el CSRF ya se aplica a todo `POST`, `PUT`, `PATCH` y `DELETE` bajo `/api`. Cada ruta declara su cuerpo con `jsonBody` (operaciones con cuerpo) o `noBody` (sin cuerpo) y valida con `validate({ params, query, body })` usando esquemas `z.strictObject`. Los errores esperados se lanzan como `AppError(status, code, message, details?)` con un código de la matriz de la sección 4; nunca se construye una respuesta de error a mano fuera de `sendError`.
+- La CSP no admite `'unsafe-inline'`: en el frontend, nada de estilos ni *scripts* en línea en el HTML; usa hojas de estilos.
+- Las rutas de prueba solo se inyectan desde los tests (`createApp({ extraApiRoutes })`); el servidor nunca las registra.
 - No envíes datos del usuario ni del proyecto a servicios externos.
 
 ## 10. Trazabilidad
