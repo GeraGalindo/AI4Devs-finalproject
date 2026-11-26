@@ -23,7 +23,7 @@ Cali Coach
 
 ### **0.3. Descripción breve del proyecto:**
 
-Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asigna un programa de entrenamiento preconfigurado, lo distribuye en los días que el atleta puede entrenar (de 2 a 6), le muestra la sesión de cada día, registra las series realizadas y le enseña su progreso (sección 1). **Estado:** la especificación del MVP está documentada (Entrega 1). DEV-001 añade el andamiaje técnico: frontend, backend, PostgreSQL local, CI y una comprobación técnica de salud (`GET /api/health`). **Todavía no hay ninguna funcionalidad de negocio implementada.**
+Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asigna un programa de entrenamiento preconfigurado, lo distribuye en los días que el atleta puede entrenar (de 2 a 6), le muestra la sesión de cada día, registra las series realizadas y le enseña su progreso (sección 1). **Estado:** la especificación del MVP está documentada (Entrega 1). DEV-001 añade el andamiaje técnico: frontend, backend, PostgreSQL local, CI y una comprobación técnica de salud (`GET /api/health`). DEV-002 añade Prisma y la primera migración (tabla `users`). **Todavía no hay ninguna funcionalidad de negocio implementada.**
 
 ### **0.4. URL del proyecto:**
 
@@ -267,7 +267,7 @@ flowchart TD
 ### **1.4. Instrucciones de instalación:**
 > Documenta de manera precisa las instrucciones para instalar y poner en marcha el proyecto en local (librerías, backend, frontend, servidor, base de datos, migraciones y semillas de datos, etc.)
 
-> **Borrador de DEV-001.** Cubre el arranque local del andamiaje técnico. Las migraciones y las *seeds* se añadirán con DEV-002 y DEV-010, y la versión definitiva de esta sección es de DEV-037.
+> **Borrador de DEV-001, ampliado en DEV-002.** Cubre el arranque local del andamiaje técnico y las migraciones de Prisma. Las *seeds* se añadirán con DEV-010, y la versión definitiva de esta sección es de DEV-037.
 
 #### Requisitos previos
 
@@ -282,11 +282,14 @@ No hace falta instalar PostgreSQL en el sistema.
 #### Puesta en marcha
 
 ```bash
-npm install                              # instala los tres workspaces: backend, frontend y e2e
+npm install                              # instala los tres workspaces y genera Prisma Client (postinstall)
 cp backend/.env.example backend/.env     # valores de desarrollo, sin secretos
 npm run db:up                            # PostgreSQL 17 en localhost:5432 (espera al healthcheck)
+npm run db:migrate                       # aplica las migraciones versionadas (prisma migrate deploy)
 npm run dev                              # backend en :3000 y Vite en :5173
 ```
+
+Si ya tenías un `backend/.env` de DEV-001, añade la variable `TEST_DATABASE_URL` de `backend/.env.example`.
 
 Abre `http://localhost:5173`. La vista técnica *System status* llama a `GET /api/health` a través del *proxy* de Vite y muestra el estado del backend y de la base de datos. Para arrancar cada aplicación por separado: `npm run dev -w backend` y `npm run dev -w frontend`. `npm run db:down` detiene PostgreSQL y conserva los datos en el volumen `db-data`.
 
@@ -296,7 +299,8 @@ Abre `http://localhost:5173`. La vista técnica *System status* llama a `GET /ap
 |---------|----------|-------------------|-------------|
 | `backend/.env` | `NODE_ENV` | `development` | Entorno de ejecución |
 | `backend/.env` | `PORT` | `3000` | Puerto del backend |
-| `backend/.env` | `DATABASE_URL` | `postgres://calicoach:calicoach@localhost:5432/calicoach` | **Obligatoria.** Sin ella, el backend se niega a arrancar con un mensaje explícito |
+| `backend/.env` | `DATABASE_URL` | `postgres://calicoach:calicoach@localhost:5432/calicoach` | **Obligatoria.** Sin ella, el backend se niega a arrancar con un mensaje explícito. También es la base sobre la que actúan los comandos `db:*` |
+| `backend/.env` | `TEST_DATABASE_URL` | `postgres://calicoach:calicoach@localhost:5432/calicoach_test` | **Obligatoria para `test:integration`.** Base desechable: su nombre debe terminar en `_test` y ser distinta de `DATABASE_URL`, o las pruebas se niegan a ejecutarse. Las pruebas la crean si no existe y le aplican las migraciones |
 | `frontend/.env` (opcional) | `VITE_API_PROXY_TARGET` | `http://localhost:3000` | Destino del *proxy* `/api` de Vite |
 
 Solo se versionan los `.env.example`. Los `.env` están en `.gitignore`. Las credenciales de `docker-compose.yml` y de la CI son de desarrollo y no son secretos.
@@ -308,15 +312,28 @@ Solo se versionan los `.env.example`. Los `.env` están en `.gitignore`. Las cre
 | `npm run lint` | ESLint en todo el repositorio | No |
 | `npm run typecheck` | `tsc` en backend, frontend y e2e | No |
 | `npm test` | Unitarias del backend (Vitest + Supertest) y componentes del frontend (Vitest + React Testing Library) | No |
-| `npm run test:integration` | Integración del backend contra PostgreSQL real | Sí (`npm run db:up`) |
+| `npm run test:integration` | Integración del backend contra PostgreSQL real, en la base `TEST_DATABASE_URL` | Sí (`npm run db:up`) |
 | `npm run build` | Compila el backend (`backend/dist`) y el frontend (`frontend/dist`) | No |
 | `npm run test:e2e` | *Smoke* de Playwright en Chromium. Arranca el backend y Vite si no están en marcha | Sí |
 
 Antes de la primera ejecución E2E hay que descargar el navegador con `npx playwright install chromium`.
 
+#### Migraciones (Prisma 7)
+
+| Comando | Qué hace |
+|---------|----------|
+| `npm run db:migrate` | Aplica las migraciones pendientes (`prisma migrate deploy`) sobre `DATABASE_URL` |
+| `npm run db:status` | Muestra el estado de las migraciones (`prisma migrate status`) |
+| `npm run db:drift` | Compara la base con `schema.prisma` (`prisma migrate diff --exit-code`). No detecta los `CHECK` del SQL manual, que se comprueban con pruebas de integración |
+| `npm run db:migrate:create --workspace backend -- --name <nombre>` | Crea una migración nueva **sin aplicarla**, para revisarla y añadirle el SQL manual. Usa una base desechable |
+
+El esquema está en `backend/prisma/schema.prisma` y las migraciones en `backend/prisma/migrations/`. No se usa `prisma db push`. El procedimiento completo está en `CLAUDE.md` (sección 8).
+
 #### Limitaciones conocidas
 
-- No hay migraciones, *seeds*, autenticación ni funcionalidades de negocio. La única ruta es `GET /api/health`.
+- Solo existe la tabla `users` (DEV-002). No hay *seeds*, autenticación ni funcionalidades de negocio. La única ruta es `GET /api/health`.
+- Prisma 7 lee como `[]` un `users.available_weekdays` que en PostgreSQL es `NULL`. Los repositorios de DEV-004 y DEV-005 deberán convertirlo en `null` (3.2).
+- El `package.json` raíz fuerza `effect` 3.22.1 (*override*) para corregir la vulnerabilidad GHSA-7589-6fvf-x4pw del CLI de Prisma 7.10.1 (2.6).
 - El backend todavía no sirve el *build* de la SPA, ni tiene `helmet`, CSRF, `X-Request-Id` ni el manejador de errores global. Todo eso es de DEV-003.
 - La vista de diagnóstico es técnica, en inglés y sin i18n ni *tokens* de diseño (DEV-038 y DEV-039 la migrarán o retirarán).
 - `npm run dev` lanza los dos procesos con la shell (`&`), así que está pensado para Linux y macOS. En Windows, arranca cada aplicación por separado.
@@ -326,7 +343,7 @@ Antes de la primera ejecución E2E hay que descargar el navegador con `npx playw
 
 ## 2. Arquitectura del Sistema
 
-> **Estado de esta sección:** describe la **arquitectura propuesta para el MVP**. Solo existe el andamiaje técnico de DEV-001 (estructura, entorno local, CI y `GET /api/health`; ver 2.3, 2.4 y 2.6). Ningún componente de negocio está implementado ni probado. Las etiquetas indican el origen de cada decisión:
+> **Estado de esta sección:** describe la **arquitectura propuesta para el MVP**. Solo existen el andamiaje técnico de DEV-001 (estructura, entorno local, CI y `GET /api/health`) y la persistencia de `users` de DEV-002 (Prisma y su primera migración); ver 2.3, 2.4 y 2.6. Ningún componente de negocio está implementado ni probado. Las etiquetas indican el origen de cada decisión:
 > - **[Confirmada]:** decisión del equipo o del Product Owner.
 > - **[Propuesta]:** recomendación técnica pendiente de validar al implementar.
 > - **[Pendiente]:** necesita una decisión de producto.
@@ -743,10 +760,13 @@ La regla `partial` / `skipped` está en `sessionLifecycle.resolveClosure` y el r
 
 **Estado tras DEV-001.** Existe el subconjunto mínimo de esta estructura, sin carpetas vacías: cada ticket creará las suyas.
 - **Raíz:** `package.json` con npm *workspaces* (`backend`, `frontend`, `e2e`), `tsconfig.base.json`, `eslint.config.js`, `docker-compose.yml`, `.github/workflows/ci.yml` y `CLAUDE.md`.
-- **Backend:** `src/app.ts`, `src/server.ts`, `src/shared/config.ts`, `src/shared/db.ts` (con `pg`; Prisma llega con DEV-002), `src/modules/health/` y `tests/integration/`.
+- **Backend:** `src/app.ts`, `src/server.ts`, `src/shared/config.ts`, `src/shared/db.ts` (con `pg`), `src/modules/health/` y `tests/integration/`.
 - **Frontend:** `src/app/App.tsx` y `src/features/diagnostics/`.
 - **E2E:** `playwright.config.ts` y `tests/`.
-- Todavía no existen `domain/`, `jobs/`, `prisma/`, `locales/` ni los módulos de negocio.
+
+**Añadido en DEV-002.**
+- **Backend:** `prisma.config.ts`, `prisma/schema.prisma` y `prisma/migrations/` (tabla `users`); `src/shared/prisma.ts` con la factoría `createPrisma(pool)`, que reutiliza el pool de `db.ts` y todavía no se usa en las rutas; `src/generated/prisma/` (Prisma Client, generado en `npm install` y fuera de Git); `tests/support/` (salvaguardas de la base de pruebas).
+- Todavía no existen `domain/`, `jobs/`, las *seeds*, `locales/` ni los módulos de negocio.
 
 ### **2.4. Infraestructura y despliegue**
 
@@ -766,9 +786,9 @@ flowchart LR
     N --> PG[("PostgreSQL gestionado")]
 ```
 
-- **Local [Implementado en DEV-001, salvo Prisma]:** PostgreSQL 17 con `docker-compose`, backend (`tsx watch`) y frontend (Vite) con sus servidores de desarrollo; el *proxy* de Vite redirige `/api` al backend. Las migraciones y la *seed* con Prisma llegarán con DEV-002 y DEV-010.
+- **Local [Implementado en DEV-001 y DEV-002]:** PostgreSQL 17 con `docker-compose`, backend (`tsx watch`) y frontend (Vite) con sus servidores de desarrollo; el *proxy* de Vite redirige `/api` al backend. Las migraciones de Prisma se aplican con `npm run db:migrate` (DEV-002); la *seed* llegará con DEV-010.
 - **Despliegue [Propuesta]:** un único servicio web en una plataforma PaaS, todavía por elegir. Express sirve la API en `/api` y el *build* estático de la SPA, con un mismo origen y sin CORS. La base de datos es un PostgreSQL gestionado. Las migraciones se ejecutan en el paso de *release*, y los secretos se guardan en variables de entorno.
-- **CI [Implementado en DEV-001]:** `.github/workflows/ci.yml` ejecuta en cada PR y en cada *push* a `main`: `npm ci`, *lint*, comprobación de tipos, tests unitarios y de componentes, tests de integración contra un PostgreSQL 17 de servicio y *build*. No usa secretos. El *smoke* E2E (Playwright, Chromium) solo se lanza manualmente con `workflow_dispatch`. Primera ejecución en GitHub: en verde en el PR #3, en `workflow_dispatch` (con E2E) y en `main` tras el merge (ver sección 7).
+- **CI [Implementado en DEV-001]:** `.github/workflows/ci.yml` ejecuta en cada PR y en cada *push* a `main`: `npm ci`, *lint*, comprobación de tipos, tests unitarios y de componentes, tests de integración contra un PostgreSQL 17 de servicio y *build*. No usa secretos. El *smoke* E2E (Playwright, Chromium) solo se lanza manualmente con `workflow_dispatch`. Primera ejecución en GitHub: en verde en el PR #3, en `workflow_dispatch` (con E2E) y en `main` tras el merge (ver sección 7). **Ampliada en DEV-002 (pendiente de ejecutarse en GitHub):** aplica las migraciones (`db:migrate`), muestra su estado (`db:status`), comprueba el *drift* (`db:drift`), verifica que la salvaguarda rechaza la base de desarrollo como base de pruebas, ejecuta la integración en `calicoach_test` y comprueba que una fila centinela de la base de desarrollo sigue intacta.
 - **Sin** colas, *brokers*, cachés externas ni microservicios. La tarea programada opcional se ejecuta en el mismo proceso.
 
 ### **2.5. Seguridad**
@@ -850,6 +870,27 @@ Las cookies viajan solas en cada petición, así que cualquier operación que mo
 | Backend, integración | `npm run test:integration` | `200` contra PostgreSQL real y `503` contra un puerto cerrado | 2/2 |
 | E2E *smoke* | `npm run test:e2e` | La SPA llega al backend y a PostgreSQL a través del *proxy* de Vite (Chromium) | 1/1, también con `CI=1` |
 
+**Pruebas de DEV-002 y resultados** (ejecución **local** del 2026-11-26, Node 24.13.0 y PostgreSQL 17.12 en Docker). **Pendiente de verificar en GitHub Actions** hasta que exista el PR. Las pruebas de integración usan solo la base `calicoach_test` (`TEST_DATABASE_URL`):
+
+| Suite | Archivo | Qué comprueba | Resultado local |
+|-------|---------|---------------|-----------------|
+| Salvaguardas de la base de pruebas | `test-database-guard.test.ts` | Falta `TEST_DATABASE_URL`, nombre sin `_test`, misma base que `DATABASE_URL`, caso válido y negativa a vaciar tablas conectada a la base de desarrollo | 5/5 |
+| Esquema de `users` | `users.schema.test.ts` | Columnas, tipos, nulabilidad y valores por defecto (`information_schema`); PK y `CHECK` con nombre en `pg_constraint`; índice único `users_email_key` sobre `email` en `pg_index`; migración aplicada en `_prisma_migrations` | 4/4 |
+| Restricciones de `users` | `users.constraints.test.ts` | Inserciones válidas y valores por defecto; `23514` con email sin normalizar, `token_version` negativo y días `[]`, 1 día, 7 días, fuera de 0–6; `23505` con email duplicado (`users_email_key`); `23502` con `NULL` en columnas obligatorias | 18/18 |
+| Prisma Client | `prisma.test.ts` | `createPrisma(pool)`: alta y lectura, `@updatedAt`, errores de restricción a través de Prisma, canario de `NULL` → `[]` en `available_weekdays` y `$disconnect()` sin cerrar el pool | 7/7 |
+| Salud (DEV-001) | `health.test.ts` | Sin cambios | 2/2 |
+
+Otras comprobaciones locales de DEV-002:
+- **Sin regresiones de DEV-001:** *lint*, tipos y *build* sin errores; unitarias del backend 5/5, componentes 5/5 y E2E 1/1.
+- **`npm ci` desde cero:** el `postinstall` genera Prisma Client sin necesitar `DATABASE_URL`.
+- **Migración desde cero en una base desechable:** `migrate deploy` aplica `20261126175055_create_users`; una segunda ejecución no aplica nada; `migrate status` está al día y `db:drift` devuelve 0. Los tres `CHECK` y `users_pkey` aparecen en `pg_constraint`, y `users_email_key` en `pg_index` con `indisunique = true`. El *drift* no sustituye a estas comprobaciones, porque Prisma no compara los `CHECK`.
+- **Aislamiento:** con una base "de desarrollo" desechable que contenía una fila centinela, las salvaguardas rechazaron los tres casos inseguros y la suite completa se ejecutó en `calicoach_test`; la fila centinela siguió intacta. La base local `calicoach` no se modificó (0 tablas antes y después). La CI repite esta comprobación con su propia fila centinela.
+- **Auditoría:** `npm audit` informaba de 3 vulnerabilidades altas al añadir Prisma 7.10.1 (GHSA-7589-6fvf-x4pw, ReDoS en `effect` ≤ 3.22.0, que llega por `prisma` → `@prisma/config`, fijado en `effect` 3.20.0). Solo afecta al CLI de desarrollo, no al cliente de ejecución. Se corrige con un *override* de `effect` a 3.22.1 en el `package.json` raíz, la primera versión corregida según la *advisory*, sin cambiar de versión de Prisma ni ninguna otra dependencia existente. Con él, `npm audit` informa de 0 vulnerabilidades, y `generate`, `migrate dev`, `migrate deploy`, `migrate status` y `migrate diff` funcionan. La versión de desarrollo `7.11.0-dev.4` de Prisma ya fija `effect` 3.22.1, lo que indica que es compatible. La CI ejecuta `npm audit --audit-level=high` y falla con vulnerabilidades altas o críticas.
+- **Limitaciones del *override*:**
+  - **Entrada del *lockfile* ajustada a mano.** Con npm *workspaces*, npm 11.6.2 (y también npm 12) ignora el *override* si ya existe un `package-lock.json`, incluso tras desinstalar y reinstalar Prisma; solo lo aplica al regenerar el *lockfile* desde cero, lo que cambiaba 15 dependencias transitivas ajenas a DEV-002 (entre ellas una segunda copia de `vite`). Por eso se sustituyó solo la entrada `node_modules/effect` por la que npm resuelve con el *override* (3.22.1, `resolved` e `integrity` del registro). `npm ci` desde cero produce siempre el mismo árbol, y `npm install`, `npm update` o `npm dedupe` posteriores conservan 3.22.1.
+  - **`npm ls` marca `effect` como `invalid`** y termina con código 1, porque compara la versión instalada con la exacta que declara `@prisma/config` (3.20.0) sin aplicar el *override*. Ocurre también en una instalación limpia con *workspaces* (sin ellos, npm muestra `overridden`). Es un problema de cómo npm presenta el árbol: `npm ci`, `npm audit` y las operaciones de Prisma funcionan.
+  - **Retirada:** el *override* se eliminará en un ticket de mantenimiento, después de verificar una versión estable de Prisma que incorpore la corrección.
+
 
 | Nivel | Herramienta | Qué se prueba | Casos clave |
 |-------|-------------|---------------|-------------|
@@ -919,7 +960,7 @@ En todos los casos: nunca `completed` después de cerrada, ni cerrada después d
 
 > Recomendamos usar mermaid para el modelo de datos, y utilizar todos los parámetros que permite la sintaxis para dar el máximo detalle, por ejemplo las claves primarias y foráneas.
 
-> **Estado de esta sección:** describe el **modelo de datos propuesto** para el MVP. No existen esquema Prisma, migraciones ni semillas, y nada de lo que sigue está implementado ni probado. Se usan las mismas etiquetas que en la sección 2:
+> **Estado de esta sección:** describe el **modelo de datos propuesto** para el MVP. Desde DEV-002 existe la tabla `users`, creada con una migración de Prisma y comprobada con pruebas de integración (3.2, "Implementación de `users`"). El resto de tablas, las migraciones restantes y las semillas no existen todavía. Se usan las mismas etiquetas que en la sección 2:
 > - **[Confirmada]:** reglas de producto que el modelo respeta (estados, secuencias A/B, RP1–RP6, cierre según la zona horaria del usuario).
 > - **[Propuesta]:** tablas, tipos, restricciones e índices. Es el valor por defecto de toda la sección salvo que se indique otra cosa.
 > - **[Pendiente]:** necesita una decisión del Product Owner.
@@ -1084,6 +1125,10 @@ Cuenta del atleta. Contiene también la zona horaria y la disponibilidad que ges
 - **Justificación:**
   - La disponibilidad es un *array* y no una tabla aparte. Se lee y se escribe siempre entera, se copia tal cual en la inscripción y tiene como mucho 6 valores.
   - El `CHECK` asegura el número de días y el rango, pero **no** que no se repitan. Eso lo valida Zod (ver "Reglas con validación transaccional").
+- **Implementación de `users` (DEV-002):** migración `backend/prisma/migrations/20261126175055_create_users`, generada por Prisma y completada con un bloque de SQL manual para los `CHECK`.
+  - **Nombres:** `users_pkey` (PK), `users_email_key` (índice único de `email`; Prisma lo crea como **índice**, así que aparece en `pg_index` y no en `pg_constraint`), `users_email_normalized_chk`, `users_token_version_nonneg_chk` y `users_available_weekdays_chk`.
+  - **`available_weekdays` y `NULL` (decisión D1 de DEV-002):** la columna sigue siendo nullable y vale `NULL` hasta que el usuario configura sus días. Prisma 7.10.1 la **devuelve como `[]`** cuando es `NULL` y no permite filtrar ni escribir `null`. Como el `CHECK` impide guardar un *array* vacío, `[]` leído con Prisma siempre significa "sin configurar". Los repositorios de usuarios (DEV-004 y DEV-005) deben convertir `[]` en `null` antes de devolver datos al dominio o a la API (sección 4 espera `"availableWeekdays": null`). Las consultas de "sin configurar" usan `IS NULL` en SQL. Una prueba canario falla si Prisma cambia este comportamiento.
+  - **`updated_at`:** lo actualiza Prisma (`@updatedAt`). Un `UPDATE` en SQL directo debe fijarlo explícitamente.
 
 #### `programs`
 
@@ -3190,7 +3235,7 @@ Queda por definir el **contenido** de los 3 programas (1.2), que afecta a HU-08 
 
 > Documenta 3 de los tickets de trabajo principales del desarrollo, uno de backend, uno de frontend, y uno de bases de datos. Da todo el detalle requerido para desarrollar la tarea de inicio a fin teniendo en cuenta las buenas prácticas al respecto.
 
-> **Estado de esta sección:** son los **tres tickets técnicos previstos** para implementar las historias HU-01 a HU-03. Ninguno está empezado: solo existe el andamiaje técnico de DEV-001, sin migraciones ni pruebas de negocio. Las pruebas citadas son **propuestas** de 2.6, 3.2 y la sección 4. La "Definición de terminado" describe condiciones **futuras** para cerrar cada ticket, no condiciones ya cumplidas. Las especificaciones detalladas no se repiten aquí: cada ticket remite a la sección correspondiente.
+> **Estado de esta sección:** son los **tres tickets técnicos previstos** para implementar las historias HU-01 a HU-03. Ninguno está terminado: existen el andamiaje técnico de DEV-001 y la migración de `users` de DEV-002 (parte de T-03), sin pruebas de negocio. Las pruebas citadas son **propuestas** de 2.6, 3.2 y la sección 4. La "Definición de terminado" describe condiciones **futuras** para cerrar cada ticket, no condiciones ya cumplidas. Las especificaciones detalladas no se repiten aquí: cada ticket remite a la sección correspondiente.
 >
 > Los tickets se numeran según la plantilla (backend, frontend, base de datos). El **orden de implementación recomendado** es distinto: T-03 → T-01 → T-02 (ver "Dependencias y orden de implementación").
 
@@ -3677,6 +3722,15 @@ Cada ticket añade solo lo que le es propio.
   - integración de cada restricción (T-03, criterio 2);
   - un test de que existen los objetos añadidos con SQL manual (3.2).
 - **Pendiente:** ninguno.
+- **Estado:** **implementado en local, pendiente de PR** (rama `feature/dev-002-users-persistence`). Decisiones técnicas aprobadas para este ticket:
+  - Prisma 7.10.1 (`prisma`, `@prisma/client` y `@prisma/adapter-pg`, versiones exactas), con `prisma.config.ts` y el cliente generado en `backend/src/generated/prisma`;
+  - D1: `available_weekdays` sigue nullable; Prisma lo lee como `[]` y los repositorios de DEV-004 y DEV-005 lo convertirán en `null` (3.2). Una prueba canario vigila ese comportamiento;
+  - D2: `updated_at` con `@updatedAt`; un `UPDATE` en SQL directo lo fija a mano;
+  - D3: factoría `createPrisma(pool)` sobre el pool de `pg`, sin conectarla todavía a las rutas;
+  - D4: pruebas de integración en una base `calicoach_test` (`TEST_DATABASE_URL`) con salvaguardas contra la base de desarrollo, también en CI;
+  - D5: nombres explícitos en las restricciones del SQL manual; el UNIQUE de `email` se comprueba en `pg_index`, porque Prisma lo crea como índice único;
+  - D6: reglas de migración en `CLAUDE.md` (sección 8); la *skill* `prisma-migration` queda para después de DEV-002;
+  - *override* de `effect` 3.22.1 para corregir GHSA-7589-6fvf-x4pw en el CLI de Prisma (2.6).
 
 **DEV-003 — Base del backend: configuración, *middleware* y errores**
 - **Incremento:** I1.
@@ -4612,6 +4666,7 @@ Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha ver
 | [#1](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/1) | `docs: consolidate Cali Coach MVP product decisions` | Documentación | `docs/consolidate-mvp-decisions` → `main` | 2026-11-18 | `f2616d1` | No existía |
 | [#2](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/2) | `docs: prepare Cali Coach academic delivery 1` | Documentación (Entrega 1) | `feature/entrega-1-GeraGalindo` → `main` | 2026-11-20 | `bad3f88` | No existía |
 | [#3](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/3) | `feat: initialize Cali Coach scaffolding and Claude harness (DEV-001)` | Implementación (Entrega 2) | `feature/dev-001-scaffolding` → `main` | 2026-11-22 | `4a885e9` | En verde |
+| [#4](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/4) | `docs: record DEV-001 closure and pull request history` | Documentación (cierre de DEV-001) | `docs/dev-001-closure` → `main` | 2026-11-22 | `bdc273a` | En verde |
 
 Todas se fusionaron con *merge commit*, que es la estrategia habitual del repositorio.
 
@@ -4679,3 +4734,24 @@ Todas se fusionaron con *merge commit*, que es la estrategia habitual del reposi
   - `actions/checkout@v4` y `actions/setup-node@v4` están pensadas para Node 20, que está obsoleto, y GitHub las ejecuta forzadas en Node 24;
   - hay avisos de obsolescencia (`DEP0040`, `DEP0169`) que vienen de dependencias de terceros.
 - **Revisión humana:** el autor aprobó los resultados locales, autorizó el commit, el push y el PR, y autorizó el merge después de revisar la CI. Lo fusionó desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). No pidió cambios de código. GitHub no registra revisiones ni comentarios.
+
+**Pull Request 4**
+
+**#4 — `docs: record DEV-001 closure and pull request history`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/4)
+
+- **Rama:** `docs/dev-001-closure` → `main`. Dos commits (`4a5b800` y `bbd732d`). Creada y fusionada el 2026-11-22 con *merge commit* (`bdc273a`).
+- **Propósito:** cerrar la documentación de DEV-001 después del merge del PR #3. Es solo documental.
+- **Contenido:**
+  - la evidencia de CI del PR #3 en 2.4, 2.6 y la sección 6 (DEV-001 "terminado");
+  - esta sección 7 reescrita con todas las Pull Requests en orden cronológico;
+  - la revisión humana del Prompt 19 en `prompts.md`. Los Prompts 17 y 18 siguen pendientes.
+- **Tamaño:** 2 archivos, +83 y −13 líneas.
+- **Pruebas locales:** no aplica (sin código).
+- **GitHub Actions:**
+
+| Ejecución | Evento | Resultado |
+|-----------|--------|-----------|
+| [45021390354](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45021390354) | `pull_request` (`bbd732d`) | En verde |
+| [45021678347](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45021678347) | `push` a `main` tras el merge `bdc273a` | En verde |
+
+- **Revisión humana:** el autor revisó el PR, aprobó su contenido y autorizó el merge. Lo fusionó desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.

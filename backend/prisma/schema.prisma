@@ -1,0 +1,30 @@
+// Esquema de Cali Coach (readme.md 3.2). Las migraciones se crean con
+// `prisma migrate dev --create-only` y se revisan antes de aplicarse; nunca con `db push`.
+// Las restricciones CHECK no se expresan aquí: viven en el SQL manual de cada migración.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Cuenta del atleta (readme.md 3.2, `users`).
+/// - `available_weekdays` es NULL hasta que el usuario configura sus días. Prisma 7 lo devuelve
+///   como `[]`: los repositorios deben convertir `[]` en `null` (el CHECK impide guardar '{}').
+/// - `updated_at` lo gestiona Prisma (`@updatedAt`). Un UPDATE en SQL directo debe fijarlo a mano.
+model User {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email             String   @unique(map: "users_email_key")
+  passwordHash      String   @map("password_hash")
+  tokenVersion      Int      @default(0) @map("token_version")
+  timezone          String
+  availableWeekdays Int[]    @map("available_weekdays") @db.SmallInt
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("users")
+}
