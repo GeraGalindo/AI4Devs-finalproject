@@ -246,10 +246,12 @@ Se aplican a todas las pantallas y corresponden a los criterios comunes CT-01 a 
 | **No hay selector de idioma** en el MVP | [Confirmada] |
 | El contenido de programas y ejercicios se muestra en inglés | [Confirmada] |
 | El contenido guardado en la base de datos no se traduce en el MVP | [Confirmada] |
-| `i18next` + `react-i18next` | [Propuesta] del Product Owner, pendiente de validar al implementar |
+| `i18next` + `react-i18next` | [Confirmada]: `i18next` 27.1.1 y `react-i18next` 18.0.1 (DEV-038, implementado de forma parcial) |
 | La estrategia para traducir el contenido almacenado | [Pendiente]: decisión futura (sección 8.5) |
 
 ### 8.2. Organización de los catálogos [Propuesta]
+
+> **Implementado en parte en DEV-038:** existen `common`, `auth` (solo un marcador) y `errors`, con la estructura de esta sección, claves tipadas desde los JSON y `translateErrorCode` para `errors.<CODE>` con el mensaje genérico `errors.unknown`. El resto de los espacios de nombres llega con los tickets de cada funcionalidad. Convenciones en `CLAUDE.md` (sección 5).
 
 - **Un espacio de nombres por funcionalidad**, alineado con las *features* de la SPA (2.3 del README): `common`, `auth`, `profile`, `programs`, `calendar`, `session`, `progress` y `errors`.
 - **Estructura:** `frontend/src/locales/en/<namespace>.json`. El idioma por defecto y el de respaldo son `en`.

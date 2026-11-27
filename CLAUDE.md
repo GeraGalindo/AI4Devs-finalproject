@@ -48,6 +48,12 @@ Antes de editar código o documentación:
   - Los repositorios filtran **siempre** por `user_id`, con SQL parametrizado.
   - Dependencias como la base de datos o el reloj se inyectan (ver `createApp({ config, checkDatabase, authRepository, clock })`) para poder probarlas. Un `Clock` propio solo se admite con `NODE_ENV=test`; los servicios toman de él el "ahora" de las reglas de negocio (2.2), no de `new Date()` ni de `now()` en SQL.
 - **Frontend:** organizado por *features* (`src/features/<feature>/`). El backend es la fuente de verdad de estados y fechas: la SPA no los calcula.
+- **Textos e i18n** (DEV-038, parcial; `src/i18n/`):
+  - ningún texto visible va escrito en un componente: todo sale de `frontend/src/locales/en/<namespace>.json` con `useTranslation(ns)` y `t()`. La regla de ESLint lo comprueba en JSX y en `aria-label`, `placeholder`, `title` y `alt`, salvo en las pruebas y en `features/diagnostics/` (D7 de DEV-001);
+  - las claves están tipadas desde los JSON: una clave nueva se añade primero al catálogo. Una clave inexistente hace fallar `typecheck` o la prueba que la use;
+  - los errores de la API se muestran con `translateErrorCode(i18n, error.code)`, nunca con `error.message`. Un código nuevo necesita su clave en `errors.json`;
+  - los componentes reciben la instancia por `I18nProvider`; las pruebas pueden pasar una aislada con `createI18n()`;
+  - no se traducen los valores del contrato (estados, códigos, campos de la API, zonas IANA), solo sus etiquetas.
 - **Tests:** las unitarias van junto al código (`*.test.ts(x)`), las de integración en `backend/tests/integration/` y las E2E en `e2e/tests/`.
 - **Dependencias:** exactas (`.npmrc` con `save-exact`). No añadas librerías sin necesidad concreta ni sin aprobación si no están en la sección 2.
 - No crees carpetas vacías "para más adelante". Cada ticket crea las suyas.

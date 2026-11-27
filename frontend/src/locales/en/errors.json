@@ -1,0 +1,14 @@
+{
+  "unknown": "Something went wrong. Please try again.",
+  "VALIDATION_ERROR": "Some fields are not valid. Check them and try again.",
+  "MALFORMED_JSON": "The request could not be read. Please try again.",
+  "CSRF_REJECTED": "The request was blocked for security reasons. Reload the page and try again.",
+  "UNSUPPORTED_MEDIA_TYPE": "The request could not be processed. Please try again.",
+  "PAYLOAD_TOO_LARGE": "The request is too large.",
+  "EMAIL_ALREADY_REGISTERED": "This email already has an account.",
+  "RATE_LIMITED": "Too many attempts. Please wait and try again later.",
+  "UNAUTHENTICATED": "Your session has ended. Please sign in again.",
+  "NOT_FOUND": "We couldn't find what you were looking for.",
+  "INTERNAL_ERROR": "Something went wrong on our side. Please try again.",
+  "TEMPORARILY_UNAVAILABLE": "The service is temporarily unavailable. Please try again."
+}

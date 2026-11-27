@@ -40,6 +40,7 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 | 20 | DEV-002: persistencia de `users` con Prisma 7 | Sección 3, Prompt 3 | Código nuevo (`backend/prisma/`, `prisma.config.ts`, `src/shared/prisma.ts`, pruebas de integración y de soporte), `package.json`, `package-lock.json`, CI, `CLAUDE.md`, `readme.md` (0.3, 1.4, 2, 2.3, 2.4, 2.6, 3.1, 3.2, 6 y 7) y `prompts.md` |
 | 21 | DEV-003: base del backend (configuración segura, *middleware* y errores) | Sección 4, Prompt 3 | Código nuevo (`backend/src/domain/clock.ts`, `backend/src/shared/http/`, pruebas), `backend/src/app.ts`, `server.ts`, `config.ts`, `/api/health`, la vista de diagnóstico (CSS), dependencias, CI, `CLAUDE.md`, `readme.md` (0.3, 1.4, 2.3, 2.5, 2.6, 4, 6 y 7) y `prompts.md` |
 | 22 | DEV-004: autenticación (registro, inicio, sesión actual y cierre) | Sección 5, Prompt 3 | Código nuevo (`backend/src/modules/auth/`, `src/shared/http/session-cookie.ts`, `rate-limit.ts` y `require-auth.ts`, pruebas unitarias y de integración), `backend/src/app.ts`, `server.ts`, `config.ts`, dependencias, `.env.example`, `CLAUDE.md`, `readme.md` (0.3, 1.2, 1.4, 2.5, 2.6, 4, 5 y 6) y `prompts.md` |
+| 23 | DEV-038 (parcial): base de internacionalización del frontend | Sección 2.3, Prompt 3 | Código nuevo (`frontend/src/i18n/`, `frontend/src/locales/en/`, `frontend/src/test/missing-keys.ts` y pruebas), `frontend/src/main.tsx`, `src/test/setup.ts`, `eslint.config.js`, dependencias, `CLAUDE.md`, `readme.md` (0.3, 2.2, 2.6 y 6), `docs/design-system.md` (8.1 y 8.2) y `prompts.md` |
 
 **Notas:**
 - **Numeración:** los prompts 01–05 y 11–15 llevan el número que les dio el autor. Los números 06–10 los asignó la IA al documentarlos, siguiendo la secuencia.
@@ -49,6 +50,7 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 - **Prompt 20:** DEV-002 se registra en la sección 3 (Modelo de datos), cuyo hueco del Prompt 3 estaba libre. Incluye el prompt de la Fase A y las dos aprobaciones (antes de B1 y antes de B2), que forman un único encargo.
 - **Prompt 21:** DEV-003 se registra en la sección 4 (Especificación de la API), cuyo hueco del Prompt 3 estaba libre, porque implementa las convenciones comunes del contrato. Incluye el prompt de análisis (que también verificó el merge del PR #6) y la aprobación de la implementación.
 - **Prompt 22:** DEV-004 se registra en la sección 5 (Historias de usuario), cuyo hueco del Prompt 3 estaba libre, porque implementa HU-04 y HU-05 en el backend. Incluye el prompt de análisis (que también verificó el merge del PR #8), el de entrega del análisis y el de implementación.
+- **Prompt 23:** DEV-038 (parcial) se registra en 2.3 (estructura del proyecto), cuyo hueco del Prompt 3 estaba libre, porque crea la estructura de internacionalización del frontend (decisión D9). Incluye el prompt que fusionó el PR #10 y analizó el incremento de la Entrega 2, el análisis de DEV-038 y la implementación. Tras este, solo queda libre el hueco 2.4, Prompt 3.
 
 ---
 
@@ -807,6 +809,469 @@ No declares pruebas funcionales ejecutadas: esta tarea es exclusivamente documen
 **Prompt 2:** ver 2.4, Prompt 2 (Prompt 19). Primer subconjunto real de la estructura: npm *workspaces* `backend`, `frontend` y `e2e`, sin carpetas vacías.
 
 **Prompt 3:**
+
+*Prompt 23 — DEV-038 (parcial): base de internacionalización del frontend*
+
+- **Herramienta:** Claude Code (modelo `claude-opus-5-5`), en la misma sesión que DEV-001 a DEV-004. Roles indicados por el autor: el usuario es el Product Owner; ChatGPT, analista y revisor; Claude Code, desarrollador.
+- **Objetivo:** fusionar el cierre documental de DEV-004 (PR #10), analizar el incremento vertical de la Entrega 2 (registro React → Express → PostgreSQL), analizar DEV-038 parcial sin modificar archivos y, tras la aprobación de D1–D9, implementarlo en una rama y validarlo en local, sin commit, push ni PR.
+- **Archivos afectados:**
+  - **nuevos:**
+    - `frontend/src/i18n/`: `config.ts` (fábrica `createI18n`), `resources.ts`, `i18next.d.ts`, `missing-keys.ts`, `errors.ts` (`translateErrorCode`), `app-i18n.ts` e `I18nProvider.tsx`, con las pruebas `i18n.test.ts`, `I18nProvider.test.tsx` y `no-literal-text.lint.test.ts`;
+    - `frontend/src/locales/en/`: `common.json`, `auth.json` y `errors.json`;
+    - `frontend/src/test/missing-keys.ts`;
+  - **modificados:** `frontend/src/main.tsx`, `frontend/src/test/setup.ts`, `eslint.config.js`, `frontend/package.json`, `package-lock.json`, `CLAUDE.md`, `readme.md` (0.3, 2.2, 2.6 y 6), `docs/design-system.md` (8.1 y 8.2) y `prompts.md`;
+  - **sin cambios:** el backend, el esquema, las migraciones, la CI, los E2E y la vista de diagnóstico.
+
+Texto literal del prompt (merge del PR #10 y análisis del incremento):
+
+```text
+# Cali Coach — Merge del PR #10 y análisis del siguiente incremento
+
+Como Product Owner, autorizo explícitamente realizar el merge del PR #10:
+
+https://github.com/GeraGalindo/AI4Devs-finalproject/pull/10
+
+Commit aprobado:
+1566989a6068373630c8de97b00fec1abaa46688
+
+## Fase 1 — Verificación y merge
+
+1. Confirma que PR #10 sigue abierto contra main.
+2. Confirma que HEAD coincide exactamente con el commit aprobado.
+3. Comprueba que no hay conflictos.
+4. Confirma que la CI 45989394190 terminó en success.
+5. Realiza el merge protegido por SHA, conservando el merge commit.
+6. No hagas squash, rebase ni force push.
+
+Si alguna condición falla, detente y consulta.
+
+## Fase 2 — Verificación posterior
+
+1. Confirma que PR #10 está MERGED.
+2. Registra el SHA y fecha del merge.
+3. Actualiza main local por fast-forward.
+4. Confirma que main coincide con origin/main y que el árbol está limpio.
+5. Espera la CI de main y comprueba su resultado.
+6. Confirma el cierre completo de DEV-004, incluyendo documentación.
+
+## Fase 3 — Análisis del siguiente incremento para Entrega 2
+
+Una vez completado DEV-004, realiza un análisis exclusivamente de lectura para conseguir una funcionalidad operativa de extremo a extremo:
+
+React → Express → PostgreSQL
+
+El flujo elegido es el registro de usuario.
+
+Revisa el backlog y los contratos existentes, especialmente:
+
+- DEV-038: internacionalización.
+- DEV-039: sistema de diseño.
+- DEV-006: cliente HTTP y navegación.
+- DEV-007: pantallas de autenticación.
+- HU-04: registro de usuario.
+- Contrato POST /api/auth/register.
+- Diseño mobile-first y tema oscuro.
+
+Determina:
+
+1. Qué dependencias son realmente obligatorias para implementar el registro.
+2. Si podemos entregar un incremento vertical mínimo sin completar anticipadamente todos los tickets.
+3. Qué componentes de React, cliente HTTP y navegación son necesarios.
+4. Cómo obtener la zona horaria del navegador.
+5. Cómo gestionar CSRF, cookies y errores 400, 403, 409 y 429.
+6. Cómo comprobar que el registro inicia una sesión y que GET /api/auth/me la restaura.
+7. Cómo demostrar persistencia en PostgreSQL.
+8. Qué prueba E2E nueva debe incorporarse.
+9. Qué archivos habría que crear o modificar.
+10. Qué decisiones técnicas necesitan aprobación del Product Owner.
+
+No asumas que todos los tickets deben implementarse completamente. Propón el incremento más pequeño que respete la arquitectura y el diseño existentes.
+
+## Fase 4 — Informe
+
+Entrega:
+
+- Resultado del merge y CI de main.
+- Confirmación del cierre de DEV-004.
+- Propuesta de alcance del incremento vertical.
+- Dependencias.
+- Criterios de aceptación.
+- Estrategia de pruebas.
+- Riesgos.
+- Decisiones pendientes.
+
+## Restricciones
+
+- No implementes el incremento todavía.
+- No modifiques archivos.
+- No crees ramas ni commits adicionales.
+- No abras otro PR.
+- No comiences DEV-005 ni otros tickets.
+- No modifiques los Prompts 16–18.
+
+Detente después del análisis y espera mi revisión.
+```
+
+Texto literal del prompt (análisis de DEV-038 parcial):
+
+```text
+# Cali Coach — DEV-038 parcial: análisis técnico previo
+
+## Contexto
+
+Actúas como desarrollador de Cali Coach. El Product Owner ha aprobado el siguiente enfoque para la Entrega 2:
+
+- Objetivo: registro funcional React → Express → PostgreSQL.
+- Registro con sesión automática y restauración mediante GET /api/auth/me.
+- Login y logout quedan fuera del incremento.
+- Cuatro PR secuenciales: DEV-038 parcial → DEV-039 parcial → DEV-006 parcial → DEV-007 parcial.
+- Los tickets se mantendrán parcialmente implementados hasta completar su alcance original.
+- Zona horaria: utilizar la del navegador; si no está disponible o es rechazada, ofrecer selección manual de una zona válida.
+- E2E: el escenario crítico de registro deberá ejecutarse automáticamente en CI antes de cerrar la Entrega 2.
+
+DEV-004 ya está terminado, incluyendo documentación:
+- PR #9: implementación.
+- PR #10: cierre documental.
+- HEAD esperado de main: 9936fcc6f9e6ff91754ee02062c4ce9414dc3524.
+- CI de main: 45990003521, success.
+
+## Objetivo de esta tarea
+
+Realiza exclusivamente el ANÁLISIS de DEV-038 parcial.
+
+No tienes autorización para modificar archivos, instalar dependencias, crear ramas, hacer commits, push o abrir PR.
+
+## Fase 1 — Verificar estado del repositorio
+
+1. Confirma que main coincide con origin/main.
+2. Confirma que HEAD corresponde al merge del PR #10.
+3. Comprueba que el árbol de trabajo está limpio.
+4. Lee CLAUDE.md, readme.md, prompts.md y docs/design-system.md.
+5. Localiza el alcance exacto de DEV-038, sus dependencias y criterios de aceptación.
+6. Inspecciona la estructura real del frontend, su configuración de TypeScript, Vite, Vitest y React.
+
+Si main ha avanzado, informa de ello y utiliza el estado real como referencia. No modifiques nada.
+
+## Fase 2 — Analizar el alcance mínimo
+
+Propón una implementación parcial de DEV-038 que incluya únicamente:
+
+1. Configuración de i18next y react-i18next.
+2. Inglés como idioma único y explícito.
+3. Catálogos organizados por namespaces:
+   - common
+   - auth
+   - errors
+4. Integración del proveedor de traducciones con React.
+5. Política para claves inexistentes.
+6. Pruebas automatizadas de internacionalización.
+7. Documentación del estado parcial del ticket.
+
+No implementes:
+- Registro ni login.
+- Router.
+- Cliente HTTP.
+- Gestión de sesión.
+- Sistema de diseño completo.
+- Selector de idioma.
+- Traducciones de pantallas futuras.
+- Formateadores de fechas y números.
+- Cambios en backend, PostgreSQL, migraciones o E2E.
+
+## Fase 3 — Contratos y compatibilidad
+
+Investiga y documenta:
+
+A. Las versiones exactas de i18next y react-i18next propuestas y su compatibilidad con React 19.3.1, TypeScript y el entorno de pruebas.
+
+B. La estructura de archivos recomendada, por ejemplo:
+
+frontend/src/i18n/
+frontend/src/locales/en/common.json
+frontend/src/locales/en/auth.json
+frontend/src/locales/en/errors.json
+
+Adáptala a la estructura real del repositorio.
+
+C. Cómo inicializar i18next sin depender de detección automática del idioma ni de servicios externos.
+
+D. Cómo utilizar las traducciones desde componentes React.
+
+E. Cómo gestionar claves desconocidas y errores del backend que todavía no tienen traducción.
+
+F. Cómo evitar textos visibles escritos directamente en los componentes futuros.
+
+G. Cómo verificar que una clave faltante provoca un fallo detectable en pruebas o CI, sin depender únicamente de un fallback silencioso en producción.
+
+H. Cómo evitar que la inicialización de i18n rompa la vista de diagnóstico existente o sus cinco pruebas de frontend.
+
+I. Cómo mantener una CSP estricta, sin introducir estilos inline ni dependencias externas de traducción.
+
+## Fase 4 — Estrategia de pruebas
+
+Define pruebas para:
+
+1. Inicialización en inglés.
+2. Traducción de una clave existente en cada namespace.
+3. Detección de claves inexistentes.
+4. Comportamiento ante códigos de error desconocidos.
+5. Integración con un componente React.
+6. Regresión de las pruebas actuales.
+
+Distingue claramente entre:
+- Comprobaciones automáticas.
+- Comprobaciones manuales.
+- Pruebas que pertenecen a DEV-038 parcial.
+- Pruebas que deben esperar a DEV-006 o DEV-007.
+
+No añadas pruebas todavía.
+
+## Fase 5 — Plan de implementación
+
+Entrega:
+
+1. Estado inicial del repositorio.
+2. Alcance exacto de DEV-038 según la documentación.
+3. Alcance parcial recomendado.
+4. Dependencias y versiones.
+5. Lista de archivos nuevos y modificados.
+6. Diseño de configuración i18n.
+7. Estrategia para detectar claves faltantes.
+8. Criterios de aceptación verificables.
+9. Plan de pruebas.
+10. Riesgos y alternativas.
+11. Decisiones técnicas que necesitan aprobación.
+12. Secuencia de implementación propuesta.
+
+Incluye también cómo documentarás DEV-038 como PARCIAL, sin marcarlo como terminado.
+
+## Restricciones obligatorias
+
+- Solo lectura y análisis.
+- No modificar archivos.
+- No instalar paquetes.
+- No crear ramas.
+- No hacer commit, push ni PR.
+- No comenzar DEV-039, DEV-006 o DEV-007.
+- No modificar los Prompts 16–18.
+- No reinterpretar las decisiones de producto DP-01 a DP-17.
+
+Detente al terminar el informe y espera la aprobación explícita del Product Owner para implementar DEV-038 parcial.
+```
+
+Texto literal del prompt (implementación):
+
+```text
+# Cali Coach — DEV-038 parcial: implementación local autorizada
+
+Como Product Owner, apruebo las decisiones D1–D9 del análisis técnico de DEV-038 parcial, con las precisiones indicadas a continuación.
+
+Autorizo crear una rama e implementar DEV-038 parcial localmente.
+
+NO autorizo commit, push, creación de Pull Request ni merge.
+
+## Contexto
+
+- Proyecto: Cali Coach.
+- Base esperada de main: 9936fcc6f9e6ff91754ee02062c4ce9414dc3524.
+- DEV-004: terminado.
+- Objetivo de Entrega 2: registro React → Express → PostgreSQL.
+- Orden aprobado: DEV-038 parcial → DEV-039 parcial → DEV-006 parcial → DEV-007 parcial.
+- DEV-038 debe permanecer marcado como PARCIAL.
+
+## Fase 1 — Preparación
+
+1. Confirma que main coincide con origin/main.
+2. Confirma que el árbol está limpio.
+3. Crea feature/dev-038-i18n-foundation desde main.
+4. Revisa las notas de versión de i18next 27.1.1 y react-i18next 18.0.1.
+5. Comprueba compatibilidad con React 19.3.1 y TypeScript 6.0.3.
+
+Si encuentras incompatibilidades, detente y consulta. No cambies de versión por iniciativa propia.
+
+## Fase 2 — Dependencias y configuración
+
+Instala con versiones exactas:
+
+- i18next@27.1.1
+- react-i18next@18.0.1
+
+Implementa:
+
+- Inglés fijo.
+- Sin detector de idioma.
+- Sin selector.
+- Sin backend HTTP de traducciones.
+- Sin localStorage.
+- Recursos JSON empaquetados.
+- Inicialización síncrona.
+- I18nextProvider integrado en React.
+
+Utiliza una fábrica de instancias para facilitar el aislamiento de las pruebas.
+
+## Fase 3 — Catálogos
+
+Crea:
+
+- frontend/src/locales/en/common.json
+- frontend/src/locales/en/auth.json
+- frontend/src/locales/en/errors.json
+
+Incluye únicamente textos comunes, marcadores mínimos de autenticación y códigos de error necesarios para el registro y las respuestas transversales.
+
+No añadas traducciones de pantallas futuras.
+
+Implementa translateErrorCode(code), con un mensaje genérico para códigos desconocidos.
+
+Nunca muestres directamente error.message recibido del backend.
+
+## Fase 4 — Detección de errores de traducción
+
+Implementa las siguientes capas:
+
+1. Tipado de claves basado directamente en los recursos JSON.
+2. Detección de claves faltantes durante las pruebas.
+3. Prueba que demuestre que el detector realmente falla cuando falta una clave.
+4. Aislamiento del estado del detector entre pruebas.
+5. Comportamiento seguro en producción sin interrumpir la interfaz.
+6. Regla ESLint contra textos visibles escritos directamente en JSX.
+
+No mantengas una lista manual duplicada de claves.
+
+Comprueba que ESLint detecta:
+- Texto visible en JSX.
+- aria-label literal.
+- placeholder literal.
+- title literal.
+- alt literal.
+
+Comprueba también que no bloquea expresiones válidas ni los tests.
+
+Mantén una excepción limitada y documentada para DiagnosticsPage.
+
+Si alguna capa no puede funcionar de forma fiable, informa antes de reemplazarla por una alternativa.
+
+## Fase 5 — Pruebas
+
+Implementa las pruebas propuestas en el análisis:
+
+- Inicialización en inglés.
+- Claves existentes en los tres namespaces.
+- Claves inexistentes.
+- Tipado de claves.
+- Error conocido y desconocido.
+- Cobertura de los códigos de error incluidos.
+- Componente React con proveedor.
+- Regresión de DiagnosticsPage.
+- Regresión del montaje de App.
+
+Ejecuta:
+
+- npm ci
+- npm run lint
+- npm run typecheck
+- npm test
+- npm run test:integration
+- npm run build
+- npm audit --audit-level=high
+- git diff --check
+
+Ejecuta también los E2E existentes localmente, incluidos los escenarios de CSP.
+
+No modifiques la CI para este ticket.
+
+## Fase 6 — Documentación
+
+Actualiza únicamente lo necesario en:
+
+- readme.md
+- docs/design-system.md
+- CLAUDE.md
+- prompts.md
+
+Registra:
+
+- Las librerías confirmadas.
+- La convención de traducciones.
+- Las pruebas y sus resultados.
+- El estado PARCIAL de DEV-038.
+- Las funcionalidades pendientes para completar DEV-038.
+- El Prompt 23 y la revisión humana todavía pendiente.
+
+No declares DEV-038 terminado.
+
+No modifiques los Prompts 16–18.
+
+## Fase 7 — Informe previo a publicación
+
+Entrega:
+
+1. Rama y commit base.
+2. Lista exacta de archivos creados y modificados.
+3. Resumen del diff.
+4. Versiones instaladas y resultado de npm audit.
+5. Evidencia de detección de claves faltantes.
+6. Evidencia de la regla ESLint.
+7. Resultado de cada suite de pruebas.
+8. Resultado E2E y CSP.
+9. Tamaño del bundle antes y después, si puede medirse.
+10. Riesgos y limitaciones.
+11. Confirmación de que DEV-038 sigue PARCIAL.
+12. Confirmación de que no hay commits, push ni PR.
+
+## Restricciones
+
+- No implementar DEV-039, DEV-006 ni DEV-007.
+- No modificar backend, esquema ni migraciones.
+- No añadir router, cliente HTTP o gestión de sesión.
+- No alterar las pruebas E2E existentes.
+- No cambiar de dependencias sin aprobación.
+- No hacer commit, push, PR ni merge.
+- No modificar los Prompts 16–18.
+
+Detente al terminar el informe y espera mi revisión.
+```
+
+**Decisiones humanas:**
+- **Incremento de la Entrega 2:** el autor eligió cuatro PR secuenciales (DEV-038 → DEV-039 → DEV-006 → DEV-007), cada uno con su parte mínima y el ticket marcado como parcial; dejó el inicio y el cierre de sesión fuera del incremento; decidió que, si el navegador no da una zona horaria válida, la interfaz ofrezca elegir una a mano; y exigió que el E2E del registro se ejecute automáticamente en CI antes de cerrar la Entrega 2.
+- **DEV-038:** aprobó D1–D9 del análisis:
+  - D1: `i18next` 27.1.1 y `react-i18next` 18.0.1, sin cambiar de versión por iniciativa propia;
+  - D2: recursos empaquetados e inicialización síncrona, sin detector ni *backend* HTTP;
+  - D3: claves faltantes en cuatro capas (tipos, fallo en pruebas, aviso sin interrumpir en producción y *lint*);
+  - D4: regla nativa `no-restricted-syntax`, sin dependencia nueva;
+  - D5: solo los códigos de error del registro y los transversales;
+  - D6: la vista de diagnóstico se queda como está, con una excepción de *lint* documentada;
+  - D7: los textos en inglés se revisan en el diff;
+  - D8: las librerías pasan a [Confirmada];
+  - D9: el Prompt 23 va en el hueco 2.3, Prompt 3.
+- **Precisiones de la implementación:** una fábrica de instancias; sin lista manual duplicada de claves; una prueba que demuestre que el detector falla; aislamiento del detector entre pruebas; comprobar la regla en texto, `aria-label`, `placeholder`, `title` y `alt`, sin bloquear expresiones válidas ni las pruebas.
+
+**Resultado generado por la IA:**
+- **Merge del PR #10:** comprobado que seguía abierto hacia `main`, con el commit `1566989` y la CI 45989394190 en verde. Fusionado con `--match-head-commit` el 2026-11-27 (`9936fcc`). CI de `main` 45990003521 en verde. DEV-004 queda cerrado también en la documentación.
+- **Análisis del incremento** (sin modificar archivos): el backend no necesita cambios; propuso la parte mínima de DEV-038, DEV-039, DEV-006 y DEV-007, el E2E de registro en `spa-build` con comprobación de la fila en PostgreSQL y diez decisiones (P1–P10). Detectó que el job de E2E de la CI no aplica migraciones y que el E2E local usa la base de desarrollo.
+- **Análisis de DEV-038** (sin modificar archivos): alcance parcial, versiones con más de dos semanas, diseño de la configuración, las cuatro capas de detección y nueve decisiones (D1–D9).
+- **Implementación:**
+  - revisó las notas de versión de `i18next` 27 y `react-i18next` 18 sin encontrar incompatibilidades con React 19.3.1 ni con TypeScript 6.0.3;
+  - `createI18n()` crea instancias independientes, inicializadas de forma síncrona en `en`, sin `initReactI18next`: los componentes reciben la instancia por `I18nProvider`;
+  - las claves se tipan desde los JSON (`CustomTypeOptions`);
+  - `missingKeyHandler` avisa por `reportMissingKey`; `src/test/setup.ts` lo sustituye en cada prueba por un registro que la hace fallar;
+  - `translateErrorCode` traduce `error.code` y devuelve el mensaje genérico para códigos desconocidos o con otra forma, sin usar `error.message`;
+  - la regla de ESLint, con la excepción de las pruebas y de `features/diagnostics/`.
+- **Correcciones durante la implementación:**
+  - la regla rechazaba `alt=""`, que es correcto en imágenes decorativas: ahora solo cuenta el texto no vacío;
+  - una prueba de aislamiento reveló que i18next guarda los recursos por referencia, así que un `addResource` en una instancia cambiaba los catálogos de todas: cada instancia recibe ahora una copia (`structuredClone`);
+  - `startMissingKeyDetection` no era idempotente y, llamada dos veces, perdía el aviso original: ahora restaura el anterior antes de instalarse.
+- **Validación (local, 2026-11-27; detalle en el README, 2.6):**
+  - `npm ci`, `lint`, `typecheck`, `build`, `git diff --check`: sin errores;
+  - `npm test`: 201/201 del backend y 41/41 del frontend (36 nuevas; las 5 de diagnóstico sin cambios);
+  - `npm run test:integration`: 104/104;
+  - `CI=1 npm run test:e2e`: 6/6, incluidas las 4 pruebas de CSP sobre el *build* real;
+  - `npm audit --audit-level=high`: 0 vulnerabilidades; `effect` sigue en 3.22.1;
+  - comprobaciones manuales: una prueba temporal con una clave mal escrita falla con `Missing translation keys: auth:signUp.tittle`; añadir al catálogo una clave que las pruebas esperan inexistente rompe `typecheck` (`TS2578`); la regla, sobre un componente con los cinco tipos de texto, da 8 errores, y 0 sobre uno con expresiones válidas;
+  - *bundle* JS: de 221,40 kB (69,33 kB gzip) a 272,14 kB (85,36 kB gzip).
+  - **La ejecución en GitHub Actions queda pendiente del PR.**
+
+**Revisión humana:** pendiente. El autor revisará la implementación antes de autorizar el commit, el push y el PR. DEV-038 **no** está terminado: es parcial por decisión del autor y, además, falta la revisión, el PR y la CI.
 
 ### **2.4. Infraestructura y despliegue**
 

@@ -23,7 +23,7 @@ Cali Coach
 
 ### **0.3. Descripción breve del proyecto:**
 
-Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asigna un programa de entrenamiento preconfigurado, lo distribuye en los días que el atleta puede entrenar (de 2 a 6), le muestra la sesión de cada día, registra las series realizadas y le enseña su progreso (sección 1). **Estado:** la especificación del MVP está documentada (Entrega 1). DEV-001 añade el andamiaje técnico: frontend, backend, PostgreSQL local, CI y una comprobación técnica de salud (`GET /api/health`). DEV-002 añade Prisma y la primera migración (tabla `users`). DEV-003 añade la base común del backend: configuración segura, CSRF, reglas de cuerpo, validación, formato de errores, cabeceras de seguridad y el servicio del *build* de la SPA. DEV-004 añade la autenticación del backend (registro, inicio, sesión actual y cierre; HU-04 y HU-05), terminada con el PR #9. Todavía no hay otras funcionalidades de negocio ni interfaz de acceso (DEV-007).
+Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asigna un programa de entrenamiento preconfigurado, lo distribuye en los días que el atleta puede entrenar (de 2 a 6), le muestra la sesión de cada día, registra las series realizadas y le enseña su progreso (sección 1). **Estado:** la especificación del MVP está documentada (Entrega 1). DEV-001 añade el andamiaje técnico: frontend, backend, PostgreSQL local, CI y una comprobación técnica de salud (`GET /api/health`). DEV-002 añade Prisma y la primera migración (tabla `users`). DEV-003 añade la base común del backend: configuración segura, CSRF, reglas de cuerpo, validación, formato de errores, cabeceras de seguridad y el servicio del *build* de la SPA. DEV-004 añade la autenticación del backend (registro, inicio, sesión actual y cierre; HU-04 y HU-05), terminada con el PR #9. DEV-038 añade, **de forma parcial**, la base de internacionalización del frontend: `i18next` con inglés fijo y los catálogos `common`, `auth` y `errors`. Todavía no hay otras funcionalidades de negocio ni interfaz de acceso (DEV-007).
 
 ### **0.4. URL del proyecto:**
 
@@ -377,7 +377,7 @@ El esquema está en `backend/prisma/schema.prisma` y las migraciones en `backend
 | El backend sirve también el *build* de la SPA, con un mismo origen | [Propuesta] |
 | Acceso a datos con Prisma (migraciones y *seeds*) y SQL directo para la operación de cierre | [Propuesta] |
 | Interfaz solo en inglés (`en`), preparada para otros idiomas y sin selector de idioma. El contenido persistido no se traduce en el MVP | [Confirmada] |
-| Internacionalización con `i18next` y `react-i18next`, y formatos con `Intl` (DEV-038) | [Propuesta] |
+| Internacionalización con `i18next` y `react-i18next`, y formatos con `Intl` (DEV-038) | [Confirmada] para `i18next` 27.1.1 y `react-i18next` 18.0.1 (DEV-038, implementado de forma parcial). Los formatos con `Intl` siguen como [Propuesta] |
 | Identidad visual *Performance / Athletic* y navegación Today · Program · Progress · Profile (`docs/design-system.md`) | [Confirmada]. Los valores de los tokens son una [Propuesta] |
 
 #### Diagrama de componentes
@@ -964,6 +964,22 @@ Otras comprobaciones locales de DEV-004:
 - **Arranque seguro con el servidor compilado:** en producción, sin `JWT_SECRET`, con el valor de desarrollo, con uno corto o con un ejemplo, el proceso termina con código 1 y un mensaje que no incluye el valor; con un secreto aleatorio de 48 bytes arranca.
 - **Dependencias:** `argon2` 0.45.2, `jose` 6.2.17, `express-rate-limit` 8.7.4 y `cookie` 2.0.2, con versión exacta y publicadas hace más de dos semanas. `argon2` es nativo, con binarios precompilados, y trae como dependencias de producción `@phc/format`, `node-addon-api`, `node-gyp-build` y `cross-env` (de ahí que `cross-spawn` y las suyas dejen de ser solo de desarrollo en el *lockfile*). Ninguna versión existente cambia, `effect` sigue en 3.22.1 (`npm ls` lo sigue marcando `invalid`, ver arriba) y `npm audit --audit-level=high` informa de 0 vulnerabilidades.
 
+**Pruebas de DEV-038 (parcial) y resultados** (ejecución **local** del 2026-11-27, Node 24.13.0). **Pendiente de verificar en GitHub Actions** con el PR. No necesitan PostgreSQL:
+
+| Suite | Archivo | Qué comprueba | Resultado local |
+|-------|---------|---------------|-----------------|
+| Configuración y catálogos | `frontend/src/i18n/i18n.test.ts` | Inicialización síncrona solo en `en`, sin detector ni *backend*; instancias independientes; una clave de cada *namespace*; ningún texto vacío en los catálogos; claves inexistentes rechazadas por `typecheck` (`@ts-expect-error`) | 5/5 |
+| Claves faltantes | `frontend/src/i18n/i18n.test.ts` | Una clave inexistente usada en ejecución queda registrada; el detector lanza el error y vacía su estado; cada prueba empieza con el registro vacío; fuera de las pruebas la interfaz muestra la clave y solo se avisa en desarrollo | 4/4 |
+| Errores de la API | `frontend/src/i18n/i18n.test.ts` | `translateErrorCode`: un código conocido; el mensaje genérico para un código desconocido, ausente, con otra forma o que intenta otra clave (`common:appName`, `__proto__`), sin registrar claves faltantes; cada código del catálogo tiene su mensaje; los códigos que puede devolver `POST /api/auth/register` (sección 4) están traducidos | 12/12 |
+| Proveedor en React | `frontend/src/i18n/I18nProvider.test.tsx` | Un componente traducido con la instancia de la app y con una aislada; un error traducido por `code`; una clave faltante en un componente; `App` montada dentro del proveedor, con la vista de diagnóstico intacta | 5/5 |
+| Regla de ESLint | `frontend/src/i18n/no-literal-text.lint.test.ts` | Con la configuración real: rechaza texto en JSX, literales y plantillas como hijos, y `aria-label`, `placeholder`, `title` y `alt` literales; acepta `t()`, expresiones, `alt=""` y atributos no visibles; no se aplica a las pruebas ni a `features/diagnostics/` | 10/10 |
+| Regresión | `DiagnosticsPage.test.tsx` y el resto de suites | Las 5 pruebas de diagnóstico sin cambios; backend e integración sin cambios | 5/5, 201/201 y 104/104 |
+
+Otras comprobaciones locales de DEV-038:
+- **Totales:** `npm test` 201/201 del backend y 41/41 del frontend (36 nuevas); `npm run test:integration` 104/104; `CI=1 npm run test:e2e` 6/6, incluidas las 4 pruebas de CSP sobre el *build* real. `npm ci`, *lint*, tipos, *build* y `git diff --check`, sin errores.
+- **Comprobaciones manuales:** una prueba temporal con una clave mal escrita (`auth:signUp.tittle`) falla con `Missing translation keys: auth:signUp.tittle`; añadir al catálogo una clave que las pruebas esperan inexistente rompe `typecheck` (`TS2578`).
+- **Dependencias:** `i18next` 27.1.1 y `react-i18next` 18.0.1, con versión exacta. El *lockfile* solo añade esas dos y `html-parse-stringify` 4.0.1; ninguna versión existente cambia, `effect` sigue en 3.22.1 y `npm audit --audit-level=high` informa de 0 vulnerabilidades.
+- **Tamaño del *bundle*:** el JS pasa de 221,40 kB (69,33 kB gzip) a 272,14 kB (85,36 kB gzip).
 
 | Nivel | Herramienta | Qué se prueba | Casos clave |
 |-------|-------------|---------------|-------------|
@@ -3932,7 +3948,30 @@ Cada ticket añade solo lo que le es propio.
   - componentes (RTL) con el proveedor de i18n.
 - **Pendiente:**
   - la estrategia para traducir el contenido almacenado de programas y ejercicios, una decisión futura que no cambia el esquema (`docs/design-system.md`, sección 8.5);
-  - las librerías son una [Propuesta].
+  - ~~las librerías son una [Propuesta]~~ confirmadas en DEV-038 parcial: `i18next` 27.1.1 y `react-i18next` 18.0.1.
+- **Estado:** **parcial** (Entrega 2), implementado en la rama `feature/dev-038-i18n-foundation`, pendiente de revisión, Pull Request y CI. **No está terminado:** por decisión del autor, la Entrega 2 implementa solo la parte que necesita el registro y el ticket sigue abierto hasta completar su alcance. Verificación local en 2.6.
+  - **Implementado:**
+    - `i18next` y `react-i18next` con `en` como idioma y respaldo, sin detector, selector, *backend* HTTP ni `localStorage`; recursos empaquetados e inicialización síncrona; fábrica `createI18n()` e `I18nProvider` (`frontend/src/i18n/`);
+    - catálogos `common`, `auth` (solo un marcador) y `errors` en `frontend/src/locales/en/`;
+    - `errors.<CODE>` para los códigos de `POST /api/auth/register` y los transversales (`UNAUTHENTICATED` y `NOT_FOUND`), con el mensaje genérico `errors.unknown` (criterio 4) y `translateErrorCode`;
+    - criterio 1: claves tipadas desde los JSON (`typecheck`) y detector de claves faltantes que hace fallar las pruebas;
+    - criterio 2, en su parte automatizable: regla de ESLint contra textos en JSX y en `aria-label`, `placeholder`, `title` y `alt`. No detecta textos guardados en variables, que se revisan en cada PR.
+  - **Pendiente para completar DEV-038:**
+    - catálogos `profile`, `programs`, `calendar`, `session` y `progress`, y `session.status.<valor>`;
+    - claves `errors.<CODE>` del resto de la matriz de la sección 4, con los tickets que los usen;
+    - utilidades de formato con `Intl` (fechas de calendario sin conversión de zona, instantes con la zona del perfil y números) y la configuración regional de formato separada (criterio 3);
+    - el criterio 5, cuando una pantalla muestre valores de la API;
+    - migrar o retirar la vista de diagnóstico, que queda fuera de la regla de *lint* por la decisión D7 de DEV-001 (DEV-039 o DEV-006).
+  - **Decisiones técnicas aprobadas por el autor:**
+    - D1: `i18next` 27.1.1 y `react-i18next` 18.0.1;
+    - D2: recursos empaquetados e inicialización síncrona, sin detector ni *backend* HTTP;
+    - D3: claves faltantes en cuatro capas: tipos, fallo en las pruebas, aviso en desarrollo sin interrumpir la interfaz y *lint*;
+    - D4: regla nativa `no-restricted-syntax`, sin dependencias nuevas;
+    - D5: solo los códigos de error del registro y los transversales;
+    - D6: la vista de diagnóstico no cambia y queda fuera de la regla;
+    - D7: textos en inglés revisados en el diff;
+    - D8: librerías confirmadas en 2.2 y en `docs/design-system.md`;
+    - D9: Prompt 23 en el hueco 2.3, Prompt 3, de `prompts.md`.
 
 **DEV-039 — Sistema de diseño y componentes base**
 - **Incremento:** I1. Va antes de DEV-006.
