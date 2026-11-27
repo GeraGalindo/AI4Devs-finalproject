@@ -15,7 +15,7 @@
 
 ### **0.1. Tu nombre completo:**
 
-Gerardo Galindo. *Tomado de la configuración de Git del repositorio (`user.name`); pendiente de confirmar por el autor.*
+Gerardo Galindo. *Confirmado por el autor en el cierre de la Entrega 2.*
 
 ### **0.2. Nombre del proyecto:**
 
@@ -27,7 +27,7 @@ Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asig
 
 ### **0.4. URL del proyecto:**
 
-**Pendiente.** Todavía no hay ningún despliegue (DEV-036, sección 6; criterio de éxito CE6).
+**No disponible todavía.** No hay ningún despliegue (DEV-036, sección 6; criterio de éxito CE6). En la Entrega 2 la aplicación se ejecuta en local (1.4).
 
 > Puede ser pública o privada, en cuyo caso deberás compartir los accesos de manera segura. Puedes enviarlos a [alvaro@lidr.co](mailto:alvaro@lidr.co) usando algún servicio como [onetimesecret](https://onetimesecret.com/).
 
@@ -35,7 +35,8 @@ Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asig
 
 > Puedes tenerlo alojado en público o en privado, en cuyo caso deberás compartir los accesos de manera segura. Puedes enviarlos a [alvaro@lidr.co](mailto:alvaro@lidr.co) usando algún servicio como [onetimesecret](https://onetimesecret.com/). También puedes compartir por correo un archivo zip con el contenido
 
-Remoto `origin` configurado en el repositorio: `git@github.com:GeraGalindo/AI4Devs-finalproject.git` (https://github.com/GeraGalindo/AI4Devs-finalproject). **Pendiente** de confirmar su visibilidad y los accesos para la entrega.
+- **Repositorio:** https://github.com/GeraGalindo/AI4Devs-finalproject (remoto `origin`: `git@github.com:GeraGalindo/AI4Devs-finalproject.git`).
+- **Visibilidad:** **público**, comprobado en GitHub el 2026-11-27. No hace falta compartir accesos.
 
 
 ---
@@ -217,7 +218,13 @@ El Product Owner ha resuelto las 17 decisiones que estaban abiertas. **Todas est
 
 > Proporciona imágenes y/o videotutorial mostrando la experiencia del usuario desde que aterriza en la aplicación, pasando por todas las funcionalidades principales.
 
-> **Pendiente:** las capturas y el videotutorial se añadirán cuando exista la implementación. Por ahora se describe el flujo principal previsto.
+> **Estado (cierre de la Entrega 2):** solo está implementado el registro (S-01) y una vista provisional con sesión (DEV-007, parcial). Las capturas del resto del flujo y el videotutorial se añadirán cuando existan esas funcionalidades. Por ahora se describe el flujo principal previsto.
+
+#### Captura de la Entrega 2: registro (S-01)
+
+![Pantalla S-01 "Create your account" con tema oscuro: campos Email y Password, zona horaria Europe/Amsterdam y botón morado "Create account"](docs/s01-signup.png)
+
+Captura real tomada por el Product Owner el 2026-11-27 durante su validación local en `http://localhost:5173` (ver "Validación manual local" en 1.4). Muestra la pantalla **Create your account** con el tema oscuro, los campos **Email** y **Password**, la zona horaria detectada del navegador (**Europe/Amsterdam**) y el botón primario morado **Create account**. El formulario está vacío: no aparece ningún dato personal.
 
 #### Flujo principal
 
@@ -266,7 +273,7 @@ flowchart TD
 ### **1.4. Instrucciones de instalación:**
 > Documenta de manera precisa las instrucciones para instalar y poner en marcha el proyecto en local (librerías, backend, frontend, servidor, base de datos, migraciones y semillas de datos, etc.)
 
-> **Borrador de DEV-001, ampliado en DEV-002, DEV-003 y DEV-004.** Cubre el arranque local del andamiaje técnico, las migraciones de Prisma, la configuración segura del backend y el secreto de la sesión. Las *seeds* se añadirán con DEV-010, y la versión definitiva de esta sección es de DEV-037.
+> **Borrador de DEV-001, ampliado en DEV-002, DEV-003, DEV-004 y DEV-007 (parcial), y revisado en el cierre de la Entrega 2.** Cubre el arranque local, las migraciones de Prisma, la configuración segura del backend, el secreto de la sesión, la base aislada de los E2E (`calicoach_e2e`), la validación manual del registro y una guía para comprobarlo. Las *seeds* se añadirán con DEV-010, y la versión definitiva de esta sección es de DEV-037.
 
 #### Requisitos previos
 
@@ -305,6 +312,7 @@ Abre `http://localhost:5173`: sin sesión, `/` lleva al registro (`/signup`, DEV
 | `backend/.env` | `DATABASE_URL` | `postgres://calicoach:calicoach@localhost:5432/calicoach` | **Obligatoria.** Sin ella, el backend se niega a arrancar con un mensaje explícito. También es la base sobre la que actúan los comandos `db:*` |
 | `backend/.env` | `TEST_DATABASE_URL` | `postgres://calicoach:calicoach@localhost:5432/calicoach_test` | **Obligatoria para `test:integration`.** Base desechable: su nombre debe terminar en `_test` y ser distinta de `DATABASE_URL`, o las pruebas se niegan a ejecutarse. Las pruebas la crean si no existe y le aplican las migraciones |
 | `frontend/.env` (opcional) | `VITE_API_PROXY_TARGET` | `http://localhost:3000` | Destino del *proxy* `/api` de Vite |
+| Entorno de la shell (opcional) | `E2E_DATABASE_URL` | `postgres://calicoach:calicoach@localhost:5432/calicoach_e2e` | Base de `npm run test:e2e` (DEV-007). Se lee **solo del entorno**, no de `backend/.env`. Debe ser un PostgreSQL local, con un nombre que termine en `_e2e` y distinta de `DATABASE_URL` y `TEST_DATABASE_URL`; si no, los E2E se niegan a ejecutarse. Normalmente no hace falta definirla |
 
 La cookie de sesión no se configura con variables: es `session` sin `Secure` en `development`/`test` y `__Host-session` con `Secure` en `production` (sección 4). DEV-004 la emite al registrarse o iniciar sesión.
 
@@ -334,9 +342,63 @@ Antes de la primera ejecución E2E hay que descargar el navegador con `npx playw
 
 El esquema está en `backend/prisma/schema.prisma` y las migraciones en `backend/prisma/migrations/`. No se usa `prisma db push`. El procedimiento completo está en `CLAUDE.md` (sección 8).
 
+#### Validación manual local (Entrega 2)
+
+El Product Owner ejecutó el proyecto en su máquina siguiendo "Puesta en marcha". La captura de 1.3 es del 2026-11-27.
+
+| Elemento | Versión |
+|----------|---------|
+| Sistema operativo | Ubuntu |
+| Node.js | 24.13.0 |
+| npm | 11.6.2 |
+| Docker | 29.8.0 |
+| Docker Compose | 5.5.1 |
+| PostgreSQL | 17 (imagen `postgres:17-alpine` de `docker-compose.yml`) |
+
+Qué se comprobó y cómo:
+
+| Comprobación | Manual (Product Owner) | Automatizada (local y CI, 2.6) |
+|--------------|------------------------|--------------------------------|
+| `npm run db:up` levanta PostgreSQL | Sí | Sí: la CI usa PostgreSQL 17 de servicio |
+| `npm run db:migrate` aplica las migraciones | Sí, sin errores | Sí: migraciones y *drift* en cada PR |
+| `npm run dev` arranca backend y frontend, y `http://localhost:5173` abre la aplicación | Sí | Parcial: el *smoke* E2E recorre el *proxy* de Vite en `/diagnostics`; el registro E2E usa el *build* real servido por Express |
+| Registro de un usuario desde S-01 | Sí, completado | Sí: `spa-build.signup.spec.ts` |
+| Acceso a la vista provisional con sesión tras registrarse | Sí | Sí |
+| Tema oscuro y paleta | **Aprobados visualmente** por el Product Owner | Contraste de los tokens en `tokens.test.ts`; CSP y 320 px en el E2E |
+| Restauración de la sesión al recargar | Sí: `GET /api/auth/me` respondió HTTP `200`, la ruta `/` mostró la vista autenticada y, tras recargar con `Ctrl + R`, la vista autenticada siguió visible | Sí: el E2E recarga y comprueba `GET /api/auth/me` → `200` |
+| Fila en `users` con el email normalizado y la contraseña solo como *hash* Argon2id | **No realizada** a mano (sin consulta directa a `users`) | Sí: el E2E la comprueba en `calicoach_e2e` |
+
+#### Guía para comprobar el registro en local
+
+Pasos breves para reproducir la funcionalidad de la Entrega 2. Comandos desde la raíz, en Linux o macOS (en Windows, WSL o Git Bash; ver "Limitaciones conocidas").
+
+1. **Variables de entorno, sin sobrescribir un `backend/.env` existente:**
+
+   ```bash
+   [ -f backend/.env ] || cp backend/.env.example backend/.env
+   ```
+
+   Si ya existía, compáralo con `backend/.env.example` (ver "Puesta en marcha"). Los valores de ejemplo son de desarrollo; no hace falta `JWT_SECRET` en local.
+2. **PostgreSQL:** `npm run db:up`.
+3. **Migraciones:** `npm run db:migrate` (y, si quieres, `npm run db:status`).
+4. **Frontend y backend:** `npm run dev` (backend en `:3000`, Vite en `:5173`).
+5. **Cuenta de prueba:** abre `http://localhost:5173`. Sin sesión, la aplicación lleva a `/signup`. Usa un email ficticio (por ejemplo, en el dominio reservado `example.com`) y una contraseña de 12 a 128 caracteres elegida en ese momento: no la anotes en el repositorio. La zona horaria se toma del navegador; si no se detecta, se elige en la lista. Al crear la cuenta se ve la vista provisional con el email. El backend admite 5 registros por hora por IP y proceso: si aparece el aviso de demasiados intentos, espera o reinicia `npm run dev`.
+6. **Restauración de la sesión:** recarga la página. Debe seguir la vista provisional con el mismo email, porque la SPA consulta `GET /api/auth/me` con la *cookie* `HttpOnly` de sesión.
+7. **Fila creada en PostgreSQL, sin mostrar el *hash* completo:**
+
+   ```bash
+   docker compose exec db psql -U calicoach -d calicoach -c \
+     "SELECT email, left(password_hash, 10) AS hash_prefix, timezone, available_weekdays, token_version, created_at FROM users ORDER BY created_at DESC LIMIT 5;"
+   ```
+
+   Lo esperado: el email en minúsculas y sin espacios, `hash_prefix` = `$argon2id$` (solo el prefijo del algoritmo), la zona IANA elegida, `available_weekdays` vacío (`NULL`) y `token_version` = `0`. No consultes ni copies `password_hash` completo.
+8. **Pruebas:** `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` y, con PostgreSQL, `npm run test:integration`. Para el E2E: `npx playwright install chromium` la primera vez y `npm run test:e2e`, que usa su propia base `calicoach_e2e` y los puertos `:3001`, `:5174` y `:3100` (deben estar libres).
+
+**Cerrar la sesión:** la interfaz todavía **no tiene cierre de sesión** (DEV-007, parcial). La API `POST /api/auth/logout` existe (DEV-004), pero ningún botón la llama. Para volver a ver el registro, borra la *cookie* `session` de `localhost` en las herramientas del navegador o usa una ventana privada; si no, la sesión dura 7 días en ese navegador.
+
 #### Limitaciones conocidas
 
-- Solo existe la tabla `users` (DEV-002) y no hay *seeds*. Las rutas son `GET /api/health` y las de autenticación (`POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` y `POST /api/auth/logout`, DEV-004). No hay interfaz de acceso (DEV-007) ni otras funcionalidades de negocio.
+- Solo existe la tabla `users` (DEV-002) y no hay *seeds*. Las rutas son `GET /api/health` y las de autenticación (`POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` y `POST /api/auth/logout`, DEV-004). Desde DEV-007 (parcial) la interfaz tiene el registro (S-01) y una vista provisional con sesión, pero **no** el inicio de sesión (S-02) ni el cierre de sesión. No hay otras funcionalidades de negocio.
 - Prisma 7 lee como `[]` un `users.available_weekdays` que en PostgreSQL es `NULL`. El repositorio de autenticación (DEV-004) lo convierte en `null`; el de perfil (DEV-005) deberá hacerlo también (3.2).
 - El `package.json` raíz fuerza `effect` 3.22.1 (*override*) para corregir la vulnerabilidad GHSA-7589-6fvf-x4pw del CLI de Prisma 7.10.1 (2.6).
 - El backend sirve el *build* de la SPA y aplica `helmet`, CSRF, las reglas de cuerpo y el formato de errores (DEV-003), y la autenticación con límite de peticiones (DEV-004). Sin `trust proxy` (DEV-036), el límite usa la IP del socket y guarda los contadores en memoria: no sirve detrás de un *proxy* ni con varias instancias, y se reinicia con el proceso.
@@ -349,7 +411,11 @@ El esquema está en `backend/prisma/schema.prisma` y las migraciones en `backend
 
 ## 2. Arquitectura del Sistema
 
-> **Estado de esta sección:** describe la **arquitectura propuesta para el MVP**. Solo existen el andamiaje técnico de DEV-001 (estructura, entorno local, CI y `GET /api/health`) y la persistencia de `users` de DEV-002 (Prisma y su primera migración); ver 2.3, 2.4 y 2.6. Ningún componente de negocio está implementado ni probado. Las etiquetas indican el origen de cada decisión:
+> **Estado de esta sección:** describe la **arquitectura propuesta para el MVP**. Al cierre de la Entrega 2 está implementado y probado (2.3, 2.4, 2.5 y 2.6):
+> - en el backend: el andamiaje de DEV-001 (estructura, entorno local, CI y `GET /api/health`), la persistencia de `users` de DEV-002 (Prisma y su primera migración), la base de seguridad de DEV-003 y la autenticación de DEV-004 (registro, inicio de sesión, sesión actual y cierre, con Argon2id y *cookie* `HttpOnly`);
+> - en el frontend, **de forma parcial**: la base de i18n (DEV-038), los tokens y componentes base (DEV-039), el cliente HTTP, las rutas y la sesión (DEV-006), y el registro de extremo a extremo con la restauración de la sesión al recargar (DEV-007).
+>
+> El resto de componentes de negocio (perfil y disponibilidad, catálogo, inscripción, calendario, sesiones, registro de series, cierre automático y progreso) **no está implementado**. Las etiquetas indican el origen de cada decisión:
 > - **[Confirmada]:** decisión del equipo o del Product Owner.
 > - **[Propuesta]:** recomendación técnica pendiente de validar al implementar.
 > - **[Pendiente]:** necesita una decisión de producto.
@@ -893,7 +959,7 @@ Fusionada en `main` con el PR #9 y con la CI en verde (2.6 y sección 7). Decisi
 
 > Describe brevemente algunos de los tests realizados
 
-> **Estado:** DEV-001 añade las primeras pruebas, solo técnicas (sin reglas de negocio). La tabla de niveles que sigue a los resultados de DEV-001 es la estrategia prevista para el MVP; ninguna de sus pruebas de negocio existe todavía.
+> **Estado (cierre de la Entrega 2):** DEV-001 añadió las primeras pruebas, solo técnicas. Desde entonces existen las pruebas de los tickets implementados, con sus resultados locales y de CI más abajo: restricciones de `users` contra PostgreSQL (DEV-002), la cadena de seguridad (DEV-003), las pruebas de negocio de la autenticación (registro, inicio, sesión y cierre, contra PostgreSQL real; DEV-004), los componentes y la sesión del frontend (DEV-038, DEV-039 y DEV-006) y el E2E del registro con la fila comprobada en la base (DEV-007). La tabla de niveles que sigue a los resultados de DEV-001 es la estrategia prevista para el MVP: las pruebas de las funcionalidades que aún no existen (programas, calendario, sesiones, progreso y concurrencia C1–C8) **no están escritas todavía**.
 
 **Pruebas de DEV-001 y resultados** (ejecución **local** del 2026-11-22, Node 24.13.0 y PostgreSQL 17 en Docker). **En GitHub Actions** se obtuvieron los mismos resultados en el PR #3 y en `main`, y el *smoke* E2E pasó con `workflow_dispatch` (sección 7):
 
@@ -4865,22 +4931,29 @@ El núcleo de la reconciliación (DEV-027) y su uso en la activación y en los `
 
 > **Qué es este apartado.** Organiza el backlog anterior en las tres entregas del proyecto, **sin añadir tickets ni cambiar su orden**. No incluye fechas ni porcentajes de avance.
 >
-> **[Pendiente de verificación]:** las instrucciones oficiales de las entregas de AI4Devs **no están en el repositorio**. Los objetivos de cada entrega son los de trabajo fijados por el autor, y no se ha comprobado que cumplan los requisitos oficiales: contenido exigido, formato, rama o Pull Request de entrega y fechas.
+> ~~**[Pendiente de verificación]:** las instrucciones oficiales de las entregas de AI4Devs **no están en el repositorio**. Los objetivos de cada entrega son los de trabajo fijados por el autor, y no se ha comprobado que cumplan los requisitos oficiales: contenido exigido, formato, rama o Pull Request de entrega y fechas.~~
+>
+> **Actualizado en el cierre de la Entrega 2:** el Product Owner aportó el 2026-11-27 el resumen de los requisitos oficiales, en el texto del prompt de cierre documental (Prompt 27 de `prompts.md`), y aprobó incorporarlo aquí:
+> - **Entrega 1, documentación técnica (sin código):** configuración inicial de `readme.md` y `prompts.md`, con la ficha del proyecto, la descripción general (objetivo y funcionalidades), la arquitectura (diagrama y componentes), el modelo de datos, la especificación de la API, las historias de usuario, los tickets de backend, frontend y base de datos, el *stack* tecnológico y el registro inicial de prompts.
+> - **Entrega 2, código funcional:** archivos actualizados, *scaffolds* conectados y el flujo principal parcialmente operativo, con al menos una funcionalidad real de extremo a extremo. Incluye todo lo de la Entrega 1.
+> - **Entrega 3:** de 3 a 5 funcionalidades completas, pruebas y evidencia de funcionamiento, credenciales de prueba y pasos de verificación.
+>
+> Los objetivos de este plan siguen siendo los de trabajo del autor. El formato de entrega, la rama o Pull Request de entrega y las fechas no constan en el repositorio.
 
 **Entrega 1: documentación y diseño.** Objetivo: una especificación coherente y trazable del MVP.
 
-| Evidencia prevista | Dónde está | Estado en el repositorio |
+| Evidencia prevista | Dónde está | Estado en el repositorio (actualizado al cierre de la Entrega 2) |
 |--------------------|------------|--------------------------|
-| Producto y funcionalidades | Sección 1: F1–F10, capacidades principales, RP1–RP6 y registro DP-01 a DP-17 | Documentado. Faltan las capturas y el vídeo de 1.3, que necesitan la implementación |
-| Arquitectura técnica | Sección 2 | Documentada como [Propuesta]; nada está implementado |
-| Modelo de datos | Sección 3 | Documentado; no existen esquema, migraciones ni *seeds* |
-| Especificación de la API | Sección 4, con OpenAPI de los endpoints principales | Documentada |
-| Historias de usuario | Sección 5: HU-01 a HU-03 y backlog HU-04 a HU-23 | Documentadas |
-| Tickets de desarrollo | Sección 6: T-01 a T-03 y DEV-001 a DEV-039 | Documentados. DEV-001 terminado (PR #3); los demás sin empezar |
-| Prompts y decisiones humanas | `prompts.md` y registro DP de 1.2 | Documentados. El Prompt 17 está como referencia pendiente de registrar |
-| Sistema de diseño | `docs/design-system.md` | Documentado. Los tokens son una [Propuesta] y falta la comparación con el mockup |
+| Producto y funcionalidades | Sección 1: F1–F10, capacidades principales, RP1–RP6 y registro DP-01 a DP-17 | Documentado. 1.3 tiene la captura de S-01 (Entrega 2); faltan las del resto del flujo y el vídeo, que necesitan más funcionalidades |
+| Arquitectura técnica | Sección 2 | Documentada como [Propuesta]. Implementados el backend de DEV-001 a DEV-004 y, de forma parcial, el frontend de DEV-038, DEV-039, DEV-006 y DEV-007; el resto, no (ver el estado de la sección 2) |
+| Modelo de datos | Sección 3 | Documentado. Existen el esquema de Prisma y la migración de `users` (DEV-002); las demás tablas y las *seeds* (DEV-010), no |
+| Especificación de la API | Sección 4, con OpenAPI de los endpoints principales | Documentada. Implementados `GET /api/health` y los cuatro endpoints de autenticación (DEV-004) |
+| Historias de usuario | Sección 5: HU-01 a HU-03 y backlog HU-04 a HU-23 | Documentadas. HU-04 (registro) implementada en backend y frontend; HU-05 solo en el backend |
+| Tickets de desarrollo | Sección 6: T-01 a T-03 y DEV-001 a DEV-039 | Documentados. Terminados: DEV-001 a DEV-004. **Parciales:** DEV-038, DEV-039, DEV-006 y DEV-007. Los demás, sin empezar |
+| Prompts y decisiones humanas | `prompts.md` y registro DP de 1.2 | Documentados hasta el Prompt 27 (cierre documental de la Entrega 2). El Prompt 17 sigue como referencia pendiente de registrar |
+| Sistema de diseño | `docs/design-system.md` | Documentado. Los tokens están implementados (DEV-039, parcial) y el Product Owner aprobó visualmente el tema oscuro y la paleta en local (1.4); falta la comparación con el mockup |
 
-Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha verificado su entrega formal**, ni que la ficha de la sección 0 esté completa: el nombre del autor y la visibilidad del repositorio están pendientes de confirmar.
+Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha verificado su entrega formal.** La ficha de la sección 0 se completó en el cierre de la Entrega 2 con los datos confirmados: el nombre del autor, el repositorio público y que todavía no hay URL desplegada.
 
 **Entrega 2: primer flujo funcional.** Objetivo: demostrar una integración real entre frontend, backend y base de datos. Flujo propuesto: **registro de usuario desde la interfaz (HU-04, pantalla S-01), validación en la API (`POST /api/auth/register`) y persistencia en PostgreSQL (`users`)**.
 
@@ -4890,7 +4963,7 @@ Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha ver
   - backend: DEV-001 → DEV-002 y DEV-003 → DEV-004;
   - frontend: DEV-001 → DEV-038 → DEV-039 → DEV-006 → DEV-007;
   - DEV-007 puede empezar con datos simulados, pero la demostración exige DEV-004 real.
-- **Pruebas de integración ya previstas en esos tickets** (ninguna escrita ni ejecutada):
+- **Pruebas de integración previstas en esos tickets** (al planificar no existía ninguna; ya están escritas y se ejecutan en local y en la CI de cada PR, con los resultados en 2.6):
   - restricciones de `users` contra PostgreSQL: email normalizado y único (DEV-002);
   - cadena de seguridad: API-01–API-06 y API-36–API-38 (DEV-003);
   - autenticación: API-07–API-11, API-43 y los criterios de HU-04, con `409` por email duplicado y `400` por datos no válidos (DEV-004);
@@ -4903,7 +4976,13 @@ Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha ver
 - **Huecos detectados** (no se corrigen aquí):
   - ~~**[Pendiente de decisión]:** ningún ticket prevé una prueba automatizada que recorra interfaz → API → base de datos antes de DEV-026~~ **Resuelto en DEV-007 (parcial):** el autor decidió adelantar un E2E real del registro que se ejecuta en la CI de cada PR (`e2e/tests/spa-build.signup.spec.ts`), con la fila comprobada en `calicoach_e2e`. Integrado en `main` con el PR #17, cuyo E2E automático pasó 13/13;
   - ~~el criterio 3 de HU-04 necesita la longitud mínima de la contraseña, una decisión técnica abierta de DEV-004 (1.2)~~ resuelto en DEV-004: de 12 a 128 caracteres;
-  - el flujo no necesita un despliegue. DEV-036 se puede adelantar, pero no se sabe si la Entrega 2 lo exige (ver la nota de verificación).
+  - el flujo no necesita un despliegue. DEV-036 se puede adelantar; el resumen de los requisitos oficiales de la Entrega 2 no menciona un despliegue (ver la nota del principio de este apartado).
+- **Estado al cierre de la Entrega 2:**
+  - **flujo implementado:** registro desde S-01 → `POST /api/auth/register` → fila en `users` → sesión → restauración al recargar, integrado en `main` con el PR #17. DEV-001 a DEV-004 están terminados; DEV-038, DEV-039, DEV-006 y DEV-007 siguen **parciales**, con lo pendiente en sus tickets (en DEV-007: inicio de sesión, cierre de sesión, caducidad y *Today*);
+  - **PR con CI visible:** #3 a #18 (sección 7), con el E2E automático en cada `pull_request` desde el PR #17;
+  - **resultados de integración contra PostgreSQL:** 2.6;
+  - **demostración:** automatizada en el E2E, que comprueba la fila en `calicoach_e2e` con la contraseña solo como *hash*; manual, por el Product Owner, del registro, de la vista con sesión y de su restauración al recargar, con la captura de S-01 en 1.3. La fila en `users` no se ha consultado a mano; la guía de 1.4 explica cómo hacerlo;
+  - **1.4 y prompts:** 1.4 incluye la puesta en marcha, la validación manual y la guía de comprobación; los prompts de implementación están registrados hasta el Prompt 26, y el cierre documental en el Prompt 27.
 
 **Entrega 3: MVP integrado.** Objetivo: el recorrido principal del usuario con las historias Must implementadas y verificadas.
 
@@ -4948,6 +5027,7 @@ Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha ver
 | [#15](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/15) | `feat: DEV-006 partial HTTP client, session and routing` | Implementación (Entrega 2, DEV-006 parcial) | `feature/dev-006-frontend-foundation` → `main` | 2026-11-27 | `05794c7` | En verde |
 | [#16](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/16) | `docs: DEV-006 partial closure and PR history` | Documentación (cierre de DEV-006 parcial) | `docs/dev-006-partial-closure` → `main` | 2026-11-27 | `facfad9` | En verde |
 | [#17](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/17) | `feat: DEV-007 partial signup and session restoration` | Implementación (Entrega 2, DEV-007 parcial) | `feature/dev-007-signup-flow` → `main` | 2026-11-27 | `6568928` | En verde |
+| [#18](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/18) | `docs: DEV-007 partial closure` | Documentación (cierre de DEV-007 parcial) | `docs/dev-007-partial-closure` → `main` | 2026-11-27 | `b15b0dc` | En verde |
 
 Todas se fusionaron con *merge commit*, que es la estrategia habitual del repositorio.
 
@@ -5371,3 +5451,25 @@ Todas se fusionaron con *merge commit*, que es la estrategia habitual del reposi
 
 - **Revisión humana:** el autor revisó el análisis técnico y aprobó P1–P6 y T1–T10. Antes de publicar pidió comprobar la implementación contra sus definiciones de A1–A5 y la estabilidad del E2E frente al límite de peticiones: la implementación ya las cumplía, se corrigió la documentación de A1–A5 y se añadieron contadores de registros por escenario y `retries: 0`. Después autorizó el commit, el push y el PR y, tras revisar la CI, el merge, que se hizo desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
 - **Pendientes:** DEV-007 no está terminado: falta S-02 (inicio de sesión), cerrar sesión, volver a la pantalla de acceso cuando la sesión caduca y el destino definitivo con sesión (*Today*, S-06). Riesgos: el E2E usa 4 de los 5 registros por hora y proceso del límite; el patrón de email copiado de Zod podría desincronizarse; sin cierre de sesión, la sesión dura 7 días en ese navegador; `calicoach_e2e` acumula usuarios entre ejecuciones locales.
+
+**Pull Request 18**
+
+**#18 — `docs: DEV-007 partial closure`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/18)
+
+- **Rama:** `docs/dev-007-partial-closure` → `main`. Un commit (`feff073`, `feff073b96eb22e5039b7a63ccdc93f2afaceebf`, "docs: close DEV-007 partial implementation record"). Creada y fusionada el 2026-11-27, a las 14:35:51 UTC, con *merge commit* (`b15b0dc`, `b15b0dc94c2d00b9d575adb4610e512cc3707c76`).
+- **Propósito:** registrar la evidencia del PR #17 después de su merge. Es solo documental, y DEV-007 sigue **parcial**: su descripción lo indica con "DEV-007 STATUS: PARTIAL — NOT COMPLETED".
+- **Contenido:**
+  - los resultados de GitHub Actions de DEV-007 en 2.6, con el E2E automático 13/13, y la funcionalidad de registro como integrada en `main`;
+  - el estado de DEV-007 en su ticket (sección 6) y la nota del hueco de E2E de la Entrega 2, que apuntan al PR #17;
+  - los PR #16 y #17 en esta sección 7 (índice y fichas);
+  - el registro histórico del Prompt 26 en `prompts.md`, sin cambiar los textos literales. Los Prompts 16–18 no cambian.
+- **Tamaño:** 2 archivos (`readme.md` y `prompts.md`), +66 y −5 líneas.
+- **Pruebas locales:** no aplica (sin código). `git diff --check` sin errores.
+- **GitHub Actions:**
+
+| Ejecución | Evento | Resultado |
+|-----------|--------|-----------|
+| [46017113326](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/46017113326) | `pull_request` (`feff073`) | Job de comprobaciones: auditoría (0 vulnerabilidades), tests (201/201, 270/270 y 12/12), integración (104/104) y *build*. **Job de E2E, lanzado automáticamente por el PR:** Playwright 13/13. En verde |
+| [46017365437](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/46017365437) | `push` a `main` tras el merge `b15b0dc` | Job de comprobaciones en verde; el E2E no corre en `push` a `main` (T3) |
+
+- **Revisión humana:** el autor revisó el diff documental y autorizó el commit, el push, el PR y el merge condicionado a la CI en verde, que se hizo desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
