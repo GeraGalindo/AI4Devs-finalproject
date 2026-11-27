@@ -1269,9 +1269,25 @@ Detente al terminar el informe y espera mi revisión.
   - `npm audit --audit-level=high`: 0 vulnerabilidades; `effect` sigue en 3.22.1;
   - comprobaciones manuales: una prueba temporal con una clave mal escrita falla con `Missing translation keys: auth:signUp.tittle`; añadir al catálogo una clave que las pruebas esperan inexistente rompe `typecheck` (`TS2578`); la regla, sobre un componente con los cinco tipos de texto, da 8 errores, y 0 sobre uno con expresiones válidas;
   - *bundle* JS: de 221,40 kB (69,33 kB gzip) a 272,14 kB (85,36 kB gzip).
-  - **La ejecución en GitHub Actions queda pendiente del PR.**
+  - **la ejecución en GitHub Actions estaba pendiente del PR** cuando se cerró la implementación. Ahora está en verde: ver la revisión humana.
 
-**Revisión humana:** pendiente. El autor revisará la implementación antes de autorizar el commit, el push y el PR. DEV-038 **no** está terminado: es parcial por decisión del autor y, además, falta la revisión, el PR y la CI.
+**Revisión humana:**
+- **Análisis:** el autor aprobó el enfoque del incremento (P1–P10, con la zona horaria elegida a mano como respaldo y el E2E de registro obligatorio en CI antes de cerrar la Entrega 2) y, para DEV-038, D1–D9 con las precisiones de "Decisiones humanas".
+- **Implementación:** el autor aprobó el informe local sin pedir cambios y autorizó el commit, el push, el PR y el E2E manual. Pidió conservar la lista de códigos de error del contrato de registro, porque es una comprobación de requisitos y no una copia del catálogo. Antes de publicar, la IA corrigió un error de su propio informe: había contado 15 archivos nuevos cuando eran 14; la lista detallada y el diff ya coincidían.
+- **Publicación:** commit `7fef8ca` (`7fef8ca13631bd207fb8e08e6a3f1386958eaa31`) sobre `9936fcc`, con 23 archivos (14 nuevos y 9 modificados, +1144 y −7), y PR #11 (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/11) hacia `main`. Su descripción indica "DEV-038 STATUS: PARTIAL — NOT COMPLETED".
+- **CI en GitHub Actions** (sección 7 del README):
+  - ejecución `pull_request` 45994498785, en verde: auditoría sin vulnerabilidades altas, lint, tipos, tests 201/201 y 41/41, migraciones, *drift*, salvaguarda, integración 104/104, fila centinela intacta y *build*. E2E omitido por diseño;
+  - ejecución `workflow_dispatch` 45994674766 sobre el mismo commit `7fef8ca`, en verde, con el E2E 6/6 (el *smoke* de DEV-001 y las 5 pruebas de `spa-build`, 4 de ellas de la CSP);
+  - ejecución `push` a `main` 45995796937, en verde, tras el merge: las mismas comprobaciones que en el PR.
+- **Aprobación final:** el autor revisó los resultados del PR #11 y autorizó el merge. Antes se comprobó que el PR seguía abierto hacia `main`, que su último commit seguía siendo `7fef8ca`, que no había conflictos, que las dos ejecuciones habían pasado sobre ese commit, que el diff tenía los 23 archivos previstos y que los Prompts 16–18 no habían cambiado. El merge se hizo con *merge commit* y `--match-head-commit 7fef8ca` el 2026-11-27 (`79d8d4c`, `79d8d4c9ad6a9573f7272dcd5c909e4d12602b58`), sin *rebase*, *squash* ni *force push*. `main` local se actualizó por *fast-forward*.
+- **Estado:** DEV-038 sigue **parcial**, no terminado. La parte implementada está integrada en `main`. Falta, para completarlo:
+  - los catálogos `profile`, `programs`, `calendar`, `session` y `progress`, y `session.status.<valor>`;
+  - las claves del resto de los códigos de error de la sección 4;
+  - las utilidades de formato con `Intl` y la configuración regional de formato (criterio 3);
+  - el criterio 5, cuando una pantalla muestre valores de la API;
+  - migrar o retirar la vista de diagnóstico.
+
+  Limitaciones abiertas: la regla de ESLint no detecta textos visibles guardados en variables; `i18next` 27 es una versión mayor reciente; el JS del *build* crece 50,7 kB (16,0 kB gzip); y en `prompts.md` solo queda libre el hueco 2.4, Prompt 3. Lo siguiente, según el orden aprobado, es DEV-039 parcial, que no se ha empezado.
 
 ### **2.4. Infraestructura y despliegue**
 

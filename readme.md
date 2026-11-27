@@ -964,7 +964,7 @@ Otras comprobaciones locales de DEV-004:
 - **Arranque seguro con el servidor compilado:** en producción, sin `JWT_SECRET`, con el valor de desarrollo, con uno corto o con un ejemplo, el proceso termina con código 1 y un mensaje que no incluye el valor; con un secreto aleatorio de 48 bytes arranca.
 - **Dependencias:** `argon2` 0.45.2, `jose` 6.2.17, `express-rate-limit` 8.7.4 y `cookie` 2.0.2, con versión exacta y publicadas hace más de dos semanas. `argon2` es nativo, con binarios precompilados, y trae como dependencias de producción `@phc/format`, `node-addon-api`, `node-gyp-build` y `cross-env` (de ahí que `cross-spawn` y las suyas dejen de ser solo de desarrollo en el *lockfile*). Ninguna versión existente cambia, `effect` sigue en 3.22.1 (`npm ls` lo sigue marcando `invalid`, ver arriba) y `npm audit --audit-level=high` informa de 0 vulnerabilidades.
 
-**Pruebas de DEV-038 (parcial) y resultados** (ejecución **local** del 2026-11-27, Node 24.13.0). **Pendiente de verificar en GitHub Actions** con el PR. No necesitan PostgreSQL:
+**Pruebas de DEV-038 (parcial) y resultados** (ejecución **local** del 2026-11-27, Node 24.13.0). **En GitHub Actions** se obtuvieron los mismos resultados en el PR #11 y en `main` (backend 201/201, frontend 41/41 e integración 104/104), y el E2E completo (6/6, incluidas las 4 pruebas de la CSP sobre el *build* real) pasó con `workflow_dispatch` sobre el commit del PR (sección 7). No necesitan PostgreSQL:
 
 | Suite | Archivo | Qué comprueba | Resultado local |
 |-------|---------|---------------|-----------------|
@@ -3949,7 +3949,7 @@ Cada ticket añade solo lo que le es propio.
 - **Pendiente:**
   - la estrategia para traducir el contenido almacenado de programas y ejercicios, una decisión futura que no cambia el esquema (`docs/design-system.md`, sección 8.5);
   - ~~las librerías son una [Propuesta]~~ confirmadas en DEV-038 parcial: `i18next` 27.1.1 y `react-i18next` 18.0.1.
-- **Estado:** **parcial** (Entrega 2), implementado en la rama `feature/dev-038-i18n-foundation`, pendiente de revisión, Pull Request y CI. **No está terminado:** por decisión del autor, la Entrega 2 implementa solo la parte que necesita el registro y el ticket sigue abierto hasta completar su alcance. Verificación local en 2.6.
+- **Estado:** **parcial** (Entrega 2). La parte implementada está fusionada en `main` mediante el PR #11 (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/11), con la CI en verde en el PR, en `workflow_dispatch` (con E2E 6/6) y en `main` (2.6 y sección 7). **No está terminado:** por decisión del autor, la Entrega 2 implementa solo la parte que necesita el registro y el ticket sigue abierto hasta completar su alcance. Verificación local en 2.6.
   - **Implementado:**
     - `i18next` y `react-i18next` con `en` como idioma y respaldo, sin detector, selector, *backend* HTTP ni `localStorage`; recursos empaquetados e inicialización síncrona; fábrica `createI18n()` e `I18nProvider` (`frontend/src/i18n/`);
     - catálogos `common`, `auth` (solo un marcador) y `errors` en `frontend/src/locales/en/`;
@@ -4816,6 +4816,8 @@ Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha ver
 | [#7](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/7) | `feat: establish backend security foundation (DEV-003)` | Implementación (Entrega 2) | `feature/dev-003-backend-foundation` → `main` | 2026-11-26 | `f5b5e56` | En verde |
 | [#8](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/8) | `docs: record DEV-003 closure and PR #7 evidence` | Documentación (cierre de DEV-003) | `docs/dev-003-closure` → `main` | 2026-11-27 | `bf95b10` | En verde |
 | [#9](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/9) | `feat: add authentication with register, login, me and logout (DEV-004)` | Implementación (Entrega 2) | `feature/dev-004-authentication` → `main` | 2026-11-27 | `4525dc5` | En verde |
+| [#10](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/10) | `docs: close DEV-004 and record PR #8/#9 evidence` | Documentación (cierre de DEV-004) | `docs/dev-004-closure` → `main` | 2026-11-27 | `9936fcc` | En verde |
+| [#11](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/11) | `feat: add partial i18n foundation (DEV-038)` | Implementación (Entrega 2, DEV-038 parcial) | `feature/dev-038-i18n-foundation` → `main` | 2026-11-27 | `79d8d4c` | En verde |
 
 Todas se fusionaron con *merge commit*, que es la estrategia habitual del repositorio.
 
@@ -5037,3 +5039,54 @@ Todas se fusionaron con *merge commit*, que es la estrategia habitual del reposi
 
 - **Revisión humana:** el autor revisó el análisis técnico y aprobó las decisiones D1–D10 antes de la implementación. Revisó el informe local y autorizó el commit, el push y el PR; después autorizó el E2E manual y, tras revisar la CI, el merge. Lo fusionó desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
 - **Pendientes:** las limitaciones de la sección 6 (DEV-004): límite de peticiones en memoria y por IP (DEV-036), peticiones rechazadas antes del limitador sin contar, enumeración por el `409`, comprobación heurística de `JWT_SECRET`, `argon2` nativo y *override* de `effect`.
+
+**Pull Request 10**
+
+**#10 — `docs: close DEV-004 and record PR #8/#9 evidence`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/10)
+
+- **Rama:** `docs/dev-004-closure` → `main`. Un commit (`1566989`). Creada y fusionada el 2026-11-27 con *merge commit* (`9936fcc`). El merge se hizo con `--match-head-commit 1566989`.
+- **Propósito:** cerrar la documentación de DEV-004 después del merge del PR #9. Es solo documental.
+- **Contenido:**
+  - DEV-004 "terminado" en la sección 6, con sus limitaciones abiertas, y la CI de DEV-004 en verde en 2.6;
+  - los PR #8 y #9 en esta sección 7 (índice y fichas);
+  - la revisión humana, la publicación, la CI, el merge y el cierre en el Prompt 22 de `prompts.md`. Los Prompts 16–18 no cambian.
+- **Tamaño:** 2 archivos, +86 y −8 líneas.
+- **Pruebas locales:** no aplica (sin código). `git diff --check` sin errores.
+- **GitHub Actions:**
+
+| Ejecución | Evento | Resultado |
+|-----------|--------|-----------|
+| [45989394190](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45989394190) | `pull_request` (`1566989`) | En verde: auditoría (0 vulnerabilidades), tests (201/201 y 5/5) e integración (104/104). E2E omitido por diseño |
+| [45990003521](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45990003521) | `push` a `main` tras el merge `9936fcc` | En verde |
+
+- **Revisión humana:** el autor revisó el diff documental, aprobó incluir las fichas de los PR #8 y #9, y autorizó el commit, el push y el PR. Después autorizó el merge, que se hizo desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
+
+**Pull Request 11**
+
+**#11 — `feat: add partial i18n foundation (DEV-038)`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/11)
+
+- **Rama:** `feature/dev-038-i18n-foundation` → `main`. Un commit (`7fef8ca`, `7fef8ca13631bd207fb8e08e6a3f1386958eaa31`). Creada y fusionada el 2026-11-27 con *merge commit* (`79d8d4c`, `79d8d4c9ad6a9573f7272dcd5c909e4d12602b58`). El merge se hizo con `--match-head-commit 7fef8ca`, después de comprobar que el commit era el mismo que habían validado la CI del PR y el E2E manual.
+- **Propósito:** DEV-038 (sección 6), **solo la parte que necesita el registro de la Entrega 2**. El ticket sigue **parcial**: su descripción lo indica con "DEV-038 STATUS: PARTIAL — NOT COMPLETED".
+- **Contenido:**
+  - `i18next` 27.1.1 y `react-i18next` 18.0.1, con inglés fijo, recursos empaquetados e inicialización síncrona; la fábrica `createI18n()` e `I18nProvider`;
+  - los catálogos `common`, `auth` (solo un marcador) y `errors`, con claves tipadas desde los JSON y `translateErrorCode` con mensaje genérico;
+  - el detector de claves faltantes en las pruebas y la regla de ESLint contra textos en JSX, con la excepción de la vista de diagnóstico (D7 de DEV-001);
+  - 36 pruebas nuevas del frontend;
+  - `CLAUDE.md`, el README, `docs/design-system.md` y el Prompt 23.
+- **Tamaño:** 23 archivos (14 nuevos y 9 modificados), +1144 y −7 líneas.
+- **Pruebas locales** (2026-11-27, detalle en 2.6):
+  - `npm ci`, lint, tipos, *build* y `git diff --check` sin errores;
+  - backend 201/201 y frontend 41/41 (36 nuevas; las 5 de diagnóstico sin cambios);
+  - integración 104/104;
+  - E2E 6/6 con `CI=1`, incluidas las 4 pruebas de la CSP;
+  - `npm audit --audit-level=high` sin vulnerabilidades; el JS del *build* pasa de 221,40 kB a 272,14 kB (de 69,33 a 85,36 kB gzip).
+- **GitHub Actions:**
+
+| Ejecución | Evento | Resultado |
+|-----------|--------|-----------|
+| [45994498785](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45994498785) | `pull_request` (`7fef8ca`) | Auditoría (0 vulnerabilidades), lint, tipos, tests (201/201 y 41/41), migraciones, *drift*, salvaguarda, integración (104/104), fila centinela intacta y *build*: en verde. E2E omitido por diseño |
+| [45994674766](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45994674766) | `workflow_dispatch` con E2E sobre `7fef8ca` | Las mismas comprobaciones más el E2E en Chromium: 6/6 (*smoke* de DEV-001 y las 5 pruebas de `spa-build`, 4 de ellas de la CSP): en verde |
+| [45995796937](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45995796937) | `push` a `main` tras el merge `79d8d4c` | Las mismas comprobaciones que en el PR (201/201, 41/41 y 104/104): en verde |
+
+- **Revisión humana:** el autor eligió el enfoque de la Entrega 2 (cuatro PR secuenciales con tickets parciales), revisó el análisis técnico y aprobó D1–D9 antes de la implementación. Revisó el informe local y autorizó el commit, el push, el PR y el E2E manual, pidiendo conservar la lista de códigos de error del contrato de registro como comprobación de requisitos. Tras revisar la CI, autorizó el merge, que se hizo desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
+- **Pendientes:** DEV-038 no está terminado. Falta lo indicado en su ticket (sección 6): los catálogos `profile`, `programs`, `calendar`, `session` y `progress`, `session.status.*`, el resto de los códigos de error, las utilidades de formato con `Intl` (criterio 3), el criterio 5 y la vista de diagnóstico. Limitaciones: la regla de ESLint no detecta textos guardados en variables, e `i18next` 27 es una versión mayor reciente.
