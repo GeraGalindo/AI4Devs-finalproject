@@ -53,7 +53,15 @@ Antes de editar código o documentación:
   - las claves están tipadas desde los JSON: una clave nueva se añade primero al catálogo. Una clave inexistente hace fallar `typecheck` o la prueba que la use;
   - los errores de la API se muestran con `translateErrorCode(i18n, error.code)`, nunca con `error.message`. Un código nuevo necesita su clave en `errors.json`;
   - los componentes reciben la instancia por `I18nProvider`; las pruebas pueden pasar una aislada con `createI18n()`;
-  - no se traducen los valores del contrato (estados, códigos, campos de la API, zonas IANA), solo sus etiquetas.
+  - no se traducen los valores del contrato (estados, códigos, campos de la API, zonas IANA), solo sus etiquetas;
+  - las claves con prefijo (`t('auth:…')`) exigen declarar sus espacios de nombres en el hook: `useTranslation(['auth', 'common'])`.
+- **Componentes y estilos** (DEV-039, parcial; `src/shared/ui/` y `src/shared/styles/`):
+  - usa `Card`, `Button`, `TextField` e `InlineAlert` antes de crear controles propios. Reciben los textos ya traducidos por props y **no tienen textos por defecto**; un componente nuevo tampoco puede tenerlos (la regla de ESLint no los detecta);
+  - los colores, espacios, radios y tamaños salen de las variables de `tokens.css`; no se escriben valores sueltos. Un token nuevo se documenta en `docs/design-system.md` y se añade a la prueba de contraste si es un color;
+  - estilos en hojas `.css` importadas desde el componente, con clases prefijadas `cc-` y estados por atributos (`[aria-invalid='true']`, `[aria-busy='true']`, `:disabled`). Nada de `style=` ni `<style>` (CSP);
+  - `Button` es `type="button"` por defecto; en `loading` no ejecuta `onClick` ni envía el formulario, pero la pantalla debe evitar igualmente las peticiones duplicadas;
+  - los errores de campo van en `TextField` (`error`), sin `role="alert"`; el resumen del formulario, en `InlineAlert`;
+  - el botón primario lleva el borde `border-control` porque su fondo no llega a 3:1 sobre `surface-raised`: no lo quites. Un color de fondo nuevo para un control necesita su comprobación en `tokens.test.ts`.
 - **Tests:** las unitarias van junto al código (`*.test.ts(x)`), las de integración en `backend/tests/integration/` y las E2E en `e2e/tests/`.
 - **Dependencias:** exactas (`.npmrc` con `save-exact`). No añadas librerías sin necesidad concreta ni sin aprobación si no están en la sección 2.
 - No crees carpetas vacías "para más adelante". Cada ticket crea las suyas.

@@ -1,0 +1,68 @@
+.cc-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.cc-field__label {
+  font-size: var(--text-label-size);
+  line-height: var(--text-label-line);
+  font-weight: var(--text-label-weight);
+  color: var(--color-text);
+}
+
+.cc-field__hint {
+  margin: 0;
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  color: var(--color-text-muted);
+}
+
+.cc-field__input {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--touch-min);
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+}
+
+.cc-field__input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+.cc-field__input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+/* Deshabilitado ([Propuesta] DEV-039): surface-raised, text-disabled y border-control. */
+.cc-field__input:disabled {
+  background-color: var(--color-surface-raised);
+  border-color: var(--color-border-control);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.cc-field__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  margin: 0;
+  font-size: var(--text-label-size);
+  line-height: var(--text-label-line);
+  color: var(--color-danger);
+}
+
+.cc-field__error-icon {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.125rem;
+}

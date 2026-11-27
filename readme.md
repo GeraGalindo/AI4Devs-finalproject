@@ -23,7 +23,7 @@ Cali Coach
 
 ### **0.3. Descripción breve del proyecto:**
 
-Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asigna un programa de entrenamiento preconfigurado, lo distribuye en los días que el atleta puede entrenar (de 2 a 6), le muestra la sesión de cada día, registra las series realizadas y le enseña su progreso (sección 1). **Estado:** la especificación del MVP está documentada (Entrega 1). DEV-001 añade el andamiaje técnico: frontend, backend, PostgreSQL local, CI y una comprobación técnica de salud (`GET /api/health`). DEV-002 añade Prisma y la primera migración (tabla `users`). DEV-003 añade la base común del backend: configuración segura, CSRF, reglas de cuerpo, validación, formato de errores, cabeceras de seguridad y el servicio del *build* de la SPA. DEV-004 añade la autenticación del backend (registro, inicio, sesión actual y cierre; HU-04 y HU-05), terminada con el PR #9. DEV-038 añade, **de forma parcial**, la base de internacionalización del frontend: `i18next` con inglés fijo y los catálogos `common`, `auth` y `errors`. Todavía no hay otras funcionalidades de negocio ni interfaz de acceso (DEV-007).
+Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asigna un programa de entrenamiento preconfigurado, lo distribuye en los días que el atleta puede entrenar (de 2 a 6), le muestra la sesión de cada día, registra las series realizadas y le enseña su progreso (sección 1). **Estado:** la especificación del MVP está documentada (Entrega 1). DEV-001 añade el andamiaje técnico: frontend, backend, PostgreSQL local, CI y una comprobación técnica de salud (`GET /api/health`). DEV-002 añade Prisma y la primera migración (tabla `users`). DEV-003 añade la base común del backend: configuración segura, CSRF, reglas de cuerpo, validación, formato de errores, cabeceras de seguridad y el servicio del *build* de la SPA. DEV-004 añade la autenticación del backend (registro, inicio, sesión actual y cierre; HU-04 y HU-05), terminada con el PR #9. DEV-038 añade, **de forma parcial**, la base de internacionalización del frontend: `i18next` con inglés fijo y los catálogos `common`, `auth` y `errors`. DEV-039 añade, **también de forma parcial**, los tokens del tema oscuro, los estilos globales y los componentes base `Card`, `Button`, `TextField` e `InlineAlert`. Todavía no hay otras funcionalidades de negocio ni interfaz de acceso (DEV-007).
 
 ### **0.4. URL del proyecto:**
 
@@ -980,6 +980,24 @@ Otras comprobaciones locales de DEV-038:
 - **Comprobaciones manuales:** una prueba temporal con una clave mal escrita (`auth:signUp.tittle`) falla con `Missing translation keys: auth:signUp.tittle`; añadir al catálogo una clave que las pruebas esperan inexistente rompe `typecheck` (`TS2578`).
 - **Dependencias:** `i18next` 27.1.1 y `react-i18next` 18.0.1, con versión exacta. El *lockfile* solo añade esas dos y `html-parse-stringify` 4.0.1; ninguna versión existente cambia, `effect` sigue en 3.22.1 y `npm audit --audit-level=high` informa de 0 vulnerabilidades.
 - **Tamaño del *bundle*:** el JS pasa de 221,40 kB (69,33 kB gzip) a 272,14 kB (85,36 kB gzip).
+**Pruebas de DEV-039 (parcial) y resultados** (ejecución **local** del 2026-11-27, Node 24.13.0). **Pendiente de verificar en GitHub Actions** con el PR. No necesitan PostgreSQL:
+
+| Suite | Archivo | Qué comprueba | Resultado local |
+|-------|---------|---------------|-----------------|
+| Tokens y contraste | `frontend/src/shared/styles/tokens.test.ts` | Lee los CSS reales: los colores coinciden con `docs/design-system.md` 2.1 y reproducen sus contrastes; texto, texto secundario y error ≥ 4,5:1 sobre `bg`, `surface` y `surface-raised`; texto sobre `primary` y `primary-pressed` ≥ 4,5:1; bordes de control, de error, foco y acento ≥ 3:1; el fondo primario no llega a 3:1 sobre `surface-raised`, por eso `Button.css` da a la variante `primary` el borde `border-control`, que la prueba busca en la regla real y que supera 3:1 sobre los tres fondos, en estado normal y pulsado, sin cambiar el contraste del texto (5,70 y 7,10); el deshabilitado, como excepción WCAG; todas las variables usadas existen; sin recursos externos | 18/18 |
+| `Button` | `frontend/src/shared/ui/Button.test.tsx` | `type="button"` y `primary` por defecto; `secondary`, atributos y `ref`; clic, Enter y Espacio; `disabled` nativo; en `loading`: enfocable, `aria-busy` y `aria-disabled`, conserva el foco, indicador decorativo sin texto, y ni `onClick` ni el envío del formulario con clic, doble clic, Enter, Espacio o Enter en un campo; caso de control al terminar | 9/9 |
+| `TextField` | `frontend/src/shared/ui/TextField.test.tsx` | Etiqueta asociada con `id` generado o propio; ayuda y error en `aria-describedby` y en la descripción accesible; `aria-invalid` solo con error; error sin `role="alert"`; conserva los identificadores del consumidor sin duplicados; `ref`, `name`, `type`, `autoComplete` y `required`; controlado y no controlado; teclado y `disabled` | 12/12 |
+| `InlineAlert` | `frontend/src/shared/ui/InlineAlert.test.tsx` | `error` → `role="alert"`; `info` → `role="status"`; título y mensaje; icono decorativo además del texto; atributos y clases | 5/5 |
+| `Card` | `frontend/src/shared/ui/Card.test.tsx` | `<div>` sin rol implícito; variante `raised`; `className`, atributos, `ref` y semántica del consumidor | 3/3 |
+| Utilidades | `frontend/src/shared/ui/classNames.test.ts` | Unión de clases y de listas de identificadores sin vacíos ni duplicados | 3/3 |
+| Con i18n | `frontend/src/shared/ui/ui-i18n.test.tsx` | Textos traducidos y errores con `translateErrorCode` pasados por props; mensaje genérico para un código desconocido; una clave inexistente sigue haciendo fallar la prueba | 3/3 |
+| Regresión | El resto de suites | DEV-038 (36) y diagnóstico (5) sin cambios; backend e integración sin cambios | 41/41, 201/201 y 104/104 |
+
+Otras comprobaciones locales de DEV-039:
+- **Totales:** `npm test` 201/201 del backend y 94/94 del frontend (53 nuevas); `npm run test:integration` 104/104; `CI=1 npm run test:e2e` 6/6, incluidas las 4 pruebas de CSP sobre el *build* real, con `main.diagnostics` en 480 px. `npm ci`, *lint*, tipos, *build*, `npm audit --audit-level=high` (0 vulnerabilidades) y `git diff --check`, sin errores. Sin dependencias nuevas.
+- **Mutaciones temporales:** quitar el `preventDefault` de `loading`, dejar que `loading` ejecute `onClick`, descartar el `aria-describedby` del consumidor y quitar el borde del botón primario. Las pruebas detectaron las cuatro.
+- **Contraste del botón primario:** el fondo `primary` da 2,78:1 sobre `surface-raised`. A petición del autor, el botón primario lleva un borde `border-control` (4,08, 3,77 y 3,38:1 sobre `bg`, `surface` y `surface-raised`), igual en estado normal y pulsado; el color primario y el texto blanco no cambian.
+- ***Build*:** el JS no cambia (272,14 kB), porque ninguna pantalla usa aún los componentes y Vite no los incluye; el CSS pasa de 0,09 kB a 2,14 kB (tokens y estilos globales). El CSS de los componentes entrará en el *build*, y en el E2E de la CSP, cuando DEV-007 los use.
 
 | Nivel | Herramienta | Qué se prueba | Casos clave |
 |-------|-------------|---------------|-------------|
@@ -4005,6 +4023,30 @@ Cada ticket añade solo lo que le es propio.
   - comprobación automática de accesibilidad con una herramienta como axe [Propuesta: sería una dependencia nueva de desarrollo];
   - revisión visual a 320, 768 y 1024 px.
 - **Pendiente:** la comparación exacta con el mockup de referencia, que no está en el repositorio. Los valores de los tokens pueden cambiar tras esa comparación sin cambiar los componentes.
+- **Estado:** **parcial** (Entrega 2), implementado en la rama `feature/dev-039-design-foundation`, pendiente de revisión, Pull Request y CI. **No está terminado:** por decisión del autor, la Entrega 2 implementa solo lo que necesita el registro y el ticket sigue abierto hasta completar su alcance. Verificación local en 2.6.
+  - **Implementado:**
+    - tokens de color, espaciado, radios, bordes, foco, `touch-min` y tipografía en `frontend/src/shared/styles/tokens.css`, con los valores de `docs/design-system.md`; solo tema oscuro, con `color-scheme: dark`;
+    - estilos globales (`global.css`): *box-sizing*, fondo y texto, tipografía base, foco visible con `color-focus`, `prefers-reduced-motion` y textos largos que no desbordan;
+    - `Card` (variante `raised`), `Button` (`primary` y `secondary`, con `disabled` y `loading`), `TextField` (etiqueta, ayuda y error asociados) e `InlineAlert` (`error` e `info`) en `frontend/src/shared/ui/`;
+    - criterio 3 (contraste de los tokens), con una prueba automática; criterio 6 (`loading` no permite un segundo envío); criterio 8 (sin textos literales); criterio 2 en CSS (44 px en `Button` y `TextField`), aún sin medir en un navegador.
+  - **Pendiente para completar DEV-039:**
+    - `AppShell`, `BottomNav`/`NavRail`, `TopBar` y las áreas seguras, con los criterios 1 y 4 (DEV-006);
+    - `IconButton`, `WeekdaySelector` y `TimezoneSelect` (el respaldo manual de la zona horaria se decide en DEV-007, L8);
+    - `Toast`, `Skeleton`/`Spinner`, `EmptyState`, `ErrorState`, `ConfirmDialog` (criterio 5) y `StatusBadge` (criterio 7), y las variantes `ghost` y `danger` de `Button`;
+    - la medición en navegador de los 44 px y de los 320 px (E2E de DEV-007), axe y la revisión visual a 320, 768 y 1024 px;
+    - la comparación con el mockup, que puede cambiar los valores de los tokens. El contraste del botón primario sobre `surface-raised` está resuelto con un borde `border-control`.
+  - **Decisiones técnicas aprobadas por el autor:**
+    - L1: alcance parcial con los cuatro componentes y el resto diferido;
+    - L2: `--color-on-primary` `#FFFFFF`, separación de 2 px del anillo de foco y estado deshabilitado con `surface-raised`, `text-disabled` y `border-control`, como [Propuesta];
+    - L3: solo tema oscuro;
+    - L4: CSS normal con prefijo `cc-` y estados por atributos ARIA;
+    - L5: errores de campo sin `role="alert"`, con un resumen en `InlineAlert`;
+    - L6: `DiagnosticsPage` sin cambios y con su excepción de *lint* hasta DEV-006; hereda el tema global;
+    - L7: sin axe ni dependencias nuevas;
+    - L8: `TimezoneSelect`, diferido a DEV-007;
+    - L9: el Prompt 24 y los siguientes, en una sección nueva de `prompts.md`.
+  - **Corrección de contraste pedida por el autor antes de publicar:** el fondo `primary` daba 2,78:1 sobre `surface-raised`; el botón primario lleva ahora un borde `border-control`, que supera 3:1 sobre los tres fondos, sin cambiar `#7C3AED` ni el texto blanco.
+  - **Ajustes de la implementación:** en `loading`, `Button` conserva el foco y no ejecuta `onClick` ni envía el formulario (no sustituye al bloqueo de peticiones duplicadas de DEV-007); `TextField` conserva el `aria-describedby` del consumidor; el contraste se prueba con las combinaciones reales.
 
 **DEV-006 — Base del frontend: estructura de la app, cliente HTTP y componentes comunes**
 - **Incremento:** I1.
