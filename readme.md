@@ -1013,7 +1013,7 @@ Otras comprobaciones locales de DEV-006:
 - **Mutaciones temporales:** quitar la cabecera CSRF, enviar siempre `Content-Type`, aceptar `//`, usar `credentials: 'include'`, tratar cualquier `401` como `unauthenticated`, no descartar las respuestas obsoletas, convertir la cancelación en `unavailable` y no abortar al sustituir una consulta. Tras la corrección pedida por el autor: volver a guardar `details.fields[].message`, recuperar la propiedad `fields`, aceptar cualquier ruta de campo y conservar duplicados. Las pruebas detectaron las doce.
 - **Dependencias:** `react-router` 8.5.1 (versión exacta), que trae `cookie-es` 3.1.1 y `@remix-run/route-pattern` 0.22.1; en el *lockfile*, `@types/react-dom` pasa de `dev` a `devOptional` porque React Router la declara como *peer* opcional. Ninguna otra versión cambia, `effect` sigue en 3.22.1 y `npm audit --audit-level=high` informa de 0 vulnerabilidades.
 - ***Build*:** el JS pasa de 272,14 kB (85,36 kB gzip) a 309,05 kB (97,90 kB gzip), por React Router. El cliente y la sesión aún no entran en el *build*, porque ninguna ruta activa los usa.
-**Pruebas de DEV-007 (parcial) y resultados** (ejecución **local** del 2026-11-27, Node 24.13.0 y PostgreSQL 17.12 en Docker). **Pendiente de verificar en GitHub Actions** con el PR, donde el E2E correrá automáticamente:
+**Pruebas de DEV-007 (parcial) y resultados** (ejecución **local** del 2026-11-27, Node 24.13.0 y PostgreSQL 17.12 en Docker). **En GitHub Actions** se obtuvieron los mismos resultados en el PR #17 y en `main` (backend 201/201, frontend 270/270, salvaguardas de E2E 12/12 e integración 104/104), y el job de E2E se ejecutó **automáticamente por el PR**: preparó `calicoach_e2e` y pasó 13/13 (sección 7). La funcionalidad de registro está integrada en `main`:
 
 | Suite | Archivo | Qué comprueba | Resultado local |
 |-------|---------|---------------|-----------------|
@@ -4144,7 +4144,7 @@ Cada ticket añade solo lo que le es propio.
 - **Criterios:** los criterios de HU-04 y HU-05, y CT-01 a CT-03.
 - **Pruebas:** componentes de los formularios (validación y errores por `code`).
 - **Pendiente:** ninguno.
-- **Estado:** **parcial** (Entrega 2), implementado en la rama `feature/dev-007-signup-flow`, pendiente de revisión, Pull Request y CI. **No está terminado:** por decisión del autor, la Entrega 2 implementa el registro y la restauración de la sesión; el inicio y el cierre de sesión quedan pendientes. Verificación local en 2.6.
+- **Estado:** **parcial** (Entrega 2). La parte implementada está fusionada en `main` mediante el PR #17 (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/17), con el *merge commit* `6568928`; la CI del PR pasó con el E2E automático 13/13, y la de `main` también (2.6 y sección 7). **No está terminado:** por decisión del autor, la Entrega 2 implementa el registro y la restauración de la sesión; el inicio y el cierre de sesión quedan pendientes. Verificación local en 2.6.
   - **Implementado:**
     - S-01, registro (`frontend/src/features/auth/SignUpPage.tsx`): email, contraseña (de 12 a 128 caracteres, sin confirmación ni botón para mostrarla) y la zona del navegador, mostrada como información. Validación local igual que el backend, que sigue siendo la autoridad; errores junto al campo con un resumen y foco en el primero; un solo envío aunque haya doble clic o Enter repetido; textos de `auth.json` y errores de la API con `translateErrorCode`, nunca con `error.message` ni `details.fields[].message`;
     - zona horaria: si la detectada no es válida, `<select>` nativo con `Intl.supportedValuesOf('timeZone')` y `UTC`, sin zona elegida de antemano; sin esa función, un campo de texto validado. Nunca se envía una zona no válida, y un `400` sobre la zona permite corregirla;
@@ -4901,7 +4901,7 @@ Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha ver
   - una demostración del registro desde la interfaz que muestre la fila creada en `users`, con la contraseña solo como *hash*;
   - el borrador de 1.4 con el arranque local (definición de terminado de DEV-001) y el registro de los prompts.
 - **Huecos detectados** (no se corrigen aquí):
-  - ~~**[Pendiente de decisión]:** ningún ticket prevé una prueba automatizada que recorra interfaz → API → base de datos antes de DEV-026~~ **Resuelto en DEV-007 (parcial):** el autor decidió adelantar un E2E real del registro que se ejecuta en la CI de cada PR (`e2e/tests/spa-build.signup.spec.ts`), con la fila comprobada en `calicoach_e2e`;
+  - ~~**[Pendiente de decisión]:** ningún ticket prevé una prueba automatizada que recorra interfaz → API → base de datos antes de DEV-026~~ **Resuelto en DEV-007 (parcial):** el autor decidió adelantar un E2E real del registro que se ejecuta en la CI de cada PR (`e2e/tests/spa-build.signup.spec.ts`), con la fila comprobada en `calicoach_e2e`. Integrado en `main` con el PR #17, cuyo E2E automático pasó 13/13;
   - ~~el criterio 3 de HU-04 necesita la longitud mínima de la contraseña, una decisión técnica abierta de DEV-004 (1.2)~~ resuelto en DEV-004: de 12 a 128 caracteres;
   - el flujo no necesita un despliegue. DEV-036 se puede adelantar, pero no se sabe si la Entrega 2 lo exige (ver la nota de verificación).
 
@@ -4946,6 +4946,8 @@ Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha ver
 | [#13](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/13) | `feat: add partial design system foundation (DEV-039)` | Implementación (Entrega 2, DEV-039 parcial) | `feature/dev-039-design-foundation` → `main` | 2026-11-27 | `af52d36` | En verde |
 | [#14](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/14) | `docs: record DEV-039 partial merge and CI evidence` | Documentación (cierre de DEV-039 parcial) | `docs/dev-039-partial-closure` → `main` | 2026-11-27 | `0945315` | En verde |
 | [#15](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/15) | `feat: DEV-006 partial HTTP client, session and routing` | Implementación (Entrega 2, DEV-006 parcial) | `feature/dev-006-frontend-foundation` → `main` | 2026-11-27 | `05794c7` | En verde |
+| [#16](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/16) | `docs: DEV-006 partial closure and PR history` | Documentación (cierre de DEV-006 parcial) | `docs/dev-006-partial-closure` → `main` | 2026-11-27 | `facfad9` | En verde |
+| [#17](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/17) | `feat: DEV-007 partial signup and session restoration` | Implementación (Entrega 2, DEV-007 parcial) | `feature/dev-007-signup-flow` → `main` | 2026-11-27 | `6568928` | En verde |
 
 Todas se fusionaron con *merge commit*, que es la estrategia habitual del repositorio.
 
@@ -5320,3 +5322,52 @@ Todas se fusionaron con *merge commit*, que es la estrategia habitual del reposi
 
 - **Revisión humana:** el autor revisó el análisis técnico y aprobó M1–M8 con dos ajustes (solo `401 UNAUTHENTICATED` significa "sin sesión"; el `SessionProvider` no se monta todavía). Tras aprobar la implementación, la revisión de seguridad previa al commit detectó que `ApiError.fields` guardaba los mensajes técnicos de `details.fields[].message`; la IA se detuvo, el autor aprobó la corrección (`invalidFields` con solo los identificadores) y autorizó el commit, el push, el PR y el E2E manual. Tras revisar la CI, autorizó el merge, que se hizo desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
 - **Pendientes:** DEV-006 no está terminado. Falta lo indicado en su ticket (sección 6): `AppShell` y la navegación, la redirección ante un `401` en rutas protegidas, el reintento ante un `503` con `ErrorState`, conectar el `loading` de `Button` con la petición (criterio 2), los 320 px (criterio 3), el formato de fechas y TanStack Query si se adopta. Para DEV-007: montar el `SessionProvider`, registrar `/signup`, definir `/` con y sin sesión, aplicar la política de E2E ante el `401` de `/api/auth/me` (M5) y ejecutar el E2E de registro automáticamente en la CI de cada PR, que hoy exige cambiar el job de E2E.
+
+**Pull Request 16**
+
+**#16 — `docs: DEV-006 partial closure and PR history`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/16)
+
+- **Rama:** `docs/dev-006-partial-closure` → `main`. Un commit (`abdcafc`, `abdcafc7fd8d0dde99898113f6b2162a2426737b`). Creada y fusionada el 2026-11-27, a las 13:50:36 UTC, con *merge commit* (`facfad9`, `facfad9d372fecf36db355c979cecaf4855ec8e3`). El merge se hizo con `--match-head-commit abdcafc`.
+- **Propósito:** registrar la evidencia del PR #15 después de su merge. Es solo documental, y DEV-006 sigue **parcial**.
+- **Contenido:**
+  - los resultados de GitHub Actions de DEV-006 en 2.6 y en su ticket (sección 6), conservando su estado parcial, lo pendiente y la corrección de `invalidFields`;
+  - los PR #14 y #15 en esta sección 7 (índice y fichas);
+  - la revisión humana, la corrección de seguridad, la publicación, la CI y el merge en el Prompt 25 de `prompts.md`. Los Prompts 16–18 no cambian.
+- **Tamaño:** 2 archivos (`readme.md` y `prompts.md`), +72 y −4 líneas.
+- **Pruebas locales:** no aplica (sin código). `git diff --check` sin errores.
+- **GitHub Actions:**
+
+| Ejecución | Evento | Resultado |
+|-----------|--------|-----------|
+| [46010255255](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/46010255255) | `pull_request` (`abdcafc`) | En verde: auditoría (0 vulnerabilidades), tests (201/201 y 180/180) e integración (104/104). E2E omitido por diseño |
+| [46010607573](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/46010607573) | `push` a `main` tras el merge `facfad9` | En verde |
+
+- **Revisión humana:** el autor revisó el diff documental y autorizó el commit, el push y el PR. Después autorizó el merge, que se hizo desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
+
+**Pull Request 17**
+
+**#17 — `feat: DEV-007 partial signup and session restoration`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/17)
+
+- **Rama:** `feature/dev-007-signup-flow` → `main`. Un commit (`b7e5dfe`, `b7e5dfed17292a5bd12c4d4dd883adc352d10aaa`, "feat: DEV-007 partial end-to-end signup flow"). Creada el 2026-11-27 y fusionada ese mismo día, a las 14:28:27 UTC, con *merge commit* (`6568928`, `656892810345fc6e720bcbbf3d3033f9538b747f`). El merge se hizo con `--match-head-commit b7e5dfe`, después de comprobar que el commit era el mismo que había validado la CI del PR, E2E incluido; el árbol del merge es idéntico al de `b7e5dfe`.
+- **Propósito:** DEV-007 (sección 6), **la funcionalidad de la Entrega 2**: registro de extremo a extremo, React → `POST /api/auth/register` (Express) → PostgreSQL → sesión → restauración al recargar. El ticket sigue **parcial**: su descripción lo indica con "DEV-007 STATUS: PARTIAL — NOT COMPLETED".
+- **Contenido:**
+  - S-01 (registro) con validación local igual que el backend, errores traducidos, un solo envío y recuperación tras un error de red sin repetir el registro; zona del navegador con selección manual de respaldo;
+  - S-03: el `SessionProvider` montado en `/` y `/signup`, la vista provisional con el email y `/diagnostics` fuera de la sesión;
+  - la base aislada `calicoach_e2e` (salvaguardas, `current_database()`, migraciones y servidores propios sin reutilizar), el E2E real del registro con la fila comprobada en PostgreSQL y el job de E2E en cada `pull_request`;
+  - `pg` y `@types/pg` en `e2e`; `CLAUDE.md`, el README, `docs/design-system.md` y el Prompt 26.
+- **Tamaño:** 36 archivos (19 nuevos y 17 modificados), +2405 y −124 líneas. Sin cambios en el backend, el esquema ni las migraciones.
+- **Pruebas locales** (2026-11-27, detalle en 2.6):
+  - `npm ci`, lint, tipos, *build* y `git diff --check` sin errores;
+  - backend 201/201, frontend 270/270 (90 nuevas) y salvaguardas de E2E 12/12;
+  - integración 104/104;
+  - E2E 13/13 sobre `calicoach_e2e`, en cuatro ejecuciones completas; `calicoach` y `calicoach_test` sin cambios;
+  - `npm audit --audit-level=high` sin vulnerabilidades.
+- **GitHub Actions:**
+
+| Ejecución | Evento | Resultado |
+|-----------|--------|-----------|
+| [46015766897](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/46015766897) | `pull_request` (`b7e5dfe`) | Job de comprobaciones: auditoría (0 vulnerabilidades), lint, tipos, tests (201/201, 270/270 y 12/12), migraciones, *drift*, salvaguarda, integración (104/104), fila centinela intacta y *build*. **Job de E2E, lanzado automáticamente por el PR:** preparación de `calicoach_e2e`, Playwright 13/13 (*smoke* 1, CSP 9 y registro 3) y base de desarrollo sin tablas. En verde |
+| [46016247640](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/46016247640) | `push` a `main` tras el merge `6568928` | Las mismas comprobaciones que en el PR (201/201, 270/270, 12/12 y 104/104): en verde. El E2E no corre en `push` a `main` (T3), porque el árbol fusionado es el que ya validó el PR |
+
+- **Revisión humana:** el autor revisó el análisis técnico y aprobó P1–P6 y T1–T10. Antes de publicar pidió comprobar la implementación contra sus definiciones de A1–A5 y la estabilidad del E2E frente al límite de peticiones: la implementación ya las cumplía, se corrigió la documentación de A1–A5 y se añadieron contadores de registros por escenario y `retries: 0`. Después autorizó el commit, el push y el PR y, tras revisar la CI, el merge, que se hizo desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
+- **Pendientes:** DEV-007 no está terminado: falta S-02 (inicio de sesión), cerrar sesión, volver a la pantalla de acceso cuando la sesión caduca y el destino definitivo con sesión (*Today*, S-06). Riesgos: el E2E usa 4 de los 5 registros por hora y proceso del límite; el patrón de email copiado de Zod podría desincronizarse; sin cierre de sesión, la sesión dura 7 días en ese navegador; `calicoach_e2e` acumula usuarios entre ejecuciones locales.
