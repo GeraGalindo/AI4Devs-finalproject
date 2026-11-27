@@ -45,6 +45,7 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 | 24 | DEV-039 (parcial): tokens y componentes base del sistema de diseño | **Prompts de implementación de la Entrega 2** | Código nuevo (`frontend/src/shared/styles/` y `frontend/src/shared/ui/`, con sus pruebas), `frontend/src/main.tsx`, `frontend/index.html`, `CLAUDE.md`, `readme.md` (0.3, 2.6 y 6), `docs/design-system.md` (2, 2.1, 2.2 y 3.2) y `prompts.md` |
 | 25 | DEV-006 (parcial): cliente HTTP, sesión y router | **Prompts de implementación de la Entrega 2** | Código nuevo (`frontend/src/shared/api/`, `frontend/src/features/auth/` y `frontend/src/app/AppRoutes.tsx`, con sus pruebas), `frontend/src/app/App.tsx`, dependencias, `CLAUDE.md`, `readme.md` (0.3, 1.2, 1.4, 2.2, 2.6 y 6) y `prompts.md` |
 | 26 | DEV-007 (parcial): registro de extremo a extremo y E2E en cada PR | **Prompts de implementación de la Entrega 2** | Código nuevo (`frontend/src/features/auth/`, `e2e/support/`, `e2e/scripts/` y `e2e/tests/spa-build.signup.spec.ts`, con sus pruebas), rutas, catálogo `auth`, E2E existentes, Playwright, CI, dependencias de `e2e`, `CLAUDE.md`, `readme.md` (0.3, 1.4, 2.4, 2.6 y 6), `docs/design-system.md` (5 y 9) y `prompts.md` |
+| 27 | Cierre documental de la Entrega 2 (auditoría, preparación y ajustes) | **Prompts de implementación de la Entrega 2** | `readme.md` (0.1, 0.4, 0.5, 1.3, 1.4, 2, 2.6, 6 y 7), `docs/s01-signup.png` (nueva) y `prompts.md` |
 
 **Notas:**
 - **Numeración:** los prompts 01–05 y 11–15 llevan el número que les dio el autor. Los números 06–10 los asignó la IA al documentarlos, siguiendo la secuencia.
@@ -58,6 +59,7 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 - **Prompt 24:** DEV-039 (parcial) inaugura la sección «Prompts de implementación de la Entrega 2», antes del Anexo, por decisión del autor (L9): los huecos de tres prompts por sección ya estaban ocupados salvo 2.4, Prompt 3, que no corresponde a este ticket. Incluye el análisis y la implementación.
 - **Prompt 25:** DEV-006 (parcial) se registra después del Prompt 24, en la misma sección (decisión M8). Incluye el análisis y la implementación.
 - **Prompt 26:** DEV-007 (parcial) se registra después del Prompt 25, en la misma sección (decisión T10). Incluye el análisis y la implementación.
+- **Prompt 27:** el cierre documental de la Entrega 2 se registra después del Prompt 26, en la misma sección, por decisión del autor. Incluye la auditoría de solo lectura, la preparación del cierre y los ajustes finales, que forman un único encargo.
 
 ---
 
@@ -5803,6 +5805,450 @@ Entrega:
 - **Estado:** DEV-007 sigue **parcial**, no terminado. El registro de extremo a extremo de la Entrega 2 está integrado en `main`. Falta, para completarlo: S-02 (inicio de sesión) con el `401` genérico, cerrar sesión, volver a la pantalla de acceso cuando la sesión caduca y el destino definitivo con sesión (*Today*, S-06).
 
   Riesgos pendientes: el E2E usa 4 de los 5 registros por hora y proceso del límite, así que un escenario de registro más, los reintentos o `--repeat-each` darían `429` (documentado en `CLAUDE.md`); el patrón de email copiado de Zod podría desincronizarse si Zod cambia; sin cierre de sesión, la sesión dura 7 días en ese navegador; `calicoach_e2e` acumula usuarios entre ejecuciones locales; y el E2E añade unos minutos a cada PR. DEV-008 no se ha empezado.
+
+**Prompt 27 — Cierre documental de la Entrega 2 (auditoría, preparación y ajustes)**
+
+- **Herramienta:** Claude Code (modelo `claude-opus-5-5`), en la misma sesión que los Prompts 19–26. Roles indicados por el autor: el usuario es el Product Owner; ChatGPT, analista y revisor; Claude Code, implementador.
+- **Objetivo:** auditar en solo lectura si el repositorio estaba preparado para la Entrega 2 y, tras la revisión del Product Owner, preparar en local el cierre documental (notas de estado, ficha, validación manual, guía de comprobación, captura de S-01 y ficha del PR #18), sin commit, push ni PR. Son tres prompts que forman un único encargo.
+- **Archivos afectados:**
+  - **nuevo:** `docs/s01-signup.png`, captura real aportada por el Product Owner;
+  - **modificados:** `readme.md` (0.1, 0.4, 0.5, 1.3, 1.4, 2, 2.6, 6 y 7) y `prompts.md` (mapa y este prompt);
+  - **sin cambios:** código, pruebas, dependencias, migraciones, CI, `CLAUDE.md`, `docs/design-system.md` y los Prompts 16–18.
+
+Texto literal del prompt (auditoría):
+
+```text
+# Cali Coach — Auditoría de preparación de Entrega 2
+
+Actúa como auditor técnico independiente del proyecto Cali Coach.
+
+El objetivo es determinar si el repositorio está preparado para presentar la Entrega 2 de AI4Devs, identificando únicamente incumplimientos reales, riesgos y evidencias faltantes.
+
+NO implementes código, no modifiques archivos, no crees ramas, commits ni Pull Requests.
+
+## Contexto
+
+- Repositorio: GeraGalindo/AI4Devs-finalproject.
+- main esperado: b15b0dc94c2d00b9d575adb4610e512cc3707c76.
+- PR #17: implementación DEV-007 parcial, integrado.
+- PR #18: cierre documental DEV-007 parcial, integrado.
+- CI de main: 46017365437 — success.
+- E2E del PR #18: 13/13.
+- DEV-007 permanece PARCIAL.
+
+## 1. Verificación inicial
+
+Confirma:
+
+- main coincide con origin/main.
+- Árbol de trabajo limpio.
+- CI de main en verde.
+- Documentación actualizada.
+- Prompts 16–18 intactos.
+
+Si encuentras diferencias, repórtalas sin corregirlas.
+
+## 2. Recuperar requisitos oficiales
+
+Localiza los requisitos originales de Entrega 1 y Entrega 2 en los documentos del proyecto.
+
+Distingue claramente entre:
+
+- Requisitos obligatorios.
+- Requisitos recomendados.
+- Decisiones internas del proyecto.
+- Funcionalidades previstas para entregas posteriores.
+
+No inventes requisitos académicos.
+
+Si un requisito oficial no está disponible en el repositorio, indícalo expresamente.
+
+## 3. Auditoría de Entrega 1
+
+Comprueba que los artefactos de Entrega 1 siguen presentes y son coherentes:
+
+- Problema y objetivos.
+- Alcance y MVP.
+- Historias de usuario y criterios de aceptación.
+- Decisiones de producto.
+- Arquitectura.
+- Diseño de interfaz y sistema de diseño.
+- Backlog técnico.
+- Documentación de decisiones y prompts.
+
+Para cada requisito, indica archivo, sección y evidencia.
+
+## 4. Auditoría de Entrega 2
+
+Evalúa especialmente:
+
+- Scaffolding de frontend y backend.
+- Conexión con PostgreSQL.
+- Código funcional.
+- Una funcionalidad de extremo a extremo.
+- Persistencia real.
+- Manejo de errores.
+- Pruebas automatizadas.
+- CI.
+- Instrucciones de instalación y ejecución.
+- Documentación actualizada.
+- Trazabilidad de decisiones y prompts.
+
+Comprueba que la funcionalidad implementada corresponde al alcance aprobado de la Entrega 2, sin exigir completar DEV-007 ni otros tickets posteriores.
+
+## 5. Reproducibilidad
+
+Inspecciona las instrucciones del README y los scripts reales.
+
+Determina si una persona que clone el repositorio puede:
+
+1. Instalar dependencias.
+2. Configurar las variables de entorno.
+3. Levantar PostgreSQL.
+4. Aplicar migraciones.
+5. Arrancar frontend y backend.
+6. Registrar un usuario.
+7. Comprobar que la sesión se restaura al recargar.
+8. Ejecutar las pruebas relevantes.
+
+No ejecutes operaciones destructivas.
+
+Identifica cualquier instrucción ausente, incorrecta o ambigua.
+
+## 6. Evidencia de calidad
+
+Revisa:
+
+- Resultados de CI.
+- Cobertura funcional de pruebas.
+- E2E automático.
+- Aislamiento de bases de datos.
+- Seguridad básica.
+- Accesibilidad.
+- Diseño responsive.
+- Dependencias y auditoría.
+
+No confundas una prueba que pasa con una garantía absoluta de calidad.
+
+## 7. Clasificación de hallazgos
+
+Clasifica cada hallazgo como:
+
+- BLOQUEANTE: incumple un requisito obligatorio de la entrega.
+- IMPORTANTE: no impide presentar, pero conviene corregirlo.
+- MEJORA FUTURA: fuera del alcance de Entrega 2.
+
+Para cada hallazgo, proporciona:
+
+- Identificador.
+- Requisito relacionado.
+- Evidencia concreta.
+- Impacto.
+- Corrección mínima propuesta.
+- Archivos afectados.
+- Necesidad de decisión del Product Owner.
+
+No propongas implementar funcionalidades fuera del alcance aprobado salvo que sean obligatorias para la entrega.
+
+## 8. Matriz de cumplimiento
+
+Entrega una tabla con:
+
+- Requisito.
+- Fuente oficial.
+- Evidencia en el repositorio.
+- Estado: CUMPLE / PARCIAL / NO CUMPLE / NO VERIFICABLE.
+- Observaciones.
+
+## 9. Veredicto
+
+Concluye con una de estas opciones:
+
+A. LISTO PARA ENTREGAR.
+B. LISTO CON OBSERVACIONES NO BLOQUEANTES.
+C. NO LISTO — REQUIERE CORRECCIONES.
+
+Justifica el veredicto con evidencias.
+
+## 10. Informe final
+
+Incluye:
+
+1. Estado del repositorio.
+2. Fuentes de requisitos.
+3. Matriz de Entrega 1.
+4. Matriz de Entrega 2.
+5. Reproducibilidad.
+6. Calidad y seguridad.
+7. Hallazgos priorizados.
+8. Veredicto.
+9. Acciones mínimas recomendadas.
+10. Preguntas que requieran decisión del Product Owner.
+
+## Restricciones
+
+- Solo lectura.
+- No modificar archivos.
+- No instalar dependencias.
+- No ejecutar migraciones destructivas.
+- No crear ramas, commits ni PR.
+- No empezar DEV-008.
+- No completar artificialmente DEV-007.
+- No declarar cumplidos requisitos sin evidencia.
+
+Detente al terminar el informe y espera mi revisión.
+```
+
+Texto literal del prompt (preparación del cierre):
+
+```text
+# Cali Coach — Preparación del cierre documental de Entrega 2
+
+Actúa como desarrollador responsable de preparar el cierre documental de la Entrega 2 de AI4Devs.
+
+El Product Owner ha aprobado el alcance del cierre. Prepara los cambios localmente para revisión, pero NO publiques nada todavía.
+
+## Contexto
+
+Repositorio: GeraGalindo/AI4Devs-finalproject
+
+Base esperada de main:
+b15b0dc94c2d00b9d575adb4610e512cc3707c76
+
+Requisitos oficiales:
+
+Entrega 1 — Documentación técnica (0% código):
+Configuración inicial de Readme.md y Prompts.md. Incluye ficha del proyecto, descripción general (objetivo y funcionalidades), arquitectura (diagrama y componentes), modelo de datos, especificación de la API, historias de usuario, tickets backend/frontend/base de datos, stack tecnológico y registro inicial de prompts.
+
+Entrega 2 — Código funcional:
+Archivos actualizados, scaffolds conectados y flujo principal parcialmente operativo, con al menos una funcionalidad real de extremo a extremo. Incluye todo lo de Entrega 1.
+
+Entrega 3:
+3–5 funcionalidades completas, pruebas y evidencia de funcionamiento, credenciales de prueba y pasos de verificación.
+
+## 1. Comprobaciones iniciales
+
+Verifica que:
+
+- main coincide con origin/main.
+- El árbol está limpio.
+- El último commit es b15b0dc o explica cualquier diferencia.
+- PR #17 y #18 están fusionados.
+- DEV-007 sigue PARCIAL.
+
+Crea una rama documental desde main, sin modificar main directamente.
+
+## 2. Corregir readme.md
+
+Actualiza las afirmaciones obsoletas identificadas en la auditoría:
+
+- §1.4: ya existe una interfaz de registro.
+- §2: ya existen autenticación, persistencia y sesión.
+- §2.6: ya existen pruebas de negocio.
+- §6: actualizar el estado de implementación de Entrega 1 y Entrega 2.
+- §1.4: actualizar la cabecera de evolución del entorno.
+
+Conserva las decisiones históricas y los apartados de propuesta. No reescribas retrospectivamente decisiones anteriores.
+
+## 3. Completar la ficha del proyecto
+
+Usa únicamente datos confirmados:
+
+- Nombre: Cali Coach.
+- Repositorio: https://github.com/GeraGalindo/AI4Devs-finalproject
+- Visibilidad: público, si sigue confirmado.
+- URL de aplicación desplegada: no disponible todavía.
+
+No inventes URL de producción ni credenciales.
+
+## 4. Documentar la validación manual
+
+Añade una subsección de validación local que describa:
+
+- Ubuntu como entorno de prueba.
+- Node.js 24.13.0.
+- npm 11.6.2.
+- Docker 29.8.0.
+- Docker Compose 5.5.1.
+- PostgreSQL 17.
+- Ejecución de npm run db:up.
+- Aplicación correcta de npm run db:migrate.
+- Ejecución de npm run dev.
+- Acceso a http://localhost:5173.
+- Registro de usuario completado manualmente.
+- Acceso a la vista provisional autenticada.
+- Aprobación visual del tema oscuro y la paleta por el Product Owner.
+
+Distingue claramente entre lo comprobado manualmente y lo validado por pruebas automatizadas.
+
+No afirmes que el Product Owner comprobó manualmente la restauración de sesión tras recargar, porque no se ha reportado explícitamente.
+
+## 5. Guía reproducible
+
+Añade instrucciones breves para:
+
+1. Preparar variables de entorno sin sobrescribir configuraciones existentes.
+2. Levantar PostgreSQL.
+3. Aplicar migraciones.
+4. Arrancar frontend y backend.
+5. Crear una cuenta de prueba.
+6. Recargar para comprobar la restauración de sesión.
+7. Consultar de forma segura la fila creada en PostgreSQL.
+8. Ejecutar las pruebas relevantes.
+
+Verifica que los comandos coinciden con los scripts y el esquema real.
+
+No muestres contraseñas, JWT, secretos ni hashes completos.
+
+Aclara que el frontend de logout todavía no está implementado.
+
+Documenta E2E_DATABASE_URL si corresponde, sin introducir valores inseguros.
+
+## 6. Captura de pantalla S-01
+
+La captura real del Product Owner muestra:
+
+- Pantalla Create your account.
+- Tema oscuro.
+- Campos Email y Password.
+- Zona horaria Europe/Amsterdam.
+- Botón morado Create account.
+
+Añade una referencia a la captura en §1.3.
+
+Si el archivo de imagen no está disponible en el entorno de trabajo, NO inventes ni generes una captura. Prepara la ruta documental y señala exactamente qué archivo debe proporcionar el Product Owner para incorporarla.
+
+No uses imágenes sintéticas como evidencia de ejecución.
+
+## 7. Historial de Pull Requests
+
+Añade el PR #18 a §7 con sus datos confirmados:
+
+- PR: https://github.com/GeraGalindo/AI4Devs-finalproject/pull/18
+- Commit documental: feff073b96eb22e5039b7a63ccdc93f2afaceebf
+- Merge commit: b15b0dc94c2d00b9d575adb4610e512cc3707c76
+- CI del PR: 46017113326 — success
+- CI de main: 46017365437 — success
+- E2E en PR: 13/13.
+
+No alteres el historial anterior.
+
+## 8. prompts.md
+
+No reconstruyas el Prompt 17.
+
+Mantén su referencia pendiente si no existe el texto original.
+
+No modifiques los Prompts 16–18 ni sus anexos.
+
+Si es necesario registrar este nuevo trabajo documental, propón la actualización mínima de prompts.md para revisión, sin hacerla todavía.
+
+## 9. Validación
+
+Antes de finalizar:
+
+- Comprueba git diff --check.
+- Comprueba que los enlaces internos del README funcionan.
+- Revisa que no haya afirmaciones contradictorias.
+- Comprueba que DEV-007 permanece PARCIAL.
+- Comprueba que no se han modificado código, tests, dependencias, migraciones ni CI.
+- Comprueba que no se han introducido secretos.
+- Comprueba que no se ha presentado la Entrega 3 como completada.
+
+## 10. Informe para revisión
+
+Entrega:
+
+1. Rama utilizada.
+2. Archivos modificados.
+3. Resumen del diff.
+4. Correcciones de hallazgos I-2, I-4, I-6 e I-7.
+5. Estado de la captura S-01.
+6. Estado del Prompt 17.
+7. Comprobaciones realizadas.
+8. Riesgos o decisiones pendientes.
+9. Confirmación de que no hay commit, push ni PR.
+
+Detente después del informe.
+
+NO hagas commit, push ni PR hasta recibir aprobación expresa del Product Owner.
+```
+
+Texto literal del prompt (ajustes finales):
+
+```text
+# Cali Coach — Ajustes finales del cierre documental de Entrega 2
+
+Continúa en la rama `docs/entrega-2-closure`.
+
+El Product Owner ha confirmado las siguientes decisiones:
+
+1. Autoriza «Gerardo Galindo» como nombre completo en §0.1.
+2. Aprueba incorporar los requisitos oficiales de Entrega 1, 2 y 3 en §6, identificando su procedencia.
+3. Aprueba renombrar `docs/login_screenshot.png` a `docs/s01-signup.png`, actualizando la referencia en el README.
+4. Aprueba registrar el Prompt 27, respetando la estructura existente de `prompts.md`.
+5. Confirma la restauración manual de sesión:
+   - `GET /api/auth/me` respondió HTTP 200.
+   - La ruta `/` mostró la vista autenticada.
+   - Después de recargar con `Ctrl + R`, la vista autenticada permaneció visible.
+
+Actualiza la tabla de validación manual para reflejar exactamente estas comprobaciones.
+
+La consulta directa a la tabla `users` todavía no ha sido realizada manualmente por el Product Owner; mantén esa comprobación como cubierta por el E2E, no como validación manual.
+
+## Prompt 27
+
+Registra el cierre documental utilizando únicamente el texto real disponible de las instrucciones y decisiones.
+
+No inventes prompts, modelos, herramientas, resultados ni aprobaciones.
+
+Mantén el Prompt 17 como referencia pendiente y no modifiques los Prompts 16–18.
+
+## Validación final
+
+- Comprueba que el README referencia correctamente `docs/s01-signup.png`.
+- Comprueba que la captura está incluida en los archivos preparados para el futuro commit.
+- Comprueba `git diff --check`.
+- Comprueba que no hay secretos ni datos personales de cuentas de prueba.
+- Confirma que solo cambian `readme.md`, `prompts.md` y la captura.
+- Confirma que DEV-007 sigue PARCIAL.
+- Confirma que no hay cambios de código, tests, dependencias, migraciones ni CI.
+
+Entrega un informe con el diff, los archivos y las comprobaciones realizadas.
+
+**No hagas commit, push ni PR. Espera la aprobación del Product Owner.**
+```
+
+**Decisiones humanas:**
+- **Tras la auditoría:** el autor aportó el resumen de los requisitos oficiales de las Entregas 1, 2 y 3 (incluido en el texto de la preparación) y aprobó el alcance del cierre: corregir las notas obsoletas (I-2), completar la ficha con datos confirmados (I-4), documentar la validación manual y una guía reproducible (I-6), añadir la ficha del PR #18 (I-7) y referenciar su captura de S-01.
+- **Ficha:** proyecto Cali Coach, repositorio https://github.com/GeraGalindo/AI4Devs-finalproject, visibilidad pública y sin URL desplegada. En los ajustes confirmó «Gerardo Galindo» como nombre completo (0.1).
+- **Validación manual del autor:** Ubuntu, Node.js 24.13.0, npm 11.6.2, Docker 29.8.0, Docker Compose 5.5.1 y PostgreSQL 17; `npm run db:up`, `npm run db:migrate` sin errores, `npm run dev`, acceso a `http://localhost:5173`, registro completado, vista provisional con sesión y aprobación visual del tema oscuro y la paleta. En los ajustes confirmó la restauración de la sesión: `GET /api/auth/me` respondió HTTP `200`, `/` mostró la vista autenticada y siguió visible tras recargar con `Ctrl + R`. La consulta directa a `users` no la ha hecho y queda cubierta solo por el E2E.
+- **Ajustes aprobados:** incorporar los requisitos oficiales en la sección 6 indicando su procedencia; renombrar la captura a `docs/s01-signup.png` (el archivo ya tenía ese nombre en el árbol de trabajo cuando la IA aplicó los ajustes); registrar este prompt sin modificar los Prompts 16–18 y manteniendo el Prompt 17 como referencia pendiente.
+
+**Resultado generado por la IA:**
+- **Auditoría** (sin modificar archivos): informe en diez apartados con las matrices de las Entregas 1 y 2, la reproducibilidad, la calidad y la seguridad, hallazgos I-1 a I-7 (importantes) y M-1 a M-6 (mejoras futuras), sin bloqueantes demostrables, y el veredicto **B, "listo con observaciones no bloqueantes"**, con la salvedad de que los requisitos oficiales no estaban en el repositorio (I-1). Comprobó `main` = `origin/main` = `b15b0dc`, la CI de `main` en verde, el *hash* del Anexo, que el repositorio es público y `npm audit` sin vulnerabilidades de ninguna severidad. Con servidores temporales sobre `calicoach_e2e` comprobó que un `POST /api/auth/register` vacío a través del *proxy* de Vite pasa el CSRF (`400`, no `403`), sin escribir en ninguna base.
+- **Preparación** (rama `docs/entrega-2-closure` desde `b15b0dc`):
+  - ficha: 0.4 "no disponible todavía" y 0.5 con el repositorio público;
+  - 1.3: estado actual y la captura de S-01 con su descripción;
+  - 1.4: cabecera actualizada, `E2E_DATABASE_URL` en la tabla de variables (solo del entorno, con el valor local por defecto), la subsección "Validación manual local (Entrega 2)", que separa lo manual de lo automatizado, y la "Guía para comprobar el registro en local", con la consulta de `users` que solo muestra el prefijo del *hash* y la aclaración de que la interfaz no tiene cierre de sesión;
+  - notas de estado de 2 y 2.6 y la limitación de 1.4, actualizadas;
+  - sección 6: la nota de verificación tachada con los requisitos oficiales debajo, la tabla de la Entrega 1 actualizada, las pruebas de integración como escritas y ejecutadas, y el estado al cierre de la Entrega 2;
+  - sección 7: índice y ficha del PR #18.
+- **Ajustes:** 0.1 confirmado, la referencia a `docs/s01-signup.png`, la tabla de validación manual con la restauración comprobada por el autor y la fila en `users` como no consultada a mano, la procedencia de los requisitos oficiales y este prompt.
+- **Corrección durante la auditoría:** al detener los servidores temporales, un `pkill -f` coincidió con su propia shell y dejó un backend en ejecución; se detuvo por PID y se comprobó que los puertos quedaban libres.
+- **Validación (local, 2026-11-27):**
+  - `git diff --check` sin errores; todos los anclajes y rutas relativas del README existen, incluida la de la captura;
+  - búsqueda de secretos, tokens, *hashes* y emails en el diff: nada;
+  - la consulta de la guía se probó en solo lectura sobre `calicoach_e2e`: devuelve `$argon2id$` como prefijo y `available_weekdays` vacío;
+  - los metadatos de la captura solo contienen la herramienta (`gnome-screenshot`) y la fecha; el formulario está vacío;
+  - el *hash* SHA-256 del Anexo no cambia (Prompts 16–18 intactos);
+  - solo cambian `readme.md`, `prompts.md` y la captura.
+
+**Revisión humana:**
+- **Auditoría:** el autor revisó el informe, aportó los requisitos oficiales y aprobó el alcance del cierre.
+- **Preparación:** el autor revisó el informe y aprobó los ajustes 1–5 del tercer prompt.
+- **Publicación:** pendiente de la aprobación del autor; no hay commit, push ni PR.
+- **Estado:** DEV-038, DEV-039, DEV-006 y DEV-007 siguen **parciales**. DEV-008 no se ha empezado y nada de la Entrega 3 se presenta como completado.
 
 ---
 
