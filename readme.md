@@ -998,7 +998,7 @@ Otras comprobaciones locales de DEV-039:
 - **Mutaciones temporales:** quitar el `preventDefault` de `loading`, dejar que `loading` ejecute `onClick`, descartar el `aria-describedby` del consumidor y quitar el borde del botón primario. Las pruebas detectaron las cuatro.
 - **Contraste del botón primario:** el fondo `primary` da 2,78:1 sobre `surface-raised`. A petición del autor, el botón primario lleva un borde `border-control` (4,08, 3,77 y 3,38:1 sobre `bg`, `surface` y `surface-raised`), igual en estado normal y pulsado; el color primario y el texto blanco no cambian.
 - ***Build*:** el JS no cambia (272,14 kB), porque ninguna pantalla usa aún los componentes y Vite no los incluye; el CSS pasa de 0,09 kB a 2,14 kB (tokens y estilos globales). El CSS de los componentes entrará en el *build*, y en el E2E de la CSP, cuando DEV-007 los use.
-**Pruebas de DEV-006 (parcial) y resultados** (ejecución **local** del 2026-11-27, Node 24.13.0). **Pendiente de verificar en GitHub Actions** con el PR. No necesitan PostgreSQL: `fetch` se sustituye en cada prueba:
+**Pruebas de DEV-006 (parcial) y resultados** (ejecución **local** del 2026-11-27, Node 24.13.0). **En GitHub Actions** se obtuvieron los mismos resultados en el PR #15 y en `main` (backend 201/201, frontend 180/180 e integración 104/104), y el E2E completo (6/6, incluidas las 4 pruebas de la CSP sobre el *build* real) pasó con `workflow_dispatch` sobre el commit del PR, sin cambiar sus archivos (sección 7). No necesitan PostgreSQL: `fetch` se sustituye en cada prueba:
 
 | Suite | Archivo | Qué comprueba | Resultado local |
 |-------|---------|---------------|-----------------|
@@ -4082,7 +4082,7 @@ Cada ticket añade solo lo que le es propio.
   - sin desplazamiento horizontal a 320 px.
 - **Pruebas:** componentes (RTL) del cliente HTTP, del botón protegido y de los estados de carga y error.
 - **Pendiente:** TanStack Query es una [Propuesta] (2.2), diferida en DEV-006 parcial (M7).
-- **Estado:** **parcial** (Entrega 2), implementado en la rama `feature/dev-006-frontend-foundation`, pendiente de revisión, Pull Request y CI. **No está terminado:** por decisión del autor, la Entrega 2 implementa solo lo que necesita el registro y el ticket sigue abierto hasta completar su alcance. Verificación local en 2.6.
+- **Estado:** **parcial** (Entrega 2). La parte implementada está fusionada en `main` mediante el PR #15 (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/15), con la CI en verde en el PR, en `workflow_dispatch` (con E2E 6/6) y en `main` (2.6 y sección 7). **No está terminado:** por decisión del autor, la Entrega 2 implementa solo lo que necesita el registro y el ticket sigue abierto hasta completar su alcance. Verificación local en 2.6.
   - **Implementado:**
     - React Router en modo declarativo (`frontend/src/app/AppRoutes.tsx`): `/diagnostics` muestra la vista de DEV-001; `/` redirige **temporalmente** a `/diagnostics` y cualquier otra ruta a `/`. `/signup` no se registra todavía (DEV-007). No hay páginas de relleno;
     - cliente HTTP `apiRequest` (`frontend/src/shared/api/client.ts`) sobre `fetch`: solo rutas relativas bajo `/api/`, `credentials: 'same-origin'`, `Accept: application/json`, `X-CSRF-Protection: 1` en `POST`, `PUT`, `PATCH` y `DELETE` (criterio 1), `Content-Type` solo con cuerpo, sin fijar `Origin`, `204` sin cuerpo y comprobación ligera de la forma de las respuestas. Los errores se lanzan como `ApiError` (`http`, `network`, `invalid-response` o `aborted`) con `status`, `code`, `requestId`, `invalidFields` y `Retry-After`, **sin** el `message` del servidor. El cliente HTTP solo expone identificadores de campos inválidos. Los mensajes visibles se obtienen de los catálogos i18n del frontend; nunca de `details.fields[].message` ni de `error.message` del backend. (Corrección pedida por el autor antes de publicar: la primera versión guardaba `details.fields[].message` en `fields`.);
@@ -4903,6 +4903,8 @@ Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha ver
 | [#11](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/11) | `feat: add partial i18n foundation (DEV-038)` | Implementación (Entrega 2, DEV-038 parcial) | `feature/dev-038-i18n-foundation` → `main` | 2026-11-27 | `79d8d4c` | En verde |
 | [#12](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/12) | `docs: record DEV-038 partial closure and PR #10/#11 evidence` | Documentación (cierre de DEV-038 parcial) | `docs/dev-038-partial-closure` → `main` | 2026-11-27 | `3d1ec29` | En verde |
 | [#13](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/13) | `feat: add partial design system foundation (DEV-039)` | Implementación (Entrega 2, DEV-039 parcial) | `feature/dev-039-design-foundation` → `main` | 2026-11-27 | `af52d36` | En verde |
+| [#14](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/14) | `docs: record DEV-039 partial merge and CI evidence` | Documentación (cierre de DEV-039 parcial) | `docs/dev-039-partial-closure` → `main` | 2026-11-27 | `0945315` | En verde |
+| [#15](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/15) | `feat: DEV-006 partial HTTP client, session and routing` | Implementación (Entrega 2, DEV-006 parcial) | `feature/dev-006-frontend-foundation` → `main` | 2026-11-27 | `05794c7` | En verde |
 
 Todas se fusionaron con *merge commit*, que es la estrategia habitual del repositorio.
 
@@ -5226,3 +5228,54 @@ Todas se fusionaron con *merge commit*, que es la estrategia habitual del reposi
 
 - **Revisión humana:** el autor revisó el análisis técnico y aprobó L1–L9 antes de la implementación. Al revisar el informe local pidió corregir, antes de publicar, el contraste del fondo primario sobre `surface-raised` con un borde visible, sin cambiar el color ni el texto. Aprobó la corrección y autorizó el commit, el push, el PR y el E2E manual. Tras revisar la CI, autorizó el merge, que se hizo desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
 - **Pendientes:** DEV-039 no está terminado. Falta lo indicado en su ticket (sección 6): la navegación (`AppShell`, `BottomNav`/`NavRail` y `TopBar`), `IconButton`, `WeekdaySelector`, `TimezoneSelect`, `Toast`, `Skeleton`, `EmptyState`, `ErrorState`, `ConfirmDialog`, `StatusBadge`, las variantes `ghost` y `danger`, axe, la revisión visual y la comparación con el mockup. Para DEV-007: medir en el navegador los 44 px, los 320 px y el foco; bloquear las peticiones duplicadas; el respaldo manual de la zona horaria; y cubrir con el E2E de la CSP el CSS de los componentes, que aún no entra en el *build* porque ninguna pantalla los usa.
+
+**Pull Request 14**
+
+**#14 — `docs: record DEV-039 partial merge and CI evidence`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/14)
+
+- **Rama:** `docs/dev-039-partial-closure` → `main`. Un commit (`e01e357`). Creada y fusionada el 2026-11-27 con *merge commit* (`0945315`). El merge se hizo con `--match-head-commit e01e357`.
+- **Propósito:** registrar la evidencia del PR #13 después de su merge. Es solo documental, y DEV-039 sigue **parcial**.
+- **Contenido:**
+  - los resultados de GitHub Actions de DEV-039 en 2.6 y en su ticket (sección 6), conservando su estado parcial y lo pendiente;
+  - los PR #12 y #13 en esta sección 7 (índice y fichas);
+  - la revisión humana, la corrección de contraste, la publicación, la CI y el merge en el Prompt 24 de `prompts.md`. Los Prompts 16–18 no cambian.
+- **Tamaño:** 2 archivos, +72 y −4 líneas.
+- **Pruebas locales:** no aplica (sin código). `git diff --check` sin errores.
+- **GitHub Actions:**
+
+| Ejecución | Evento | Resultado |
+|-----------|--------|-----------|
+| [46004877528](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/46004877528) | `pull_request` (`e01e357`) | En verde: auditoría (0 vulnerabilidades), tests (201/201 y 94/94) e integración (104/104). E2E omitido por diseño |
+| [46005414687](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/46005414687) | `push` a `main` tras el merge `0945315` | En verde |
+
+- **Revisión humana:** el autor revisó el diff documental, aprobó conservar la ficha del PR #12 y autorizó el commit, el push y el PR. Después autorizó el merge, que se hizo desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
+
+**Pull Request 15**
+
+**#15 — `feat: DEV-006 partial HTTP client, session and routing`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/15)
+
+- **Rama:** `feature/dev-006-frontend-foundation` → `main`. Un commit (`201ded5`, `201ded5f1508e383d551e7c44f5be5c330a4390e`, "feat: add DEV-006 partial frontend routing and session foundation"). Creada el 2026-11-27 y fusionada ese mismo día, a las 13:42:32 UTC, con *merge commit* (`05794c7`, `05794c7e19c55ce7c18b1cc07ef2bf4fe651f29d`). El merge se hizo con `--match-head-commit 201ded5`, después de comprobar que el commit era el mismo que habían validado la CI del PR y el E2E manual; el árbol del merge es idéntico al de `201ded5`.
+- **Propósito:** DEV-006 (sección 6), **solo la infraestructura que necesita el registro de la Entrega 2**. El ticket sigue **parcial**: su descripción lo indica con "DEV-006 STATUS: PARTIAL — NOT COMPLETED".
+- **Contenido:**
+  - `react-router` 8.5.1 en modo declarativo: `/diagnostics`, `/` como redirección temporal a `/diagnostics` y `*` → `/`. `/signup` no se registra todavía;
+  - el cliente HTTP `apiRequest` con CSRF, `credentials: 'same-origin'`, `Content-Type` solo con cuerpo y errores normalizados en `ApiError`, que solo expone `invalidFields` y ningún texto del servidor;
+  - `getMe()`, `PublicUser` y el `SessionProvider` con los estados `loading`, `authenticated`, `unauthenticated` y `unavailable`, sin montar en las rutas activas;
+  - 86 pruebas nuevas del frontend;
+  - `CLAUDE.md`, el README y el Prompt 25.
+- **Tamaño:** 16 archivos (10 nuevos y 6 modificados), +1631 y −15 líneas. Una dependencia nueva: `react-router` 8.5.1.
+- **Pruebas locales** (2026-11-27, detalle en 2.6):
+  - `npm ci`, lint, tipos, *build* y `git diff --check` sin errores;
+  - backend 201/201 y frontend 180/180 (86 nuevas; las 94 anteriores sin cambios);
+  - integración 104/104;
+  - E2E 6/6 con `CI=1`, sin cambiar sus archivos, incluidas las 4 pruebas de la CSP;
+  - `npm audit --audit-level=high` sin vulnerabilidades; doce mutaciones temporales detectadas; el JS del *build* pasa de 272,14 kB a 309,05 kB por React Router.
+- **GitHub Actions:**
+
+| Ejecución | Evento | Resultado |
+|-----------|--------|-----------|
+| [46008523664](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/46008523664) | `pull_request` (`201ded5`) | Auditoría (0 vulnerabilidades), lint, tipos, tests (201/201 y 180/180), migraciones, *drift*, salvaguarda, integración (104/104), fila centinela intacta y *build*: en verde. E2E omitido por diseño |
+| [46008736203](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/46008736203) | `workflow_dispatch` con E2E sobre `201ded5` | Las mismas comprobaciones más el E2E en Chromium: 6/6 (*smoke* de DEV-001 y las 5 pruebas de `spa-build`, 4 de ellas de la CSP), con `/` y `/today` redirigidos a `/diagnostics`: en verde |
+| [46009443145](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/46009443145) | `push` a `main` tras el merge `05794c7` | Las mismas comprobaciones que en el PR (201/201, 180/180 y 104/104): en verde |
+
+- **Revisión humana:** el autor revisó el análisis técnico y aprobó M1–M8 con dos ajustes (solo `401 UNAUTHENTICATED` significa "sin sesión"; el `SessionProvider` no se monta todavía). Tras aprobar la implementación, la revisión de seguridad previa al commit detectó que `ApiError.fields` guardaba los mensajes técnicos de `details.fields[].message`; la IA se detuvo, el autor aprobó la corrección (`invalidFields` con solo los identificadores) y autorizó el commit, el push, el PR y el E2E manual. Tras revisar la CI, autorizó el merge, que se hizo desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
+- **Pendientes:** DEV-006 no está terminado. Falta lo indicado en su ticket (sección 6): `AppShell` y la navegación, la redirección ante un `401` en rutas protegidas, el reintento ante un `503` con `ErrorState`, conectar el `loading` de `Button` con la petición (criterio 2), los 320 px (criterio 3), el formato de fechas y TanStack Query si se adopta. Para DEV-007: montar el `SessionProvider`, registrar `/signup`, definir `/` con y sin sesión, aplicar la política de E2E ante el `401` de `/api/auth/me` (M5) y ejecutar el E2E de registro automáticamente en la CI de cada PR, que hoy exige cambiar el job de E2E.

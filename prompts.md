@@ -5242,9 +5242,24 @@ Detente después del informe y espera mi revisión.
   - `npm audit --audit-level=high`: 0 vulnerabilidades. `react-router` 8.5.1 trae `cookie-es` 3.1.1 y `@remix-run/route-pattern` 0.22.1; `@types/react-dom` pasa de `dev` a `devOptional` en el *lockfile*;
   - mutaciones temporales detectadas: sin cabecera CSRF, `Content-Type` siempre, aceptar `//`, `credentials: 'include'`, cualquier `401` como `unauthenticated`, no descartar respuestas obsoletas, convertir la cancelación en `unavailable` y no abortar al sustituir una consulta; y, tras la corrección, volver a guardar `details.fields[].message`, recuperar `fields`, aceptar cualquier ruta y conservar duplicados;
   - *bundle* JS: de 272,14 kB (85,36 kB gzip) a 309,05 kB (97,90 kB gzip), por React Router. El cliente y la sesión aún no entran en el *build*, porque ninguna ruta los usa.
-  - **La ejecución en GitHub Actions queda pendiente del PR.**
+  - **la ejecución en GitHub Actions estaba pendiente del PR** cuando se cerró la implementación. Ahora está en verde: ver la revisión humana.
 
-**Revisión humana:** pendiente. El autor revisará la implementación antes de autorizar el commit, el push y el PR. DEV-006 **no** está terminado: es parcial por decisión del autor y, además, falta la revisión, el PR y la CI.
+**Revisión humana:**
+- **Análisis:** el autor aprobó M1–M8 con los dos ajustes de "Decisiones humanas".
+- **Implementación:** el autor aprobó el informe local y autorizó publicar, pidiendo antes una revisión de seguridad del código real. En ella, la IA detectó que `ApiError.fields` guardaba los mensajes técnicos de `details.fields[].message` y que `CLAUDE.md` indicaba llevarlos a los `TextField`; se detuvo sin publicar y propuso la corrección. El autor la aprobó: `invalidFields: string[]` con solo los identificadores de `details.fields[].path`, sin guardar ningún texto del servidor, con una prueba que falla si se vuelve a guardar `details.fields[].message`, y la convención de que los mensajes visibles salen solo de los catálogos i18n del frontend. Repetidas las validaciones, autorizó el commit, el push, el PR y el E2E manual.
+- **Publicación:** commit `201ded5` (`201ded5f1508e383d551e7c44f5be5c330a4390e`, "feat: add DEV-006 partial frontend routing and session foundation") sobre `0945315`, con 16 archivos (10 nuevos y 6 modificados, +1631 y −15), y PR #15 (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/15), "feat: DEV-006 partial HTTP client, session and routing", hacia `main`. Su descripción indica "DEV-006 STATUS: PARTIAL — NOT COMPLETED".
+- **CI en GitHub Actions** (sección 7 del README):
+  - ejecución `pull_request` 46008523664, en verde: auditoría sin vulnerabilidades altas, lint, tipos, tests 201/201 y 180/180, migraciones, *drift*, salvaguarda, integración 104/104, fila centinela intacta y *build*. E2E omitido por diseño;
+  - ejecución `workflow_dispatch` 46008736203 sobre el mismo commit `201ded5`, en verde, con el E2E 6/6 (el *smoke* de DEV-001 y las 5 pruebas de `spa-build`, 4 de ellas de la CSP), sin cambiar los archivos de E2E;
+  - ejecución `push` a `main` 46009443145, en verde, tras el merge: las mismas comprobaciones que en el PR.
+- **Aprobación final:** el autor revisó los resultados del PR #15 y autorizó el merge. Antes se comprobó que el PR seguía abierto hacia `main`, que su último commit seguía siendo `201ded5`, que `main` no había avanzado, que no había conflictos, que las dos ejecuciones habían pasado sobre ese commit, que el diff tenía los 16 archivos previstos sin cambios en backend, base de datos, CI ni E2E, y que los Prompts 16–18 no habían cambiado. El merge se hizo con *merge commit* y `--match-head-commit 201ded5` el 2026-11-27 a las 13:42:32 UTC (`05794c7`, `05794c7e19c55ce7c18b1cc07ef2bf4fe651f29d`), sin *rebase*, *squash* ni *force push*; su árbol es idéntico al de `201ded5`. `main` local se actualizó por *fast-forward*.
+- **Estado:** DEV-006 sigue **parcial**, no terminado. La parte implementada está integrada en `main`. Falta, para completarlo:
+  - `AppShell` y la navegación, y el criterio 3 (320 px);
+  - la redirección ante un `401` en rutas protegidas y el reintento ante un `503` con `ErrorState`;
+  - conectar el `loading` de `Button` con la petición en curso (criterio 2);
+  - el formato de fechas de DEV-038 y TanStack Query, si se adopta.
+
+  Pendiente para **DEV-007**: montar el `SessionProvider`, registrar `/signup` y definir `/` con y sin sesión; aplicar M5 (la prueba de CSP abrirá `/diagnostics` y el E2E de registro tolerará solo el `401` de `/api/auth/me`); y ejecutar el E2E de registro automáticamente en la CI de cada PR, lo que exige cambiar el job de E2E (hoy solo corre con `workflow_dispatch` y no aplica migraciones). DEV-007 no se ha empezado.
 
 ---
 
