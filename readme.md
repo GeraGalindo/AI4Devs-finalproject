@@ -980,7 +980,7 @@ Otras comprobaciones locales de DEV-038:
 - **Comprobaciones manuales:** una prueba temporal con una clave mal escrita (`auth:signUp.tittle`) falla con `Missing translation keys: auth:signUp.tittle`; añadir al catálogo una clave que las pruebas esperan inexistente rompe `typecheck` (`TS2578`).
 - **Dependencias:** `i18next` 27.1.1 y `react-i18next` 18.0.1, con versión exacta. El *lockfile* solo añade esas dos y `html-parse-stringify` 4.0.1; ninguna versión existente cambia, `effect` sigue en 3.22.1 y `npm audit --audit-level=high` informa de 0 vulnerabilidades.
 - **Tamaño del *bundle*:** el JS pasa de 221,40 kB (69,33 kB gzip) a 272,14 kB (85,36 kB gzip).
-**Pruebas de DEV-039 (parcial) y resultados** (ejecución **local** del 2026-11-27, Node 24.13.0). **Pendiente de verificar en GitHub Actions** con el PR. No necesitan PostgreSQL:
+**Pruebas de DEV-039 (parcial) y resultados** (ejecución **local** del 2026-11-27, Node 24.13.0). **En GitHub Actions** se obtuvieron los mismos resultados en el PR #13 y en `main` (backend 201/201, frontend 94/94 e integración 104/104), y el E2E completo (6/6, incluidas las 4 pruebas de la CSP sobre el *build* real) pasó con `workflow_dispatch` sobre el commit del PR (sección 7). No necesitan PostgreSQL:
 
 | Suite | Archivo | Qué comprueba | Resultado local |
 |-------|---------|---------------|-----------------|
@@ -4023,7 +4023,7 @@ Cada ticket añade solo lo que le es propio.
   - comprobación automática de accesibilidad con una herramienta como axe [Propuesta: sería una dependencia nueva de desarrollo];
   - revisión visual a 320, 768 y 1024 px.
 - **Pendiente:** la comparación exacta con el mockup de referencia, que no está en el repositorio. Los valores de los tokens pueden cambiar tras esa comparación sin cambiar los componentes.
-- **Estado:** **parcial** (Entrega 2), implementado en la rama `feature/dev-039-design-foundation`, pendiente de revisión, Pull Request y CI. **No está terminado:** por decisión del autor, la Entrega 2 implementa solo lo que necesita el registro y el ticket sigue abierto hasta completar su alcance. Verificación local en 2.6.
+- **Estado:** **parcial** (Entrega 2). La parte implementada está fusionada en `main` mediante el PR #13 (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/13), con la CI en verde en el PR, en `workflow_dispatch` (con E2E 6/6) y en `main` (2.6 y sección 7). **No está terminado:** por decisión del autor, la Entrega 2 implementa solo lo que necesita el registro y el ticket sigue abierto hasta completar su alcance. Verificación local en 2.6.
   - **Implementado:**
     - tokens de color, espaciado, radios, bordes, foco, `touch-min` y tipografía en `frontend/src/shared/styles/tokens.css`, con los valores de `docs/design-system.md`; solo tema oscuro, con `color-scheme: dark`;
     - estilos globales (`global.css`): *box-sizing*, fondo y texto, tipografía base, foco visible con `color-focus`, `prefers-reduced-motion` y textos largos que no desbordan;
@@ -4860,6 +4860,8 @@ Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha ver
 | [#9](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/9) | `feat: add authentication with register, login, me and logout (DEV-004)` | Implementación (Entrega 2) | `feature/dev-004-authentication` → `main` | 2026-11-27 | `4525dc5` | En verde |
 | [#10](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/10) | `docs: close DEV-004 and record PR #8/#9 evidence` | Documentación (cierre de DEV-004) | `docs/dev-004-closure` → `main` | 2026-11-27 | `9936fcc` | En verde |
 | [#11](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/11) | `feat: add partial i18n foundation (DEV-038)` | Implementación (Entrega 2, DEV-038 parcial) | `feature/dev-038-i18n-foundation` → `main` | 2026-11-27 | `79d8d4c` | En verde |
+| [#12](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/12) | `docs: record DEV-038 partial closure and PR #10/#11 evidence` | Documentación (cierre de DEV-038 parcial) | `docs/dev-038-partial-closure` → `main` | 2026-11-27 | `3d1ec29` | En verde |
+| [#13](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/13) | `feat: add partial design system foundation (DEV-039)` | Implementación (Entrega 2, DEV-039 parcial) | `feature/dev-039-design-foundation` → `main` | 2026-11-27 | `af52d36` | En verde |
 
 Todas se fusionaron con *merge commit*, que es la estrategia habitual del repositorio.
 
@@ -5132,3 +5134,54 @@ Todas se fusionaron con *merge commit*, que es la estrategia habitual del reposi
 
 - **Revisión humana:** el autor eligió el enfoque de la Entrega 2 (cuatro PR secuenciales con tickets parciales), revisó el análisis técnico y aprobó D1–D9 antes de la implementación. Revisó el informe local y autorizó el commit, el push, el PR y el E2E manual, pidiendo conservar la lista de códigos de error del contrato de registro como comprobación de requisitos. Tras revisar la CI, autorizó el merge, que se hizo desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
 - **Pendientes:** DEV-038 no está terminado. Falta lo indicado en su ticket (sección 6): los catálogos `profile`, `programs`, `calendar`, `session` y `progress`, `session.status.*`, el resto de los códigos de error, las utilidades de formato con `Intl` (criterio 3), el criterio 5 y la vista de diagnóstico. Limitaciones: la regla de ESLint no detecta textos guardados en variables, e `i18next` 27 es una versión mayor reciente.
+
+**Pull Request 12**
+
+**#12 — `docs: record DEV-038 partial closure and PR #10/#11 evidence`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/12)
+
+- **Rama:** `docs/dev-038-partial-closure` → `main`. Un commit (`c3924ca`). Creada y fusionada el 2026-11-27 con *merge commit* (`3d1ec29`). El merge se hizo con `--match-head-commit c3924ca`.
+- **Propósito:** registrar la evidencia del PR #11 después de su merge. Es solo documental, y DEV-038 sigue **parcial**.
+- **Contenido:**
+  - los resultados de GitHub Actions de DEV-038 en 2.6 y en su ticket (sección 6), conservando su estado parcial y lo pendiente;
+  - los PR #10 y #11 en esta sección 7 (índice y fichas);
+  - la revisión humana, la publicación, la CI y el merge en el Prompt 23 de `prompts.md`. Los Prompts 16–18 no cambian.
+- **Tamaño:** 2 archivos, +73 y −4 líneas.
+- **Pruebas locales:** no aplica (sin código). `git diff --check` sin errores.
+- **GitHub Actions:**
+
+| Ejecución | Evento | Resultado |
+|-----------|--------|-----------|
+| [45997544779](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45997544779) | `pull_request` (`c3924ca`) | En verde: auditoría (0 vulnerabilidades), tests (201/201 y 41/41) e integración (104/104). E2E omitido por diseño |
+| [45998054817](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45998054817) | `push` a `main` tras el merge `3d1ec29` | En verde |
+
+- **Revisión humana:** el autor revisó el diff documental, aprobó incluir las fichas de los PR #10 y #11, y autorizó el commit, el push y el PR. Después autorizó el merge, que se hizo desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
+
+**Pull Request 13**
+
+**#13 — `feat: add partial design system foundation (DEV-039)`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/13)
+
+- **Rama:** `feature/dev-039-design-foundation` → `main`. Un commit (`3302d87`, `3302d87b3769c89bb3d9e2eb14bf888edffbec86`). Creada el 2026-11-27 y fusionada ese mismo día, a las 13:05:50 UTC, con *merge commit* (`af52d36`, `af52d36c576e3b122a317dd05de5a477a5bcccdb`). El merge se hizo con `--match-head-commit 3302d87`, después de comprobar que el commit era el mismo que habían validado la CI del PR y el E2E manual.
+- **Propósito:** DEV-039 (sección 6), **solo lo que necesita el registro de la Entrega 2**. El ticket sigue **parcial**: su descripción lo indica con "DEV-039 STATUS: PARTIAL — NOT COMPLETED".
+- **Contenido:**
+  - tokens del tema oscuro (`tokens.css`) con los valores de `docs/design-system.md`, y estilos globales con foco visible y `prefers-reduced-motion`;
+  - `Card`, `Button` (`primary` y `secondary`, con `disabled` y `loading`), `TextField` e `InlineAlert` en `frontend/src/shared/ui/`, con los textos por props;
+  - el borde `border-control` del botón primario, que corrige su contraste sobre `surface-raised` (de 2,78:1 a 3,38:1 en el borde);
+  - 53 pruebas nuevas del frontend, incluido el contraste calculado desde el CSS real;
+  - `CLAUDE.md`, el README, `docs/design-system.md` y el Prompt 24, en la sección nueva de `prompts.md`.
+- **Tamaño:** 24 archivos (18 nuevos y 6 modificados), +1650 y −3 líneas. Sin dependencias nuevas.
+- **Pruebas locales** (2026-11-27, detalle en 2.6):
+  - lint, tipos, *build* y `git diff --check` sin errores;
+  - backend 201/201 y frontend 94/94 (53 nuevas; las 41 anteriores sin cambios);
+  - integración 104/104;
+  - E2E 6/6 con `CI=1`, incluidas las 4 pruebas de la CSP;
+  - `npm audit --audit-level=high` sin vulnerabilidades; el JS del *build* no cambia y el CSS pasa de 0,09 kB a 2,14 kB.
+- **GitHub Actions:**
+
+| Ejecución | Evento | Resultado |
+|-----------|--------|-----------|
+| [46002169027](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/46002169027) | `pull_request` (`3302d87`) | Auditoría (0 vulnerabilidades), lint, tipos, tests (201/201 y 94/94), migraciones, *drift*, salvaguarda, integración (104/104), fila centinela intacta y *build*: en verde. E2E omitido por diseño |
+| [46002362163](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/46002362163) | `workflow_dispatch` con E2E sobre `3302d87` | Las mismas comprobaciones más el E2E en Chromium: 6/6 (*smoke* de DEV-001 y las 5 pruebas de `spa-build`, 4 de ellas de la CSP): en verde |
+| [46004162469](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/46004162469) | `push` a `main` tras el merge `af52d36` | Las mismas comprobaciones que en el PR (201/201, 94/94 y 104/104): en verde |
+
+- **Revisión humana:** el autor revisó el análisis técnico y aprobó L1–L9 antes de la implementación. Al revisar el informe local pidió corregir, antes de publicar, el contraste del fondo primario sobre `surface-raised` con un borde visible, sin cambiar el color ni el texto. Aprobó la corrección y autorizó el commit, el push, el PR y el E2E manual. Tras revisar la CI, autorizó el merge, que se hizo desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
+- **Pendientes:** DEV-039 no está terminado. Falta lo indicado en su ticket (sección 6): la navegación (`AppShell`, `BottomNav`/`NavRail` y `TopBar`), `IconButton`, `WeekdaySelector`, `TimezoneSelect`, `Toast`, `Skeleton`, `EmptyState`, `ErrorState`, `ConfirmDialog`, `StatusBadge`, las variantes `ghost` y `danger`, axe, la revisión visual y la comparación con el mockup. Para DEV-007: medir en el navegador los 44 px, los 320 px y el foco; bloquear las peticiones duplicadas; el respaldo manual de la zona horaria; y cubrir con el E2E de la CSP el CSS de los componentes, que aún no entra en el *build* porque ninguna pantalla los usa.
