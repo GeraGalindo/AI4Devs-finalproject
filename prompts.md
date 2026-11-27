@@ -3106,13 +3106,30 @@ Detente después de implementar y validar localmente. Espera la revisión del Pr
   - `npm audit --audit-level=high`: 0 vulnerabilidades. `effect` 3.22.1;
   - sin cambios en el esquema, las migraciones, la CI ni el frontend;
   - el arranque en producción con un `JWT_SECRET` ausente, de desarrollo, corto o de ejemplo termina con código 1;
-  - **la ejecución en GitHub Actions queda pendiente del PR.**
+  - **la ejecución en GitHub Actions estaba pendiente del PR** cuando se cerró la implementación. Ahora está en verde: ver la revisión humana.
 - **Diferencias respecto al diseño aprobado:**
   - el límite de peticiones no cuenta las peticiones rechazadas antes de él (CSRF y cuerpo), por el orden de la sección 4. La IA lo documentó y lo probó, porque D6 pide a la vez contar todos los intentos y respetar ese orden;
   - el limitador usa el reloj del sistema, no el `Clock`;
   - además de lo pedido, el JWT rechaza un `iat` futuro y una vida de más de 7 días, y la contraseña tiene un máximo de 128 caracteres también en el `login`, sin mínimo.
 
-**Revisión humana:** pendiente. El autor revisará la implementación antes de autorizar el commit, el push y el PR. DEV-004 **no** está terminado: falta la revisión, el PR y la CI.
+**Revisión humana:**
+- **Análisis:** el autor aprobó D1–D10 con las precisiones de "Decisiones humanas" (D2, D4, D5 y D6) y las condiciones añadidas.
+- **Implementación:** el autor revisó el informe de la fase 7 (resultados locales, diferencias respecto al diseño y riesgos) sin pedir cambios, y autorizó el commit, el push y el PR. Su primera autorización llegó dentro de un bloque pegado de la terminal y el modo automático de Claude Code bloqueó el commit; el autor la repitió como instrucción directa, con el alcance (un único commit con el mensaje indicado, solo los archivos de DEV-004, sin secretos ni archivos generados) y sin autorizar el merge.
+- **Publicación:** commit `89674bc` (`89674bcdc44f9391d3838d20ce39005d9f5de0bf`) sobre `bf95b10`, con 36 archivos (+2789 y −54), y PR #9 (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/9) hacia `main`. Después el autor autorizó el E2E manual sobre la rama del PR.
+- **CI en GitHub Actions** (sección 7 del README):
+  - ejecución `pull_request` 45982582015, en verde: auditoría sin vulnerabilidades altas, lint, tipos, tests 201/201 y 5/5, migraciones, *drift*, salvaguarda, integración 104/104, fila centinela intacta y *build*. E2E omitido por diseño;
+  - ejecución `workflow_dispatch` 45983125193 sobre el mismo commit `89674bc`, en verde, con el E2E 6/6 (el *smoke* de DEV-001 y las 5 pruebas de la SPA real con la CSP);
+  - ejecución `push` a `main` 45985439338, en verde, tras el merge: las mismas comprobaciones que en el PR (201/201, 5/5 y 104/104, 0 vulnerabilidades).
+- **Aprobación final:** el autor revisó los resultados del PR #9 y autorizó el merge. Antes del merge se comprobó que el PR seguía abierto hacia `main`, que su último commit seguía siendo `89674bc`, que no había conflictos y que las dos ejecuciones habían pasado sobre ese commit. El merge se hizo con *merge commit* y `--match-head-commit 89674bc` el 2026-11-27 (`4525dc5`, `4525dc56360a81634d9cbcd9eb3be15be9650548`), sin *rebase*, *squash* ni *force push*. `main` local se actualizó por *fast-forward*.
+- **Cierre:** DEV-004 queda **terminado**. Limitaciones conocidas, que siguen abiertas:
+  - el límite de peticiones vive en memoria y usa la IP del socket: no sirve detrás de un *proxy* ni con varias instancias (pendiente de **DEV-036**, con `trust proxy` y el despliegue);
+  - por el orden de la sección 4, el limitador no cuenta las peticiones que el CSRF o la regla de cuerpo rechazan antes que él;
+  - el `409` del registro permite saber si un email tiene cuenta (riesgo aceptado);
+  - la comprobación de `JWT_SECRET` es heurística: no mide la entropía real;
+  - `argon2` es una dependencia nativa;
+  - el *override* de `effect` se mantiene, pendiente de su ticket de mantenimiento.
+
+  Pendiente para **DEV-005**: el repositorio de perfil también debe convertir `[]` en `null`. DEV-005, DEV-006 y DEV-007 no se han empezado.
 
 ---
 

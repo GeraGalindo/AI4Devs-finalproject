@@ -23,7 +23,7 @@ Cali Coach
 
 ### **0.3. Descripción breve del proyecto:**
 
-Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asigna un programa de entrenamiento preconfigurado, lo distribuye en los días que el atleta puede entrenar (de 2 a 6), le muestra la sesión de cada día, registra las series realizadas y le enseña su progreso (sección 1). **Estado:** la especificación del MVP está documentada (Entrega 1). DEV-001 añade el andamiaje técnico: frontend, backend, PostgreSQL local, CI y una comprobación técnica de salud (`GET /api/health`). DEV-002 añade Prisma y la primera migración (tabla `users`). DEV-003 añade la base común del backend: configuración segura, CSRF, reglas de cuerpo, validación, formato de errores, cabeceras de seguridad y el servicio del *build* de la SPA. DEV-004 añade la autenticación del backend (registro, inicio, sesión actual y cierre; HU-04 y HU-05), **pendiente de revisión, Pull Request y CI**. Todavía no hay otras funcionalidades de negocio ni interfaz de acceso (DEV-007).
+Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asigna un programa de entrenamiento preconfigurado, lo distribuye en los días que el atleta puede entrenar (de 2 a 6), le muestra la sesión de cada día, registra las series realizadas y le enseña su progreso (sección 1). **Estado:** la especificación del MVP está documentada (Entrega 1). DEV-001 añade el andamiaje técnico: frontend, backend, PostgreSQL local, CI y una comprobación técnica de salud (`GET /api/health`). DEV-002 añade Prisma y la primera migración (tabla `users`). DEV-003 añade la base común del backend: configuración segura, CSRF, reglas de cuerpo, validación, formato de errores, cabeceras de seguridad y el servicio del *build* de la SPA. DEV-004 añade la autenticación del backend (registro, inicio, sesión actual y cierre; HU-04 y HU-05), terminada con el PR #9. Todavía no hay otras funcionalidades de negocio ni interfaz de acceso (DEV-007).
 
 ### **0.4. URL del proyecto:**
 
@@ -877,7 +877,7 @@ Las cookies viajan solas en cada petición, así que cualquier operación que mo
 
 #### Implementación en DEV-004
 
-Pendiente de revisión, Pull Request y CI. Decisiones D1–D10 en la sección 6.
+Fusionada en `main` con el PR #9 y con la CI en verde (2.6 y sección 7). Decisiones D1–D10 en la sección 6.
 
 - **Rutas** (`src/modules/auth/`): `POST /api/auth/register` y `POST /api/auth/login` pasan por CSRF → `jsonBody` → límite de peticiones → Zod → servicio; `GET /api/auth/me` por `requireAuth`; `POST /api/auth/logout` por CSRF → `noBody` → servicio. Todas responden con `Cache-Control: no-store`.
 - **Contraseñas (D1, D2):** Argon2id con la librería `argon2` (m = 19 456 KiB, t = 2, p = 1). Solo se guarda el *hash* en `password_hash` y la verificación la hace la librería. Con un email inexistente se verifica contra un *hash* de relleno válido, calculado una vez por proceso, para que la respuesta tarde lo mismo. La contraseña tiene de 12 a 128 caracteres (puntos de código), sin reglas de composición y sin recortarla. En el `login` no se aplica el mínimo: una contraseña corta es simplemente incorrecta (`401`).
@@ -941,7 +941,7 @@ Otras comprobaciones locales de DEV-003:
 - **Arranque seguro con el servidor compilado:** sin `NODE_ENV`, con `NODE_ENV=staging`, en producción sin `APP_ORIGIN` o con `APP_ORIGIN` `http`, el proceso termina con código 1 y un mensaje explícito. Con una configuración de producción válida arranca, y las antiguas variables de la cookie no tienen ningún efecto.
 - **Dependencias:** `helmet` 8.3.0 (nueva) y `zod` 4.6.7 (ya estaba en el *lockfile* como dependencia transitiva), con versión exacta. Ninguna otra versión del *lockfile* cambia, `effect` sigue en 3.22.1 y `npm audit --audit-level=high` informa de 0 vulnerabilidades.
 
-**Pruebas de DEV-004 y resultados** (ejecución **local** del 2026-11-27, Node 24.13.0 y PostgreSQL 17.12 en Docker). **Pendiente de verificar en GitHub Actions** con el PR. Las unitarias no necesitan PostgreSQL; las de integración usan la app real con Prisma sobre `calicoach_test`:
+**Pruebas de DEV-004 y resultados** (ejecución **local** del 2026-11-27, Node 24.13.0 y PostgreSQL 17.12 en Docker). **En GitHub Actions** se obtuvieron los mismos resultados en el PR #9 y en `main` (backend 201/201, frontend 5/5 e integración 104/104), y el E2E completo (6/6) pasó con `workflow_dispatch` sobre el commit del PR (sección 7). Las unitarias no necesitan PostgreSQL; las de integración usan la app real con Prisma sobre `calicoach_test`:
 
 | Suite | Archivo | Qué comprueba | Resultado local |
 |-------|---------|---------------|-----------------|
@@ -1576,7 +1576,7 @@ Todas están **[Confirmada]** (registro DP-01 a DP-17 en 1.2). **Ninguna exige c
 
 > Si tu backend se comunica a través de API, describe los endpoints principales (máximo 3) en formato OpenAPI. Opcionalmente puedes añadir un ejemplo de petición y de respuesta para mayor claridad
 
-> **Estado de esta sección:** describe el **contrato REST propuesto** para el MVP. Además del endpoint técnico `GET /api/health` (DEV-001), DEV-004 implementa los cuatro de autenticación (`register`, `login`, `me` y `logout`), pendientes de revisión, PR y CI; ningún otro endpoint de negocio existe todavía. Desde DEV-003 están implementadas las convenciones comunes: orden de los controles, CSRF, cuerpo y tipo de contenido, validación Zod, `404` en JSON y formato de errores con `requestId` (2.5, "Implementación en DEV-003"). Etiquetas, como en las secciones 2 y 3:
+> **Estado de esta sección:** describe el **contrato REST propuesto** para el MVP. Además del endpoint técnico `GET /api/health` (DEV-001), DEV-004 implementa los cuatro de autenticación (`register`, `login`, `me` y `logout`), fusionados con el PR #9; ningún otro endpoint de negocio existe todavía. Desde DEV-003 están implementadas las convenciones comunes: orden de los controles, CSRF, cuerpo y tipo de contenido, validación Zod, `404` en JSON y formato de errores con `requestId` (2.5, "Implementación en DEV-003"). Etiquetas, como en las secciones 2 y 3:
 > - **[Confirmada]:** reglas de producto.
 > - **[Propuesta]:** rutas, formatos y códigos HTTP. Es el valor por defecto de toda la sección.
 > - **[Pendiente]:** necesita una decisión del Product Owner.
@@ -1759,7 +1759,7 @@ Todas las respuestas de error usan la misma estructura:
 
 #### Autenticación
 
-> **Implementado en DEV-004** (los cuatro endpoints de este apartado), pendiente de revisión, PR y CI. Detalle en 2.5, "Implementación en DEV-004".
+> **Implementado en DEV-004** (los cuatro endpoints de este apartado), fusionado en `main` con el PR #9. Detalle en 2.5, "Implementación en DEV-004".
 
 **`POST /api/auth/register`**
 - **Propósito:** crear una cuenta (F1) e iniciar sesión en la misma respuesta.
@@ -3864,7 +3864,7 @@ Cada ticket añade solo lo que le es propio.
 - **Pruebas:** API-07–API-11 y CSRF en `login` y `logout` (API-06, API-43).
 - **Decisión:** la sesión dura 7 días absolutos, sin renovación automática (DP-15).
 - **Pendiente (técnico):** ~~la longitud mínima de la contraseña y bcrypt o argon2~~ resuelto (D1 y D2).
-- **Estado:** **implementado en la rama `feature/dev-004-authentication`, pendiente de revisión, Pull Request y CI.** No está terminado hasta el merge y la CI correspondiente. Verificación local en 2.6. Decisiones técnicas aprobadas por el autor:
+- **Estado:** **terminado.** Fusionado en `main` mediante el PR #9 (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/9), con la CI en verde en el PR, en `workflow_dispatch` (con E2E 6/6) y en `main` (2.6 y sección 7). Decisiones técnicas aprobadas por el autor:
   - D1: Argon2id con la librería `argon2` (m = 19 456 KiB, t = 2, p = 1), verificación con la librería y *hash* de relleno para emails inexistentes;
   - D2: contraseñas de 12 a 128 caracteres, sin reglas de composición ni recortes, con Zod estricto;
   - D3: JWT HS256 con `jose`, claims `sub`, `ver`, `iat` y `exp`, 7 días y el `Clock` inyectable;
@@ -3875,6 +3875,13 @@ Cada ticket añade solo lo que le es propio.
   - D8: módulo `backend/src/modules/auth/` con rutas, controlador, servicio, repositorio y esquemas, reutilizando las primitivas de DEV-003;
   - D9: el mismo `401 INVALID_CREDENTIALS` (código, mensaje y estructura) para email inexistente y contraseña incorrecta; solo cambia `requestId`;
   - D10: `register` y `login` sustituyen la cookie anterior sin tenerla en cuenta.
+- **Limitaciones conocidas** (siguen abiertas):
+  - el límite de peticiones vive en memoria y usa la IP del socket: no sirve detrás de un *proxy* ni con varias instancias, y se reinicia con el proceso (DEV-036);
+  - por el orden de la sección 4, el limitador no cuenta las peticiones que el CSRF o la regla de cuerpo rechazan antes que él;
+  - el `409` del registro permite saber si un email tiene cuenta (riesgo aceptado);
+  - la comprobación de `JWT_SECRET` en producción es heurística: no mide la entropía real;
+  - `argon2` es una dependencia nativa, con binarios precompilados;
+  - el *override* de `effect` sigue activo, pendiente de su ticket de mantenimiento (2.6).
 
 **DEV-005 — API de perfil: disponibilidad y zona horaria**
 - **Incremento:** I1.
@@ -4768,6 +4775,8 @@ Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha ver
 | [#5](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/5) | `feat: add users persistence with Prisma 7 (DEV-002)` | Implementación (Entrega 2) | `feature/dev-002-users-persistence` → `main` | 2026-11-26 | `44e228f` | En verde |
 | [#6](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/6) | `docs: record DEV-002 closure and PR #5 evidence` | Documentación (cierre de DEV-002) | `docs/dev-002-closure` → `main` | 2026-11-26 | `fc95091` | En verde |
 | [#7](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/7) | `feat: establish backend security foundation (DEV-003)` | Implementación (Entrega 2) | `feature/dev-003-backend-foundation` → `main` | 2026-11-26 | `f5b5e56` | En verde |
+| [#8](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/8) | `docs: record DEV-003 closure and PR #7 evidence` | Documentación (cierre de DEV-003) | `docs/dev-003-closure` → `main` | 2026-11-27 | `bf95b10` | En verde |
+| [#9](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/9) | `feat: add authentication with register, login, me and logout (DEV-004)` | Implementación (Entrega 2) | `feature/dev-004-authentication` → `main` | 2026-11-27 | `4525dc5` | En verde |
 
 Todas se fusionaron con *merge commit*, que es la estrategia habitual del repositorio.
 
@@ -4937,3 +4946,55 @@ Todas se fusionaron con *merge commit*, que es la estrategia habitual del reposi
 | [45885000728](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45885000728) | `push` a `main` tras el merge `f5b5e56` | Las mismas comprobaciones que en el PR: en verde |
 
 - **Revisión humana:** el autor revisó el análisis y las decisiones D1–D11, aprobó la implementación provisionalmente y pidió tres ajustes antes del commit (la cookie sin variables, la CSP con una prueba automatizada y la nota sobre los scripts con `NODE_ENV=…`). Después autorizó el commit, el push, el PR y el E2E manual, y, tras revisar la CI, autorizó el merge. Lo fusionó desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
+
+**Pull Request 8**
+
+**#8 — `docs: record DEV-003 closure and PR #7 evidence`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/8)
+
+- **Rama:** `docs/dev-003-closure` → `main`. Un commit (`90bd46a`). Creada y fusionada el 2026-11-27 con *merge commit* (`bf95b10`).
+- **Propósito:** cerrar la documentación de DEV-003 después del merge del PR #7. Es solo documental.
+- **Contenido:**
+  - el PR #7 en esta sección 7 (índice y ficha);
+  - DEV-003 "terminado" en la sección 6, y la CI de DEV-003 en verde en 2.6;
+  - la aprobación final, la evidencia de CI y el cierre en el Prompt 21 de `prompts.md`. Los Prompts 16–18 no cambian.
+- **Tamaño:** 2 archivos, +41 y −4 líneas.
+- **Pruebas locales:** no aplica (sin código). `git diff --check` sin errores.
+- **GitHub Actions:**
+
+| Ejecución | Evento | Resultado |
+|-----------|--------|-----------|
+| [45964322965](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45964322965) | `pull_request` (`90bd46a`) | En verde. E2E omitido por diseño |
+| [45965749772](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45965749772) | `push` a `main` tras el merge `bf95b10` | En verde |
+
+- **Revisión humana:** el autor aprobó el diff documental antes del commit y autorizó publicar el PR. **El merge lo hizo el autor manualmente en GitHub** (`merged_by`: el autor), no desde la sesión de Claude Code. GitHub no registra revisiones ni comentarios.
+
+**Pull Request 9**
+
+**#9 — `feat: add authentication with register, login, me and logout (DEV-004)`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/9)
+
+- **Rama:** `feature/dev-004-authentication` → `main`. Un commit (`89674bc`, `89674bcdc44f9391d3838d20ce39005d9f5de0bf`). Creada y fusionada el 2026-11-27 con *merge commit* (`4525dc5`, `4525dc56360a81634d9cbcd9eb3be15be9650548`). El merge se hizo con `--match-head-commit 89674bc`, después de comprobar que el commit era el mismo que habían validado la CI del PR y el E2E manual.
+- **Propósito:** DEV-004 (sección 6), la autenticación del backend (HU-04 y HU-05) según las decisiones D1–D10.
+- **Contenido:**
+  - `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` y `POST /api/auth/logout` en `src/modules/auth/` (rutas, controlador, servicio, repositorio y esquemas);
+  - Argon2id con *hash* de relleno, JWT HS256 con `jose` solo en la cookie, revocación por `token_version` y `requireAuth`;
+  - `JWT_SECRET` obligatorio y comprobado en producción; límite de peticiones en `register` y `login`; zonas IANA sin desfases;
+  - pruebas unitarias, de contrato y de integración con PostgreSQL (API-06–API-11 y la parte de `logout` de API-43);
+  - `argon2` 0.45.2, `jose` 6.2.17, `express-rate-limit` 8.7.4 y `cookie` 2.0.2, con versión exacta;
+  - `CLAUDE.md`, el README y el Prompt 22.
+- **Tamaño:** 36 archivos, +2789 y −54 líneas.
+- **Pruebas locales** (2026-11-27, detalle en 2.6):
+  - `npm ci`, lint, tipos y *build* sin errores;
+  - backend 201/201 (101 nuevas) y frontend 5/5;
+  - integración 104/104 (68 nuevas) en `calicoach_test`, con la base de desarrollo sin tocar;
+  - E2E 6/6 con `CI=1`;
+  - siete pruebas de mutación manuales detectadas; arranque inseguro del servidor compilado rechazado (sin `JWT_SECRET`, de desarrollo, corto o de ejemplo), y `npm audit --audit-level=high` sin vulnerabilidades.
+- **GitHub Actions:**
+
+| Ejecución | Evento | Resultado |
+|-----------|--------|-----------|
+| [45982582015](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45982582015) | `pull_request` (`89674bc`) | Auditoría (0 vulnerabilidades), lint, tipos, tests (201/201 y 5/5), migraciones, *drift*, salvaguarda, integración (104/104), fila centinela intacta y *build*: en verde. E2E omitido por diseño |
+| [45983125193](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45983125193) | `workflow_dispatch` con E2E sobre `89674bc` | Las mismas comprobaciones más el E2E en Chromium: 6/6 (*smoke* de DEV-001 y las 5 pruebas de `spa-build`): en verde |
+| [45985439338](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45985439338) | `push` a `main` tras el merge `4525dc5` | Las mismas comprobaciones que en el PR (201/201, 5/5 y 104/104): en verde |
+
+- **Revisión humana:** el autor revisó el análisis técnico y aprobó las decisiones D1–D10 antes de la implementación. Revisó el informe local y autorizó el commit, el push y el PR; después autorizó el E2E manual y, tras revisar la CI, el merge. Lo fusionó desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
+- **Pendientes:** las limitaciones de la sección 6 (DEV-004): límite de peticiones en memoria y por IP (DEV-036), peticiones rechazadas antes del limitador sin contar, enumeración por el `409`, comprobación heurística de `JWT_SECRET`, `argon2` nativo y *override* de `effect`.
