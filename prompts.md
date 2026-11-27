@@ -4702,9 +4702,24 @@ Detente después del informe y espera mi revisión.
   - `npm audit --audit-level=high`: 0 vulnerabilidades; sin dependencias nuevas;
   - mutaciones temporales: quitar el `preventDefault` de `loading`, dejar que `loading` ejecute `onClick`, descartar el `aria-describedby` de quien usa el campo y quitar el borde del botón primario. Las pruebas detectaron las cuatro;
   - *build*: el JS no cambia (272,14 kB), porque ninguna pantalla usa aún los componentes; el CSS pasa de 0,09 kB a 2,14 kB (tokens y estilos globales).
-  - **La ejecución en GitHub Actions queda pendiente del PR.**
+  - **la ejecución en GitHub Actions estaba pendiente del PR** cuando se cerró la implementación. Ahora está en verde: ver la revisión humana.
 
-**Revisión humana:** pendiente. El autor revisará la implementación antes de autorizar el commit, el push y el PR. DEV-039 **no** está terminado: es parcial por decisión del autor y, además, falta la revisión, el PR y la CI.
+**Revisión humana:**
+- **Análisis:** el autor aprobó L1–L9 con los ajustes de "Decisiones humanas".
+- **Implementación:** el autor aprobó el informe local en términos generales, pero pidió resolver antes de publicar el contraste del fondo primario sobre `surface-raised` (2,78:1) con un borde visible, preferiblemente `border-control`, sin cambiar `#7C3AED` ni el texto blanco y sin tocar `loading`, `disabled` ni `:focus-visible`. Pidió además que la prueba comprobara el borde en el CSS real de `Button`. La IA aplicó el borde solo a la variante `primary` (4,08, 3,77 y 3,38:1 sobre `bg`, `surface` y `surface-raised`) y retiró la recomendación de no usar botones primarios sobre `surface-raised`. El autor aprobó la corrección y autorizó el commit, el push, el PR y el E2E manual.
+- **Publicación:** commit `3302d87` (`3302d87b3769c89bb3d9e2eb14bf888edffbec86`) sobre `3d1ec29`, con 24 archivos (18 nuevos y 6 modificados, +1650 y −3), y PR #13 (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/13) hacia `main`. Su descripción indica "DEV-039 STATUS: PARTIAL — NOT COMPLETED".
+- **CI en GitHub Actions** (sección 7 del README):
+  - ejecución `pull_request` 46002169027, en verde: auditoría sin vulnerabilidades altas, lint, tipos, tests 201/201 y 94/94, migraciones, *drift*, salvaguarda, integración 104/104, fila centinela intacta y *build*. E2E omitido por diseño;
+  - ejecución `workflow_dispatch` 46002362163 sobre el mismo commit `3302d87`, en verde, con el E2E 6/6 (el *smoke* de DEV-001 y las 5 pruebas de `spa-build`, 4 de ellas de la CSP);
+  - ejecución `push` a `main` 46004162469, en verde, tras el merge: las mismas comprobaciones que en el PR.
+- **Aprobación final:** el autor revisó los resultados del PR #13 y autorizó el merge. Antes se comprobó que el PR seguía abierto hacia `main`, que su último commit seguía siendo `3302d87`, que no había conflictos, que las dos ejecuciones habían pasado sobre ese commit, que el diff tenía los 24 archivos previstos sin cambios en backend, base de datos, CI, E2E ni dependencias, y que los Prompts 16–18 no habían cambiado. El merge se hizo con *merge commit* y `--match-head-commit 3302d87` el 2026-11-27 a las 13:05:50 UTC (`af52d36`, `af52d36c576e3b122a317dd05de5a477a5bcccdb`), sin *rebase*, *squash* ni *force push*. `main` local se actualizó por *fast-forward*.
+- **Estado:** DEV-039 sigue **parcial**, no terminado. La parte implementada está integrada en `main`. Falta, para completarlo:
+  - `AppShell`, `BottomNav`/`NavRail`, `TopBar` y las áreas seguras (criterios 1 y 4);
+  - `IconButton`, `WeekdaySelector` y `TimezoneSelect`;
+  - `Toast`, `Skeleton`/`Spinner`, `EmptyState`, `ErrorState`, `ConfirmDialog` (criterio 5), `StatusBadge` (criterio 7) y las variantes `ghost` y `danger`;
+  - la medición en navegador de los 44 px y de los 320 px, axe, la revisión visual a 320, 768 y 1024 px y la comparación con el mockup.
+
+  Pendiente para **DEV-007**: medir en el navegador los 44 px, los 320 px y el foco; bloquear las peticiones duplicadas en el formulario; el respaldo manual de la zona horaria (L8); y cubrir con el E2E de la CSP el CSS de los componentes, que aún no entra en el *build*. Lo siguiente, según el orden aprobado, es DEV-006 parcial, que no se ha empezado.
 
 ---
 
