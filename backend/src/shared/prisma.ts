@@ -9,7 +9,7 @@ export type { PrismaClient };
  * para no abrir un segundo conjunto de conexiones.
  *
  * `prisma.$disconnect()` no cierra el pool: quien lo creó debe llamar a `pool.end()`
- * después. Esta factoría todavía no se conecta a las rutas (DEV-004 y siguientes).
+ * después. El servidor la usa para el repositorio de autenticación (DEV-004).
  */
 export function createPrisma(pool: pg.Pool): PrismaClient {
   return new PrismaClient({ adapter: new PrismaPg(pool) });

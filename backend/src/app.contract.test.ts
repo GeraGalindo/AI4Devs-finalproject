@@ -8,8 +8,10 @@ import type { Router } from 'express';
 import request from 'supertest';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
+import { unusedAuthRepository } from '../tests/support/auth-stubs.js';
 import { createApp, type AppDeps } from './app.js';
 import { fixedClock } from './domain/clock.js';
+import { DEV_JWT_SECRET } from './shared/config.js';
 import { jsonBody, noBody } from './shared/http/body.js';
 import { validate } from './shared/http/validate.js';
 
@@ -59,7 +61,8 @@ function testRoutes(api: Router): void {
 
 function makeApp(overrides: Partial<AppDeps> = {}) {
   return createApp({
-    config: { nodeEnv: 'test', appOrigin: ORIGIN },
+    config: { nodeEnv: 'test', appOrigin: ORIGIN, jwtSecret: DEV_JWT_SECRET },
+    authRepository: unusedAuthRepository,
     checkDatabase: vi.fn().mockResolvedValue(undefined),
     extraApiRoutes: testRoutes,
     ...overrides,
@@ -349,7 +352,7 @@ describe('error format (API-36 to API-38)', () => {
   );
 
   describe('API-38: internal errors in production', () => {
-    const prodApp = makeApp({ config: { nodeEnv: 'production', appOrigin: 'https://cali-coach.example' } });
+    const prodApp = makeApp({ config: { nodeEnv: 'production', appOrigin: 'https://cali-coach.example', jwtSecret: DEV_JWT_SECRET } });
 
     it.each(['/api/__test/boom', '/api/__test/boom-async'])('%s → 500 INTERNAL_ERROR without trace or SQL', async (url) => {
       const log = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -436,14 +439,14 @@ describe('security headers (helmet, D8)', () => {
 
   it('omits HSTS and upgrade-insecure-requests in development and test', async () => {
     for (const nodeEnv of ['development', 'test'] as const) {
-      const res = await request(makeApp({ config: { nodeEnv, appOrigin: ORIGIN } })).get('/api/health');
+      const res = await request(makeApp({ config: { nodeEnv, appOrigin: ORIGIN, jwtSecret: DEV_JWT_SECRET } })).get('/api/health');
       expect(res.headers['strict-transport-security']).toBeUndefined();
       expect(csp(res)).not.toContain('upgrade-insecure-requests');
     }
   });
 
   it('sends HSTS and upgrade-insecure-requests in production', async () => {
-    const res = await request(makeApp({ config: { nodeEnv: 'production', appOrigin: 'https://cali-coach.example' } })).get(
+    const res = await request(makeApp({ config: { nodeEnv: 'production', appOrigin: 'https://cali-coach.example', jwtSecret: DEV_JWT_SECRET } })).get(
       '/api/health',
     );
     expect(res.headers['strict-transport-security']).toMatch(/max-age=31536000/);
@@ -458,7 +461,7 @@ describe('Clock injection (D5)', () => {
 
   it.each(['development', 'production'] as const)('refuses a custom Clock with NODE_ENV=%s', (nodeEnv) => {
     expect(() =>
-      makeApp({ config: { nodeEnv, appOrigin: 'https://cali-coach.example' }, clock: fixedClock('2026-11-20T00:00:00Z') }),
+      makeApp({ config: { nodeEnv, appOrigin: 'https://cali-coach.example', jwtSecret: DEV_JWT_SECRET }, clock: fixedClock('2026-11-20T00:00:00Z') }),
     ).toThrow(/NODE_ENV=test/);
   });
 });

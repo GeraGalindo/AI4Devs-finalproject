@@ -1,9 +1,11 @@
 import request from 'supertest';
 import { afterAll, describe, expect, it, vi } from 'vitest';
 import { createApp } from '../../src/app.js';
+import { DEV_JWT_SECRET } from '../../src/shared/config.js';
 import { createDatabaseCheck, createPool } from '../../src/shared/db.js';
+import { unusedAuthRepository as authRepository } from '../support/auth-stubs.js';
 
-const config = { nodeEnv: 'test', appOrigin: 'http://localhost:5173' } as const;
+const config = { nodeEnv: 'test', appOrigin: 'http://localhost:5173', jwtSecret: DEV_JWT_SECRET } as const;
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
@@ -20,7 +22,7 @@ describe('GET /api/health against a real PostgreSQL', () => {
   });
 
   it('responds 200 when PostgreSQL is reachable', async () => {
-    const app = createApp({ config, checkDatabase: createDatabaseCheck(pool) });
+    const app = createApp({ config, authRepository, checkDatabase: createDatabaseCheck(pool) });
 
     const res = await request(app).get('/api/health');
 
@@ -30,7 +32,7 @@ describe('GET /api/health against a real PostgreSQL', () => {
 
   it('responds 503 when PostgreSQL is unreachable', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
-    const app = createApp({ config, checkDatabase: createDatabaseCheck(deadPool) });
+    const app = createApp({ config, authRepository, checkDatabase: createDatabaseCheck(deadPool) });
 
     const res = await request(app).get('/api/health');
 
