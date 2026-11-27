@@ -165,9 +165,9 @@ Los títulos son orientativos y se mostrarán mediante claves de traducción (se
 
 | ID | Pantalla (UI en inglés) | Pestaña | Endpoints (sección 4 del README) | Historias |
 |----|-------------------------|---------|----------------------------------|-----------|
-| S-01 | Sign up | — | `POST /api/auth/register` | HU-04 |
+| S-01 | Sign up. **Implementada en DEV-007 (parcial):** email, contraseña y zona del navegador, con selección manual si no se detecta | — | `POST /api/auth/register` | HU-04 |
 | S-02 | Sign in | — | `POST /api/auth/login` | HU-05 |
-| S-03 | Restaurar la sesión (carga inicial) | — | `GET /api/auth/me` | HU-05 |
+| S-03 | Restaurar la sesión (carga inicial). **Implementada en DEV-007 (parcial):** carga, y reintento si la sesión no se puede comprobar | — | `GET /api/auth/me` | HU-05 |
 | S-04 | Training days. Con un programa activo, el selector está **desactivado** y explica por qué (DP-06) | Profile | `GET` y `PATCH /api/profile` | HU-06 |
 | S-05 | Profile: zona horaria, editable también con un programa activo, y *Sign out* | Profile | `PATCH /api/profile`, `POST /api/auth/logout` | HU-07, HU-05 |
 | S-06 | Today: sesión de hoy o la próxima | Today | `GET /api/sessions/today` | HU-13 |
@@ -317,6 +317,8 @@ Cualquiera de ellas tendría que respetar la **inmutabilidad del catálogo** (3.
 | PWA y Capacitor | **No** (excluido en 1.2) | Fase posterior |
 
 **Regla de diseño:** las funciones futuras **no aparecen** en la interfaz del MVP. No hay pestañas bloqueadas, avisos de "próximamente", botones de mejora de plan ni marcadores de posición.
+
+**Excepción temporal (DEV-007, decisión P1 del autor):** mientras no exista *Today* (S-06), `/` muestra con sesión una vista provisional con el email del usuario. No anuncia funciones futuras y desaparecerá con S-06.
 
 ## 10. Relación con historias y tickets
 

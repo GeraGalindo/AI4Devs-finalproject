@@ -2,8 +2,8 @@ import { apiRequest, isRecord } from '../../shared/api/client';
 import type { PublicUser } from './types';
 
 /**
- * Llamadas de autenticación (DEV-006, parcial). Solo la restauración de la sesión: `register`
- * llega con DEV-007, y `login` y `logout` quedan fuera de la Entrega 2.
+ * Llamadas de autenticación: restaurar la sesión (DEV-006) y registrarse (DEV-007). `login` y
+ * `logout` quedan fuera de la Entrega 2.
  */
 export function parsePublicUser(value: unknown): PublicUser {
   if (
@@ -33,4 +33,19 @@ export function parseUserResponse(body: unknown): PublicUser {
 /** `GET /api/auth/me`: `200 { user }` o `401 UNAUTHENTICATED`. */
 export function getMe(signal?: AbortSignal): Promise<PublicUser> {
   return apiRequest('GET', '/api/auth/me', { parse: parseUserResponse, ...(signal ? { signal } : {}) });
+}
+
+export interface RegisterInput {
+  email: string;
+  password: string;
+  timezone: string;
+}
+
+/** `POST /api/auth/register`: `201 { user }` y la cookie de sesión. */
+export function register(input: RegisterInput, signal?: AbortSignal): Promise<PublicUser> {
+  return apiRequest('POST', '/api/auth/register', {
+    body: input,
+    parse: parseUserResponse,
+    ...(signal ? { signal } : {}),
+  });
 }

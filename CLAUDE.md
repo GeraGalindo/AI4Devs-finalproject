@@ -68,6 +68,11 @@ Antes de editar código o documentación:
   - los errores llegan como `ApiError`. En pantalla se muestra `translateErrorCode(i18n, error.code)`. El cliente HTTP solo expone identificadores de campos inválidos. Los mensajes visibles se obtienen de los catálogos i18n del frontend; nunca de `details.fields[].message` ni de `error.message` del backend. Cada pantalla marca con `TextField error` los campos de `error.invalidFields`, con mensajes de su propio catálogo (por ejemplo, `auth`);
   - el usuario y el estado de la sesión salen de `useSession()` (`src/features/auth/session.ts`), nunca de `localStorage` ni de las *cookies*. Solo un `401 UNAUTHENTICATED` significa "sin sesión"; `unavailable` es un fallo que se reintenta con `restore()`. Tras un registro correcto se llama a `signedIn(user)` con el `user` de la respuesta;
   - rutas en `src/app/AppRoutes.tsx`. Hasta DEV-007, `/` redirige a `/diagnostics` y el `SessionProvider` no está montado.
+- **Pantallas de acceso** (DEV-007, parcial; `src/features/auth/`):
+  - las rutas con sesión van dentro de `SessionBoundary`; `/diagnostics` queda fuera y no consulta `/me`;
+  - un formulario valida en local con las mismas reglas que el backend (`signUpValidation.ts`, `timeZones.ts`), pero el backend manda: los campos de `error.invalidFields` reciben mensajes del catálogo de la pantalla;
+  - un envío en curso bloquea cualquier otro (`useRef` además del `loading` de `Button`). Tras un error de red o una respuesta no válida al crear algo, se consulta el estado (`GET /me`) y **nunca** se repite la petición automáticamente.
+- **E2E** (DEV-007): cada escenario declara con `watchPage(page, [{ method, path, status }])` las respuestas de error que espera (por ejemplo, el `401` de `/me` sin sesión) y termina con `expectNoUnexpectedProblems()`: cualquier otra respuesta de error, error de consola, excepción o violación de la CSP hace fallar la prueba. No silencies la consola. Los E2E nunca borran datos: usan emails únicos (`uniqueEmail`), y la fila se comprueba en `calicoach_e2e` con `findUsers`. El backend admite 5 registros por hora por proceso: la suite hace 4 por ejecución y cada escenario cuenta los suyos; un escenario nuevo que registre usuarios debe caber en ese presupuesto, y el `429` se prueba con *mocks* en RTL.
 - **Tests:** las unitarias van junto al código (`*.test.ts(x)`), las de integración en `backend/tests/integration/` y las E2E en `e2e/tests/`.
 - **Dependencias:** exactas (`.npmrc` con `save-exact`). No añadas librerías sin necesidad concreta ni sin aprobación si no están en la sección 2.
 - No crees carpetas vacías "para más adelante". Cada ticket crea las suyas.
@@ -91,7 +96,7 @@ Comandos (desde la raíz):
 | `npm test` (unitarias y componentes) | No |
 | `npm run test:integration` | Sí: `npm run db:up` y `TEST_DATABASE_URL` en `backend/.env` o en el entorno |
 | `npm run build` | No |
-| `npm run test:e2e` (Chromium: *smoke* por Vite y `spa-build`, el *build* real con la CSP; requiere `npx playwright install chromium`) | Sí |
+| `npm run test:e2e` (Chromium: *smoke* por Vite y `spa-build`, el *build* real con la CSP; requiere `npx playwright install chromium`). Usa `calicoach_e2e` (`E2E_DATABASE_URL`), que prepara y migra antes de las pruebas, y sus propios servidores en `:3001`, `:5174` y `:3100` | Sí |
 | `npm run db:migrate`, `db:status`, `db:drift` | Sí (sobre `DATABASE_URL`) |
 
 - Antes de dar algo por terminado, ejecuta como mínimo `lint`, `typecheck`, `test`, `test:integration` y `build`, y muestra el resultado real.

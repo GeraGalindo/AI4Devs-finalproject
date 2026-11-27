@@ -4,7 +4,9 @@
     "types": ["node"],
     // Las funciones de page.evaluate() y addInitScript() se ejecutan en el navegador.
     "lib": ["ES2023", "DOM"],
-    "noEmit": true
+    "noEmit": true,
+    // Los scripts de Node (`node scripts/….ts`) importan otros .ts con su extensión.
+    "allowImportingTsExtensions": true
   },
-  "include": ["playwright.config.ts", "tests"]
+  "include": ["playwright.config.ts", "tests", "support", "scripts"]
 }

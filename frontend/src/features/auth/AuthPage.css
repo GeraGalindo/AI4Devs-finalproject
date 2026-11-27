@@ -1,0 +1,49 @@
+/* Pantallas de acceso (DEV-007): una columna desde 320 px, sin desplazamiento horizontal. */
+.cc-auth-page {
+  width: 100%;
+  max-width: 30rem;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
+
+.cc-auth-page__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cc-auth-page__title {
+  margin: 0;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: var(--text-title-weight);
+}
+
+.cc-auth-page__intro {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.cc-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cc-auth-form__detected {
+  margin: 0;
+  font-size: var(--text-label-size);
+  line-height: var(--text-label-line);
+  color: var(--color-text-muted);
+}
+
+.cc-auth-form__submit {
+  width: 100%;
+}
+
+.cc-auth-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}

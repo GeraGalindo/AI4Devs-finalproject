@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       e2e:
-        description: 'Run the Playwright smoke test (Chromium)'
+        description: 'Run the Playwright E2E suite (Chromium)'
         type: boolean
         default: true
 
@@ -98,9 +98,11 @@ jobs:
       - name: Build
         run: npm run build
 
+  # DEV-007: el E2E (registro real incluido) corre en cada PR y con workflow_dispatch. No se repite
+  # en cada push a main: el código fusionado es el mismo que validó el PR.
   e2e:
-    name: E2E smoke (Chromium)
-    if: github.event_name == 'workflow_dispatch' && inputs.e2e
+    name: E2E (Chromium)
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.e2e)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
@@ -125,9 +127,24 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      # El backend arranca con `npm run dev` (NODE_ENV=development y APP_ORIGIN por defecto).
-      - name: Playwright smoke
+      # Base aislada calicoach_e2e: salvaguardas (nombre *_e2e, host local, distinta de
+      # DATABASE_URL y TEST_DATABASE_URL), creación y migraciones. `test:e2e` lo repite (idempotente).
+      - name: Prepare the E2E database (calicoach_e2e)
+        env:
+          E2E_DATABASE_URL: postgres://calicoach:calicoach@localhost:5432/calicoach_e2e
+        run: npm run db:prepare --workspace e2e
+      # Playwright arranca sus propios servidores (puertos dedicados, sin reutilizar) contra calicoach_e2e.
+      - name: Playwright E2E
+        env:
+          E2E_DATABASE_URL: postgres://calicoach:calicoach@localhost:5432/calicoach_e2e
         run: npm run test:e2e
+      - name: Development database untouched by the E2E
+        env:
+          PGPASSWORD: calicoach
+        run: |
+          tables=$(psql -h localhost -U calicoach -d calicoach -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'")
+          echo "tables in calicoach: $tables"
+          test "$tables" = "0"
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
