@@ -1,9 +1,11 @@
-import { DiagnosticsPage } from '../features/diagnostics/DiagnosticsPage';
+import { BrowserRouter } from 'react-router';
+import { AppRoutes } from './AppRoutes';
 
-/**
- * Raíz provisional de la SPA (DEV-001). El router, el AppShell y la navegación
- * Today · Program · Progress · Profile llegan con DEV-006 y DEV-039.
- */
+/** Raíz de la SPA: el router (DEV-006). `main.tsx` la envuelve con `I18nProvider` y los estilos. */
 export function App() {
-  return <DiagnosticsPage />;
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  );
 }

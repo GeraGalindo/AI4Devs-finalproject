@@ -43,6 +43,7 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 | 22 | DEV-004: autenticación (registro, inicio, sesión actual y cierre) | Sección 5, Prompt 3 | Código nuevo (`backend/src/modules/auth/`, `src/shared/http/session-cookie.ts`, `rate-limit.ts` y `require-auth.ts`, pruebas unitarias y de integración), `backend/src/app.ts`, `server.ts`, `config.ts`, dependencias, `.env.example`, `CLAUDE.md`, `readme.md` (0.3, 1.2, 1.4, 2.5, 2.6, 4, 5 y 6) y `prompts.md` |
 | 23 | DEV-038 (parcial): base de internacionalización del frontend | Sección 2.3, Prompt 3 | Código nuevo (`frontend/src/i18n/`, `frontend/src/locales/en/`, `frontend/src/test/missing-keys.ts` y pruebas), `frontend/src/main.tsx`, `src/test/setup.ts`, `eslint.config.js`, dependencias, `CLAUDE.md`, `readme.md` (0.3, 2.2, 2.6 y 6), `docs/design-system.md` (8.1 y 8.2) y `prompts.md` |
 | 24 | DEV-039 (parcial): tokens y componentes base del sistema de diseño | **Prompts de implementación de la Entrega 2** | Código nuevo (`frontend/src/shared/styles/` y `frontend/src/shared/ui/`, con sus pruebas), `frontend/src/main.tsx`, `frontend/index.html`, `CLAUDE.md`, `readme.md` (0.3, 2.6 y 6), `docs/design-system.md` (2, 2.1, 2.2 y 3.2) y `prompts.md` |
+| 25 | DEV-006 (parcial): cliente HTTP, sesión y router | **Prompts de implementación de la Entrega 2** | Código nuevo (`frontend/src/shared/api/`, `frontend/src/features/auth/` y `frontend/src/app/AppRoutes.tsx`, con sus pruebas), `frontend/src/app/App.tsx`, dependencias, `CLAUDE.md`, `readme.md` (0.3, 1.2, 1.4, 2.2, 2.6 y 6) y `prompts.md` |
 
 **Notas:**
 - **Numeración:** los prompts 01–05 y 11–15 llevan el número que les dio el autor. Los números 06–10 los asignó la IA al documentarlos, siguiendo la secuencia.
@@ -54,6 +55,7 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 - **Prompt 22:** DEV-004 se registra en la sección 5 (Historias de usuario), cuyo hueco del Prompt 3 estaba libre, porque implementa HU-04 y HU-05 en el backend. Incluye el prompt de análisis (que también verificó el merge del PR #8), el de entrega del análisis y el de implementación.
 - **Prompt 23:** DEV-038 (parcial) se registra en 2.3 (estructura del proyecto), cuyo hueco del Prompt 3 estaba libre, porque crea la estructura de internacionalización del frontend (decisión D9). Incluye el prompt que fusionó el PR #10 y analizó el incremento de la Entrega 2, el análisis de DEV-038 y la implementación. Tras este, solo queda libre el hueco 2.4, Prompt 3.
 - **Prompt 24:** DEV-039 (parcial) inaugura la sección «Prompts de implementación de la Entrega 2», antes del Anexo, por decisión del autor (L9): los huecos de tres prompts por sección ya estaban ocupados salvo 2.4, Prompt 3, que no corresponde a este ticket. Incluye el análisis y la implementación.
+- **Prompt 25:** DEV-006 (parcial) se registra después del Prompt 24, en la misma sección (decisión M8). Incluye el análisis y la implementación.
 
 ---
 
@@ -4720,6 +4722,529 @@ Detente después del informe y espera mi revisión.
   - la medición en navegador de los 44 px y de los 320 px, axe, la revisión visual a 320, 768 y 1024 px y la comparación con el mockup.
 
   Pendiente para **DEV-007**: medir en el navegador los 44 px, los 320 px y el foco; bloquear las peticiones duplicadas en el formulario; el respaldo manual de la zona horaria (L8); y cubrir con el E2E de la CSP el CSS de los componentes, que aún no entra en el *build*. Lo siguiente, según el orden aprobado, es DEV-006 parcial, que no se ha empezado.
+
+---
+
+**Prompt 25 — DEV-006 (parcial): cliente HTTP, sesión y router**
+
+- **Herramienta:** Claude Code (modelo `claude-opus-5-5`), en la misma sesión que DEV-001 a DEV-004, DEV-038 y DEV-039. Roles indicados por el autor: el usuario es el Product Owner; ChatGPT, analista y revisor; Claude Code, implementador.
+- **Objetivo:** analizar DEV-006 parcial sin modificar archivos y, tras la aprobación de M1–M8, implementar el cliente HTTP, la API de sesión, el `SessionProvider` y el *router* mínimo en una rama, y validarlos en local, sin commit, push ni PR.
+- **Archivos afectados:**
+  - **nuevos:**
+    - `frontend/src/shared/api/`: `client.ts` y `client.test.ts`;
+    - `frontend/src/features/auth/`: `types.ts`, `api.ts`, `session.ts`, `SessionProvider.tsx` y las pruebas `api.test.ts` y `SessionProvider.test.tsx`;
+    - `frontend/src/app/`: `AppRoutes.tsx` y `AppRoutes.test.tsx`;
+  - **modificados:** `frontend/src/app/App.tsx`, `frontend/package.json`, `package-lock.json`, `CLAUDE.md`, `readme.md` (0.3, 1.2, 1.4, 2.2, 2.6 y 6) y `prompts.md`;
+  - **sin cambios:** el backend, la base de datos, la CI, los E2E, `DiagnosticsPage` y `checkHealth`, la configuración de i18n y los componentes de DEV-039.
+
+Texto literal del prompt (análisis):
+
+```text
+# Cali Coach — DEV-006 parcial: análisis técnico previo
+
+Actúa como arquitecto frontend y analista técnico del proyecto Cali Coach.
+
+Necesito un análisis de DEV-006 parcial para preparar la infraestructura del registro de usuarios de la Entrega 2.
+
+IMPORTANTE: SOLO LECTURA.
+
+NO modifiques archivos, instales dependencias, crees ramas, commits, pushes ni Pull Requests.
+
+## 1. Estado inicial
+
+Comprueba:
+
+- main y origin/main en 09453150434f85d04f4d0ca95479eca5e2cff71c.
+- Árbol limpio.
+- DEV-004 completado.
+- DEV-038 parcial integrado.
+- DEV-039 parcial integrado y documentado.
+
+Lee los archivos reales:
+
+- CLAUDE.md.
+- readme.md, especialmente DEV-006, DEV-007 y los contratos API.
+- docs/design-system.md.
+- prompts.md.
+- frontend/package.json.
+- frontend/src/main.tsx.
+- frontend/src/App.tsx y la estructura de features.
+- Configuración de Vite, TypeScript, ESLint y Vitest.
+- Infraestructura i18n y componentes UI existentes.
+- Backend: rutas, esquemas, middlewares y pruebas de autenticación de DEV-004.
+- Backend: políticas de CSRF, Origin, cookies, errores y manejo de sesiones de DEV-003.
+
+No presupongas contratos: compruébalos en el código.
+
+## 2. Alcance de DEV-006 completo
+
+Extrae del README:
+
+- Descripción.
+- Dependencias.
+- Criterios de aceptación.
+- Pruebas.
+- Contratos relacionados.
+
+Distingue claramente lo que pertenece a DEV-006 completo de lo que necesitamos para la Entrega 2.
+
+## 3. Alcance parcial propuesto
+
+Propón implementar exclusivamente:
+
+1. React Router.
+2. Cliente HTTP tipado.
+3. Envío correcto de cookies y cabeceras CSRF.
+4. Normalización de respuestas y errores.
+5. SessionProvider con restauración mediante GET /api/auth/me.
+6. Estados explícitos de sesión: loading, authenticated y unauthenticated.
+7. Rutas mínimas necesarias para el registro posterior.
+
+Rutas previstas:
+
+- /signup: reservada para DEV-007.
+- /: punto de entrada, todavía sin página de usuario definitiva.
+- /diagnostics: conservar la pantalla existente.
+
+No construyas la pantalla de registro ni una página provisional con datos de usuario en este incremento.
+
+## 4. Contratos reales del backend
+
+Inspecciona y documenta:
+
+- POST /api/auth/register.
+- POST /api/auth/login.
+- GET /api/auth/me.
+- POST /api/auth/logout.
+
+Para cada uno:
+
+- Método y ruta.
+- Cuerpo esperado.
+- Respuesta exitosa.
+- Códigos HTTP.
+- Cookie y sesión.
+- Requisitos de Origin y CSRF.
+- Errores relevantes.
+
+Aunque el frontend solo necesite registro y restauración en esta Entrega 2, debemos conocer los contratos existentes.
+
+## 5. Cliente HTTP
+
+Analiza y propone:
+
+- Uso de fetch nativo.
+- Base URL relativa /api.
+- credentials: include.
+- Cabeceras Origin y X-CSRF-Protection según el contrato real.
+- Restricciones del navegador para configurar Origin.
+- Content-Type solo cuando corresponda.
+- Parseo de JSON y respuestas sin cuerpo.
+- Respuestas no JSON o malformadas.
+- Errores de red.
+- AbortController.
+- Tipos de respuesta.
+- Mapeo de códigos de error para i18n.
+- Prohibición de confiar en error.message del servidor como texto visible.
+
+Determina si hace falta una dependencia nueva. Preferencia: ninguna salvo React Router.
+
+## 6. SessionProvider
+
+Propón un diseño que contemple:
+
+- Restauración de sesión al iniciar la aplicación.
+- GET /api/auth/me.
+- Cookie HttpOnly, sin acceso desde JavaScript.
+- Estados loading/authenticated/unauthenticated.
+- Tratamiento de 401.
+- Tratamiento de errores de red o 5xx sin confundirlos con 401.
+- Cancelación de solicitudes obsoletas.
+- Evitar carreras entre restauración y registro.
+- Exposición de acciones para que DEV-007 pueda actualizar la sesión tras un registro exitoso.
+- Comportamiento al recargar la página.
+- React StrictMode y posibles solicitudes duplicadas.
+
+No implementes login/logout UI.
+
+## 7. Router y DiagnosticsPage
+
+Propón cómo integrar:
+
+- /signup.
+- /.
+- /diagnostics.
+
+Conserva el diagnóstico existente y sus pruebas.
+
+Analiza cómo evitar páginas de relleno y qué comportamiento mínimo corresponde a las rutas todavía no implementadas.
+
+Evalúa qué cambios necesitará el smoke E2E actual.
+
+No construyas AppShell, BottomNav/NavRail ni TopBar.
+
+## 8. i18n y diseño
+
+Confirma compatibilidad con:
+
+- I18nProvider de DEV-038.
+- Catálogos en inglés.
+- translateErrorCode.
+- Regla ESLint sin textos literales.
+- Tokens y componentes de DEV-039.
+- CSP estricta.
+- Diseño responsive desde 320 px.
+
+Identifica cualquier clave nueva necesaria, sin implementarla.
+
+## 9. Pruebas y CI
+
+Propón pruebas de:
+
+- Cliente HTTP: cookies, CSRF, errores, 204, JSON malformado y abort.
+- SessionProvider: 200, 401, error de red, 5xx, restauración, cancelación y carreras.
+- Router: rutas mínimas y diagnóstico.
+- Regresión de las pruebas existentes.
+- E2E de diagnóstico y CSP.
+
+Identifica si DEV-006 necesita E2E nuevos.
+
+Recuerda que en DEV-007 el registro E2E debe ejecutarse automáticamente en la CI del PR, no solo manualmente.
+
+## 10. Documentación
+
+Identifica actualizaciones necesarias en:
+
+- readme.md.
+- CLAUDE.md.
+- prompts.md.
+
+DEV-006 debe quedar PARCIAL.
+
+Conserva los Prompts 16–18 intactos.
+
+Propón la ubicación del Prompt 25 siguiendo la estructura creada para el Prompt 24.
+
+## 11. Decisiones para el Product Owner
+
+Presenta las decisiones técnicas que necesiten aprobación.
+
+Para cada decisión incluye:
+
+- Alternativas.
+- Recomendación.
+- Consecuencias.
+- Riesgos.
+
+No cambies decisiones de producto ya aprobadas.
+
+## 12. Formato del informe
+
+Organiza la respuesta en:
+
+A. Estado inicial.
+B. DEV-006 completo según documentación.
+C. Alcance parcial y exclusiones.
+D. Contratos backend verificados.
+E. Diseño del cliente HTTP.
+F. Diseño del SessionProvider.
+G. Diseño del router.
+H. Integración con i18n, CSS y CSP.
+I. Estructura de archivos propuesta.
+J. Plan de pruebas y CI.
+K. Criterios de aceptación verificables.
+L. Riesgos y alternativas.
+M. Decisiones para aprobación del Product Owner.
+N. Secuencia de implementación propuesta.
+
+Detente al terminar el análisis.
+
+No implementes nada hasta recibir autorización explícita.
+```
+
+Texto literal del prompt (implementación):
+
+```text
+# Cali Coach — DEV-006 parcial: implementación local autorizada
+
+Como Product Owner, apruebo las decisiones M1–M8 del análisis técnico de DEV-006 parcial, con los ajustes descritos a continuación.
+
+Autorizo crear una rama e implementar DEV-006 parcial localmente.
+
+NO autorizo commit, push, Pull Request ni merge.
+
+## Contexto
+
+- Proyecto: Cali Coach.
+- Base esperada de main: 09453150434f85d04f4d0ca95479eca5e2cff71c.
+- DEV-004 completado.
+- DEV-038 parcial integrado.
+- DEV-039 parcial integrado y documentado.
+- Objetivo de Entrega 2: registro React → Express → PostgreSQL.
+- Siguiente incremento después de DEV-006: DEV-007 parcial.
+
+## Fase 1 — Preparación
+
+1. Confirma que main coincide con origin/main.
+2. Confirma que el árbol está limpio.
+3. Lee CLAUDE.md, readme.md y los contratos reales del backend.
+4. Crea feature/dev-006-frontend-foundation desde main.
+5. Comprueba los contratos de CSRF, cookies, errores y autenticación.
+
+Si main ha avanzado de forma incompatible, detente y consulta.
+
+## Fase 2 — Dependencia
+
+Instala react-router@8.5.1 con versión exacta.
+
+Comprueba:
+
+- Compatibilidad con React 19 y Node.
+- Dependencias transitivas.
+- npm ls.
+- npm audit --audit-level=high.
+- Cambios del lockfile.
+
+No instales TanStack Query ni otras dependencias.
+
+Si aparecen vulnerabilidades o incompatibilidades, detente y consulta antes de cambiar versiones.
+
+## Fase 3 — Cliente HTTP
+
+Implementa un cliente tipado sobre fetch nativo en shared/api/.
+
+Requisitos:
+
+1. Solo acepta rutas relativas que comienzan con /api/.
+2. Rechaza URLs absolutas, protocolos y rutas //host.
+3. Utiliza credentials: 'same-origin'.
+4. Envía Accept: application/json.
+5. Envía X-CSRF-Protection: 1 en POST, PUT, PATCH y DELETE.
+6. No intenta establecer manualmente Origin: el navegador controla esa cabecera.
+7. Envía Content-Type: application/json únicamente cuando existe cuerpo.
+8. Soporta respuestas JSON y 204 sin cuerpo.
+9. Normaliza errores HTTP, de red, respuesta inválida y cancelación.
+10. Conserva status, code, requestId, fields y Retry-After cuando estén disponibles.
+11. Nunca muestra ni utiliza error.message del servidor como texto visible.
+12. Soporta AbortSignal.
+13. Utiliza validación ligera de la forma de las respuestas, sin añadir Zod al frontend.
+
+No modifiques checkHealth de DEV-001, que queda como excepción documentada.
+
+## Fase 4 — API de autenticación
+
+Implementa:
+
+- PublicUser.
+- getMe().
+- Validación de la forma de { user }.
+
+No implementes todavía el formulario ni las acciones de registro, login o logout.
+
+## Fase 5 — SessionProvider
+
+Implementa SessionProvider y useSession() con los estados:
+
+- loading.
+- authenticated.
+- unauthenticated.
+- unavailable.
+
+Reglas:
+
+1. Al montarse, GET /api/auth/me.
+2. Un 200 válido produce authenticated.
+3. Únicamente un 401 con código UNAUTHENTICATED produce unauthenticated.
+4. Cualquier otro error HTTP, incluido 403, 429, 500 o 503, produce unavailable.
+5. Errores de red y respuestas inválidas producen unavailable.
+6. Una petición abortada no debe convertirse en unavailable.
+7. restore() permite reintentar.
+8. signedIn(user) actualiza el estado después del registro de DEV-007.
+9. signedOut() prepara el cierre de sesión futuro.
+10. No guardar tokens ni información de sesión en localStorage.
+11. No leer cookies HttpOnly desde JavaScript.
+12. Usar AbortController y un mecanismo de generación para impedir respuestas obsoletas.
+13. Si signedIn ocurre durante restore(), una respuesta anterior no puede sobrescribir al usuario.
+14. Soportar correctamente React StrictMode.
+15. useSession() fuera del provider debe fallar de manera explícita.
+
+No montes todavía SessionProvider en las rutas activas de la aplicación. Se conectará en DEV-007.
+
+## Fase 6 — Router
+
+Integra React Router en modo declarativo.
+
+Rutas:
+
+- /diagnostics → DiagnosticsPage.
+- / → redirección temporal a /diagnostics.
+- * → redirección temporal a /.
+
+No registres todavía /signup: pertenece a DEV-007.
+
+Conserva DiagnosticsPage y sus pruebas.
+
+No crees páginas de relleno, AppShell, BottomNav/NavRail ni TopBar.
+
+Comprueba que el smoke E2E y las pruebas de CSP siguen funcionando con las redirecciones.
+
+## Fase 7 — i18n, CSS y CSP
+
+1. Conserva I18nProvider.
+2. Conserva los catálogos en inglés.
+3. Usa translateErrorCode para la futura presentación de errores.
+4. No introduzcas textos literales en JSX.
+5. Conserva los tokens y componentes de DEV-039.
+6. No uses estilos inline.
+7. No modifiques la política CSP.
+8. No añadas claves de traducción innecesarias.
+
+## Fase 8 — Pruebas
+
+Implementa pruebas del cliente HTTP:
+
+- GET sin CSRF ni Content-Type.
+- POST con cuerpo y CSRF.
+- POST sin cuerpo y sin Content-Type.
+- Rechazo de rutas externas.
+- JSON válido.
+- 204.
+- Errores 400, 409, 429.
+- Retry-After.
+- Respuesta HTML inesperada.
+- JSON malformado.
+- Error de red.
+- AbortSignal.
+- Ausencia de mensajes del servidor en la interfaz.
+
+Implementa pruebas de SessionProvider:
+
+- 200 → authenticated.
+- 401 UNAUTHENTICATED → unauthenticated.
+- 401 con otro código → unavailable.
+- 403, 429, 500 y 503 → unavailable.
+- Error de red → unavailable.
+- Respuesta inválida → unavailable.
+- restore() y reintento.
+- Cancelación al desmontar.
+- Carrera entre restore() y signedIn().
+- signedOut().
+- React StrictMode.
+- Error al usar useSession fuera del provider.
+
+Implementa pruebas de rutas:
+
+- /diagnostics.
+- /.
+- Ruta desconocida.
+- Ausencia de llamadas a /api/auth/me en las rutas activas de DEV-006.
+
+Ejecuta:
+
+- npm ci
+- npm run lint
+- npm run typecheck
+- npm test
+- npm run test:integration
+- npm run build
+- npm audit --audit-level=high
+- git diff --check
+- CI=1 npm run test:e2e
+
+Los seis E2E existentes deben pasar sin modificar sus archivos.
+
+## Fase 9 — Documentación
+
+Actualiza:
+
+- readme.md.
+- CLAUDE.md.
+- prompts.md.
+
+Registra las decisiones M1–M8 y los dos ajustes aprobados.
+
+Marca DEV-006 como PARCIAL — NO TERMINADO.
+
+Documenta que:
+
+- SessionProvider se conecta en DEV-007.
+- / redirige temporalmente a /diagnostics.
+- La política de tolerancia del 401 en E2E pertenece a DEV-007.
+- El E2E de registro deberá ejecutarse automáticamente en la CI del PR.
+- TanStack Query sigue diferido.
+
+Ubica el Prompt 25 después del Prompt 24 en la sección de implementación de Entrega 2.
+
+No alteres los Prompts 16–18.
+
+## Fase 10 — Informe
+
+Entrega:
+
+1. Rama y commit base.
+2. Archivos creados y modificados.
+3. Resumen del diff.
+4. Dependencias y tamaño del bundle.
+5. Contratos TypeScript.
+6. Evidencia del cliente HTTP y CSRF.
+7. Evidencia de SessionProvider y carreras.
+8. Resultados de pruebas.
+9. Resultados E2E y CSP.
+10. Riesgos y limitaciones.
+11. Confirmación de que DEV-006 sigue PARCIAL.
+12. Confirmación de que no hiciste commit, push ni PR.
+
+## Restricciones
+
+- No implementar DEV-007.
+- No construir pantallas de registro.
+- No modificar backend ni base de datos.
+- No modificar CI ni E2E.
+- No añadir dependencias fuera de react-router.
+- No modificar los Prompts 16–18.
+- No hacer commit, push, PR ni merge.
+
+Detente después del informe y espera mi revisión.
+```
+
+**Decisiones humanas:**
+- **Sobre el análisis:** el autor aprobó M1–M8:
+  - M1: `/` redirige temporalmente a `/diagnostics` y el `SessionProvider` se conecta en DEV-007, sin páginas de relleno;
+  - M2: cuatro estados de sesión, con `unavailable` para los fallos que no son "sin sesión";
+  - M3: `credentials: 'same-origin'`;
+  - M4: `react-router` 8.5.1;
+  - M5: para DEV-007, la prueba de CSP abrirá `/diagnostics` y el E2E de registro tolerará solo el 401 esperado de `/api/auth/me`;
+  - M6: los errores se lanzan como `ApiError`;
+  - M7: TanStack Query, diferido;
+  - M8: el Prompt 25 va después del 24, en la sección de implementación de la Entrega 2.
+- **Ajustes de la implementación:**
+  - solo un `401` con código `UNAUTHENTICATED` produce `unauthenticated`; cualquier otro error HTTP (también un `401` con otro código, `403`, `429` o `5xx`), los errores de red y las respuestas no válidas producen `unavailable`, y una petición abortada no cambia el estado;
+  - el `SessionProvider` no se monta todavía en las rutas activas.
+
+**Resultado generado por la IA:**
+- **Análisis** (sin modificar archivos): contratos verificados en el código de `register`, `login`, `me` y `logout`; diseño del cliente, de la sesión y del *router*; ocho decisiones (M1–M8). Con un servidor temporal en el *scratchpad* comprobó que Chromium registra como error de consola el `401` de un `fetch`, lo que habría roto el E2E de la CSP si `/` restauraba la sesión: de ahí M1 y M5.
+- **Implementación:**
+  - `apiRequest` sobre `fetch`: solo rutas relativas bajo `/api/`, `credentials: 'same-origin'`, `Accept`, `X-CSRF-Protection: 1` en los métodos que modifican datos, `Content-Type` solo con cuerpo, sin tocar `Origin`; `ApiError` con `kind`, `status`, `code`, `requestId`, `invalidFields` y `retryAfterSeconds`, y sin el `message` del servidor;
+  - `parsePublicUser`, `parseUserResponse` y `getMe()`;
+  - `SessionProvider` con `AbortController` y número de generación, `restore`, `signedIn` y `signedOut`, y `useSession` en un módulo aparte;
+  - `AppRoutes` declarativo (`/diagnostics`, `/` → `/diagnostics`, `*` → `/`) y `BrowserRouter` en `App`.
+- **Correcciones durante la implementación:**
+  - la regla `react-hooks/set-state-in-effect` rechazaba el `setState` síncrono del efecto: el efecto solo lanza la consulta (el estado inicial ya es `loading`) y `restore()` pasa a `loading` antes de consultar;
+  - el aviso de *fast refresh* llevó el contexto y `useSession` a `session.ts`;
+  - la regla `react-hooks/globals` rechazaba que la prueba guardara la sesión durante el render: ahora lo hace en un efecto;
+  - una mutación reveló que el rechazo de `//` estaba cubierto por otras condiciones; se añadió `/api/a//b`, que solo detecta esa comprobación.
+- **Corrección pedida por el autor antes de publicar:** en la revisión de seguridad previa al commit, la IA detectó que `ApiError.fields` guardaba los mensajes técnicos de `details.fields[].message` y que `CLAUDE.md` indicaba llevarlos a los `TextField`. Se detuvo y propuso la corrección; el autor la aprobó. `fields` pasó a ser `invalidFields: string[]`, con solo los identificadores de `details.fields[].path` (`body.email` → `email`, sin duplicados y descartando rutas vacías, anidadas, de `params` o `query` o mal formadas). Convención: El cliente HTTP solo expone identificadores de campos inválidos. Los mensajes visibles se obtienen de los catálogos i18n del frontend; nunca de `details.fields[].message` ni de `error.message` del backend.
+- **Validación (local, 2026-11-27; detalle en el README, 2.6):**
+  - `npm ci`, `lint`, `typecheck`, `build`, `git diff --check`: sin errores;
+  - `npm test`: 201/201 del backend y 180/180 del frontend (86 nuevas, 12 de ellas tras la corrección de `invalidFields`; las 94 anteriores sin cambios);
+  - `npm run test:integration`: 104/104;
+  - `CI=1 npm run test:e2e`: 6/6 sin modificar sus archivos, incluidas las 4 pruebas de CSP;
+  - `npm audit --audit-level=high`: 0 vulnerabilidades. `react-router` 8.5.1 trae `cookie-es` 3.1.1 y `@remix-run/route-pattern` 0.22.1; `@types/react-dom` pasa de `dev` a `devOptional` en el *lockfile*;
+  - mutaciones temporales detectadas: sin cabecera CSRF, `Content-Type` siempre, aceptar `//`, `credentials: 'include'`, cualquier `401` como `unauthenticated`, no descartar respuestas obsoletas, convertir la cancelación en `unavailable` y no abortar al sustituir una consulta; y, tras la corrección, volver a guardar `details.fields[].message`, recuperar `fields`, aceptar cualquier ruta y conservar duplicados;
+  - *bundle* JS: de 272,14 kB (85,36 kB gzip) a 309,05 kB (97,90 kB gzip), por React Router. El cliente y la sesión aún no entran en el *build*, porque ninguna ruta los usa.
+  - **La ejecución en GitHub Actions queda pendiente del PR.**
+
+**Revisión humana:** pendiente. El autor revisará la implementación antes de autorizar el commit, el push y el PR. DEV-006 **no** está terminado: es parcial por decisión del autor y, además, falta la revisión, el PR y la CI.
 
 ---
 

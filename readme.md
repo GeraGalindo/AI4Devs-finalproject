@@ -23,7 +23,7 @@ Cali Coach
 
 ### **0.3. Descripción breve del proyecto:**
 
-Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asigna un programa de entrenamiento preconfigurado, lo distribuye en los días que el atleta puede entrenar (de 2 a 6), le muestra la sesión de cada día, registra las series realizadas y le enseña su progreso (sección 1). **Estado:** la especificación del MVP está documentada (Entrega 1). DEV-001 añade el andamiaje técnico: frontend, backend, PostgreSQL local, CI y una comprobación técnica de salud (`GET /api/health`). DEV-002 añade Prisma y la primera migración (tabla `users`). DEV-003 añade la base común del backend: configuración segura, CSRF, reglas de cuerpo, validación, formato de errores, cabeceras de seguridad y el servicio del *build* de la SPA. DEV-004 añade la autenticación del backend (registro, inicio, sesión actual y cierre; HU-04 y HU-05), terminada con el PR #9. DEV-038 añade, **de forma parcial**, la base de internacionalización del frontend: `i18next` con inglés fijo y los catálogos `common`, `auth` y `errors`. DEV-039 añade, **también de forma parcial**, los tokens del tema oscuro, los estilos globales y los componentes base `Card`, `Button`, `TextField` e `InlineAlert`. Todavía no hay otras funcionalidades de negocio ni interfaz de acceso (DEV-007).
+Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asigna un programa de entrenamiento preconfigurado, lo distribuye en los días que el atleta puede entrenar (de 2 a 6), le muestra la sesión de cada día, registra las series realizadas y le enseña su progreso (sección 1). **Estado:** la especificación del MVP está documentada (Entrega 1). DEV-001 añade el andamiaje técnico: frontend, backend, PostgreSQL local, CI y una comprobación técnica de salud (`GET /api/health`). DEV-002 añade Prisma y la primera migración (tabla `users`). DEV-003 añade la base común del backend: configuración segura, CSRF, reglas de cuerpo, validación, formato de errores, cabeceras de seguridad y el servicio del *build* de la SPA. DEV-004 añade la autenticación del backend (registro, inicio, sesión actual y cierre; HU-04 y HU-05), terminada con el PR #9. DEV-038 añade, **de forma parcial**, la base de internacionalización del frontend: `i18next` con inglés fijo y los catálogos `common`, `auth` y `errors`. DEV-039 añade, **también de forma parcial**, los tokens del tema oscuro, los estilos globales y los componentes base `Card`, `Button`, `TextField` e `InlineAlert`. DEV-006 añade, **también de forma parcial**, React Router, el cliente HTTP y la sesión (`SessionProvider`, aún sin conectar a las rutas). Todavía no hay otras funcionalidades de negocio ni interfaz de acceso (DEV-007).
 
 ### **0.4. URL del proyecto:**
 
@@ -193,7 +193,7 @@ El Product Owner ha resuelto las 17 decisiones que estaban abiertas. **Todas est
 **Decisiones técnicas abiertas.** No son del Product Owner; las resuelve el equipo técnico:
 - la plataforma PaaS y el dominio (2.4, DEV-036);
 - ~~bcrypt o argon2; la longitud mínima de la contraseña y los umbrales del límite de peticiones (DEV-004)~~ **Resueltas en DEV-004** (sección 6): Argon2id; contraseñas de 12 a 128 caracteres; 10 peticiones de `login` cada 15 minutos y 5 de `register` cada hora, por IP;
-- TanStack Query (DEV-006);
+- TanStack Query (DEV-006): **diferido** en DEV-006 parcial (decisión M7); se reevaluará cuando haya más consultas;
 - la comparación con el mockup visual, que no está en el repositorio (DEV-039);
 - la estrategia futura para traducir el contenido guardado (DEV-038);
 - el redondeo con que la API devuelve la adherencia (sección 4).
@@ -292,7 +292,7 @@ Si ya tenías un `backend/.env` de DEV-001 o DEV-002, compáralo con `backend/.e
 
 Para probar la SPA tal como se servirá en producción (mismo origen, con la CSP de `helmet`), compila con `npm run build` y arranca el backend compilado con `APP_ORIGIN=http://localhost:3000 npm run start --workspace backend`: Express sirve `frontend/dist` en `http://localhost:3000`. `APP_ORIGIN` debe ser ese origen para que la comprobación CSRF acepte las peticiones de la SPA.
 
-Abre `http://localhost:5173`. La vista técnica *System status* llama a `GET /api/health` a través del *proxy* de Vite y muestra el estado del backend y de la base de datos. Para arrancar cada aplicación por separado: `npm run dev -w backend` y `npm run dev -w frontend`. `npm run db:down` detiene PostgreSQL y conserva los datos en el volumen `db-data`.
+Abre `http://localhost:5173`: desde DEV-006, `/` redirige temporalmente a `/diagnostics`. La vista técnica *System status* llama a `GET /api/health` a través del *proxy* de Vite y muestra el estado del backend y de la base de datos. Para arrancar cada aplicación por separado: `npm run dev -w backend` y `npm run dev -w frontend`. `npm run db:down` detiene PostgreSQL y conserva los datos en el volumen `db-data`.
 
 #### Variables de entorno
 
@@ -340,7 +340,7 @@ El esquema está en `backend/prisma/schema.prisma` y las migraciones en `backend
 - Prisma 7 lee como `[]` un `users.available_weekdays` que en PostgreSQL es `NULL`. El repositorio de autenticación (DEV-004) lo convierte en `null`; el de perfil (DEV-005) deberá hacerlo también (3.2).
 - El `package.json` raíz fuerza `effect` 3.22.1 (*override*) para corregir la vulnerabilidad GHSA-7589-6fvf-x4pw del CLI de Prisma 7.10.1 (2.6).
 - El backend sirve el *build* de la SPA y aplica `helmet`, CSRF, las reglas de cuerpo y el formato de errores (DEV-003), y la autenticación con límite de peticiones (DEV-004). Sin `trust proxy` (DEV-036), el límite usa la IP del socket y guarda los contadores en memoria: no sirve detrás de un *proxy* ni con varias instancias, y se reinicia con el proceso.
-- La vista de diagnóstico es técnica, en inglés y sin i18n ni *tokens* de diseño (DEV-038 y DEV-039 la migrarán o retirarán).
+- La vista de diagnóstico es técnica, en inglés y sin i18n ni *tokens* de diseño (DEV-038 y DEV-039 la migrarán o retirarán). Desde DEV-006 está en `/diagnostics`, y `/` y cualquier otra ruta llevan a ella hasta que DEV-007 defina la entrada con sesión.
 - `npm run dev` lanza los dos procesos con la shell (`&`), así que está pensado para Linux y macOS. En Windows, arranca cada aplicación por separado.
 - Los scripts del backend `dev`, `test` y `test:integration` fijan el entorno con la sintaxis `NODE_ENV=… comando`, que también es de Linux y macOS. En Windows no funcionan desde `cmd` ni PowerShell; hay que usar WSL o una shell POSIX como Git Bash. No se ha añadido `cross-env` (decisión de la revisión de DEV-003).
 - No hay despliegue (DEV-036).
@@ -481,7 +481,7 @@ La sección 1 ya está alineada con el modelo de cuatro estados de esta sección
 
 | Capa | Tecnología | Responsabilidad | No debe |
 |------|------------|-----------------|---------|
-| **Frontend (SPA)** | React, TypeScript, Vite, React Router. [Propuesta] TanStack Query para el estado del servidor. | Pantallas *mobile-first* desde 320 px, formularios y presentación de estados y métricas. Llama a la API y la vuelve a consultar después de cada cambio. | Decidir estados de sesión ni calcular fechas del calendario: la fuente de verdad es el backend. |
+| **Frontend (SPA)** | React, TypeScript, Vite, React Router (`react-router` 8.5.1, DEV-006). [Propuesta] TanStack Query para el estado del servidor, diferido en DEV-006 (M7). | Pantallas *mobile-first* desde 320 px, formularios y presentación de estados y métricas. Llama a la API y la vuelve a consultar después de cada cambio. | Decidir estados de sesión ni calcular fechas del calendario: la fuente de verdad es el backend. |
 | **Rutas y controladores** | Express. [Propuesta] Zod para validar. | Validar la entrada (cuerpo, parámetros), obtener el `userId` de la sesión autenticada, llamar al servicio y traducir el resultado o el error a HTTP. | Contener reglas de negocio ni SQL. |
 | **Servicios** | TypeScript | Orquestar los casos de uso, aplicar reglas y permisos, definir los límites de las transacciones y llamar al dominio puro. | Depender de `req` o `res`. |
 | **Dominio puro** | TypeScript sin dependencias | `scheduler.generate(...)`, `sessionLifecycle.resolveClosure(...)`, `WEEKLY_SEQUENCES`, interfaz `Clock`. | Hacer operaciones de entrada/salida. |
@@ -998,6 +998,21 @@ Otras comprobaciones locales de DEV-039:
 - **Mutaciones temporales:** quitar el `preventDefault` de `loading`, dejar que `loading` ejecute `onClick`, descartar el `aria-describedby` del consumidor y quitar el borde del botón primario. Las pruebas detectaron las cuatro.
 - **Contraste del botón primario:** el fondo `primary` da 2,78:1 sobre `surface-raised`. A petición del autor, el botón primario lleva un borde `border-control` (4,08, 3,77 y 3,38:1 sobre `bg`, `surface` y `surface-raised`), igual en estado normal y pulsado; el color primario y el texto blanco no cambian.
 - ***Build*:** el JS no cambia (272,14 kB), porque ninguna pantalla usa aún los componentes y Vite no los incluye; el CSS pasa de 0,09 kB a 2,14 kB (tokens y estilos globales). El CSS de los componentes entrará en el *build*, y en el E2E de la CSP, cuando DEV-007 los use.
+**Pruebas de DEV-006 (parcial) y resultados** (ejecución **local** del 2026-11-27, Node 24.13.0). **Pendiente de verificar en GitHub Actions** con el PR. No necesitan PostgreSQL: `fetch` se sustituye en cada prueba:
+
+| Suite | Archivo | Qué comprueba | Resultado local |
+|-------|---------|---------------|-----------------|
+| Cliente HTTP | `frontend/src/shared/api/client.test.ts` | `GET` con `credentials: 'same-origin'` y `Accept`, sin CSRF, `Content-Type` ni cuerpo; `POST` con cuerpo: JSON, `Content-Type` y `X-CSRF-Protection: 1`; `POST` sin cuerpo: CSRF sin `Content-Type` ni cuerpo; `PUT`, `PATCH` y `DELETE` con CSRF; nunca fija `Origin`; rechazo de 13 rutas externas o mal formadas sin llamar a `fetch`; `AbortSignal`; JSON y `204`; cuerpo vacío o inesperado, forma no válida, JSON mal formado y HTML → `invalid-response`; `400` con `invalidFields` (solo los nombres: `body.` quitado, sin duplicados y descartando rutas vacías, anidadas, de `params`/`query` o mal formadas), `409`, `429` y `Retry-After` (segundos o fecha); ni `error.message`, ni `details.fields[].message`, ni el HTML de una respuesta inesperada quedan en `ApiError`, tampoco serializado; `requestId` del cuerpo o de la cabecera; sobre de error no válido; sin el `message` del servidor; red → `network`; cancelación → `aborted` | 49/49 |
+| API de sesión | `frontend/src/features/auth/api.test.ts` | `PublicUser` con `availableWeekdays` `null` o configurado, solo campos públicos; formas no válidas rechazadas; `getMe()` llama a `GET /api/auth/me` | 9/9 |
+| Sesión | `frontend/src/features/auth/SessionProvider.test.tsx` | `200` → `authenticated`; `401 UNAUTHENTICATED` → `unauthenticated`; `401` con otro código o sin él, `403`, `429`, `500`, `503`, red, respuesta no válida y excepción → `unavailable`; la cancelación no cambia el estado; `restore()` reintenta y descarta la consulta anterior; cancelación al desmontar; `signedIn` durante una restauración gana a un `401` o un usuario atrasados; `signedOut`; StrictMode; sin `localStorage` ni `document.cookie`; `useSession` fuera del *provider* falla | 21/21 |
+| Rutas | `frontend/src/app/AppRoutes.test.tsx` | `/diagnostics`; `/` → `/diagnostics`; `/today`, `/signup` y rutas desconocidas → `/` → `/diagnostics`; ninguna ruta activa llama a `/api/auth/me`; `App` con `BrowserRouter` | 7/7 |
+| Regresión | El resto de suites | DEV-038, DEV-039 y diagnóstico sin cambios; backend e integración sin cambios | 94/94, 201/201 y 104/104 |
+
+Otras comprobaciones locales de DEV-006:
+- **Totales:** `npm test` 201/201 del backend y 180/180 del frontend (86 nuevas); `npm run test:integration` 104/104; `CI=1 npm run test:e2e` 6/6 **sin cambiar sus archivos**: `/` y `/today` acaban en `/diagnostics`, con las 4 pruebas de CSP y sin errores de consola. `npm ci`, *lint*, tipos, *build* y `git diff --check`, sin errores.
+- **Mutaciones temporales:** quitar la cabecera CSRF, enviar siempre `Content-Type`, aceptar `//`, usar `credentials: 'include'`, tratar cualquier `401` como `unauthenticated`, no descartar las respuestas obsoletas, convertir la cancelación en `unavailable` y no abortar al sustituir una consulta. Tras la corrección pedida por el autor: volver a guardar `details.fields[].message`, recuperar la propiedad `fields`, aceptar cualquier ruta de campo y conservar duplicados. Las pruebas detectaron las doce.
+- **Dependencias:** `react-router` 8.5.1 (versión exacta), que trae `cookie-es` 3.1.1 y `@remix-run/route-pattern` 0.22.1; en el *lockfile*, `@types/react-dom` pasa de `dev` a `devOptional` porque React Router la declara como *peer* opcional. Ninguna otra versión cambia, `effect` sigue en 3.22.1 y `npm audit --audit-level=high` informa de 0 vulnerabilidades.
+- ***Build*:** el JS pasa de 272,14 kB (85,36 kB gzip) a 309,05 kB (97,90 kB gzip), por React Router. El cliente y la sesión aún no entran en el *build*, porque ninguna ruta activa los usa.
 
 | Nivel | Herramienta | Qué se prueba | Casos clave |
 |-------|-------------|---------------|-------------|
@@ -4066,7 +4081,33 @@ Cada ticket añade solo lo que le es propio.
   - un doble clic sobre un botón protegido envía una sola petición;
   - sin desplazamiento horizontal a 320 px.
 - **Pruebas:** componentes (RTL) del cliente HTTP, del botón protegido y de los estados de carga y error.
-- **Pendiente:** TanStack Query es una [Propuesta] (2.2).
+- **Pendiente:** TanStack Query es una [Propuesta] (2.2), diferida en DEV-006 parcial (M7).
+- **Estado:** **parcial** (Entrega 2), implementado en la rama `feature/dev-006-frontend-foundation`, pendiente de revisión, Pull Request y CI. **No está terminado:** por decisión del autor, la Entrega 2 implementa solo lo que necesita el registro y el ticket sigue abierto hasta completar su alcance. Verificación local en 2.6.
+  - **Implementado:**
+    - React Router en modo declarativo (`frontend/src/app/AppRoutes.tsx`): `/diagnostics` muestra la vista de DEV-001; `/` redirige **temporalmente** a `/diagnostics` y cualquier otra ruta a `/`. `/signup` no se registra todavía (DEV-007). No hay páginas de relleno;
+    - cliente HTTP `apiRequest` (`frontend/src/shared/api/client.ts`) sobre `fetch`: solo rutas relativas bajo `/api/`, `credentials: 'same-origin'`, `Accept: application/json`, `X-CSRF-Protection: 1` en `POST`, `PUT`, `PATCH` y `DELETE` (criterio 1), `Content-Type` solo con cuerpo, sin fijar `Origin`, `204` sin cuerpo y comprobación ligera de la forma de las respuestas. Los errores se lanzan como `ApiError` (`http`, `network`, `invalid-response` o `aborted`) con `status`, `code`, `requestId`, `invalidFields` y `Retry-After`, **sin** el `message` del servidor. El cliente HTTP solo expone identificadores de campos inválidos. Los mensajes visibles se obtienen de los catálogos i18n del frontend; nunca de `details.fields[].message` ni de `error.message` del backend. (Corrección pedida por el autor antes de publicar: la primera versión guardaba `details.fields[].message` en `fields`.);
+    - `getMe()` y `PublicUser` (`frontend/src/features/auth/`);
+    - `SessionProvider` y `useSession()` con los estados `loading`, `authenticated`, `unauthenticated` (solo con `401 UNAUTHENTICATED`) y `unavailable` (cualquier otro error, también de red o una respuesta no válida); `restore()`, `signedIn(user)` y `signedOut()`; `AbortController` y número de generación contra respuestas obsoletas; sin `localStorage` ni lectura de *cookies*. **No está montado en las rutas activas:** se conecta en DEV-007.
+  - **Pendiente para completar DEV-006:**
+    - el *router* con `AppShell` y la navegación (DEV-039 pendiente), y el criterio 3 (320 px);
+    - la redirección ante un `401` en rutas protegidas, el reintento ante un `503` con `ErrorState`, y conectar carga, error y vacío con los componentes de DEV-039;
+    - conectar el `loading` de `Button` con la petición en curso y el doble clic (criterio 2, con la pantalla de DEV-007);
+    - el formato de fechas de DEV-038, pendiente;
+    - TanStack Query, si se adopta.
+  - **Para DEV-007:**
+    - conectar el `SessionProvider`, registrar `/signup` y definir qué hace `/` con y sin sesión;
+    - la política de E2E ante el `401` esperado de `/api/auth/me` (M5): la prueba de CSP abrirá `/diagnostics` y el E2E de registro tolerará **solo** ese `401`, porque Chromium lo registra como error de consola;
+    - el E2E de registro debe ejecutarse automáticamente en la CI de cada PR, lo que exige cambiar el job de E2E (hoy solo corre con `workflow_dispatch` y no aplica migraciones).
+  - **Decisiones técnicas aprobadas por el autor:**
+    - M1: `/` redirige temporalmente a `/diagnostics` y el `SessionProvider` se conecta en DEV-007;
+    - M2: cuatro estados de sesión, con `unavailable`;
+    - M3: `credentials: 'same-origin'`;
+    - M4: `react-router` 8.5.1;
+    - M5: tolerancia del `401` de `/me` en E2E, en DEV-007;
+    - M6: errores como `ApiError`;
+    - M7: TanStack Query, diferido;
+    - M8: Prompt 25 en la sección de implementación de la Entrega 2.
+  - **Ajustes de la implementación:** solo `401` con código `UNAUTHENTICATED` produce `unauthenticated`, cualquier otro error produce `unavailable` y una petición abortada no cambia el estado; el `SessionProvider` no se monta todavía en las rutas activas. `checkHealth` de DEV-001 sigue usando `fetch` directamente, como excepción documentada.
 
 **DEV-007 — Pantallas de registro, inicio y cierre de sesión**
 - **Incremento:** I1.
