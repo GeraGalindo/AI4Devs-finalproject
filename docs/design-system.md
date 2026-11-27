@@ -46,7 +46,7 @@ Los principios parten de la sección 1.3 del README y de las decisiones del Prod
 - mobile-first desde 320 px, adaptado también a escritorio;
 - la accesibilidad es un requisito transversal.
 
-**Tokens [Propuesta]:** los valores concretos son una propuesta inicial que habrá que contrastar con el mockup. Los nombres son semánticos, para poder cambiar el valor sin tocar los componentes. Se implementarían como variables CSS (DEV-039).
+**Tokens [Propuesta]:** los valores concretos son una propuesta inicial que habrá que contrastar con el mockup. Los nombres son semánticos, para poder cambiar el valor sin tocar los componentes. **Implementados como variables CSS en DEV-039 (parcial):** `frontend/src/shared/styles/tokens.css`, con el prefijo `--` (por ejemplo, `--color-bg`). Una prueba calcula el contraste de las combinaciones reales a partir de ese archivo.
 
 ### 2.1. Color
 
@@ -65,6 +65,7 @@ Contraste calculado con la fórmula de luminancia relativa de WCAG 2.1 sobre los
 | `color-accent` | `#A78BFA` | Acento violeta sobre fondo oscuro: enlaces, iconos activos, estado `planned` | 7,03 / 6,49 / 5,82 |
 | `color-primary` | `#7C3AED` | Fondo del botón principal | Texto blanco sobre él: 5,70. Frente a `bg`: 3,36 |
 | `color-primary-pressed` | `#6D28D9` | Botón principal pulsado | Texto blanco sobre él: 7,10 |
+| `color-on-primary` | `#FFFFFF` | Texto del botón principal. [Propuesta] DEV-039: nombre del "texto blanco" de las dos filas anteriores | 5,70 sobre `color-primary` / 7,10 sobre `color-primary-pressed` |
 | `color-focus` | `#C4B5FD` | Anillo de foco | 10,36 / 9,57 / — |
 | `color-success` | `#34D399` | Estado `completed` y mensajes de éxito | 9,95 / 9,19 / 8,24 |
 | `color-warning` | `#FBBF24` | Estado `partial` | 11,46 / 10,59 / 9,49 |
@@ -72,6 +73,8 @@ Contraste calculado con la fórmula de luminancia relativa de WCAG 2.1 sobre los
 | `color-danger` | `#F87171` | Errores y acciones destructivas | 6,92 / 6,39 / 5,73 |
 
 Los cuatro estados de sesión usan **color + icono + texto** (sección 7). El color solo refuerza.
+
+**Borde del botón principal [Propuesta] DEV-039:** el fondo `color-primary` frente a `surface-raised` da 2,78:1, por debajo de 3:1 (frente a `bg`, 3,36; frente a `surface`, 3,10). Por eso el botón principal lleva un borde `color-border-control` (4,08 / 3,77 / 3,38 sobre `bg` / `surface` / `surface-raised`), el mismo en estado normal y pulsado. `color-primary`, `color-primary-pressed` y el texto blanco no cambian, y el botón se puede colocar sobre cualquiera de los tres fondos. **Estado deshabilitado [Propuesta] DEV-039:** fondo `surface-raised`, texto `color-text-disabled` y borde `color-border-control`. El texto deshabilitado (3,38:1) está por debajo de 4,5:1, una excepción que WCAG 1.4.3 admite para componentes inactivos.
 
 ### 2.2. Espaciado, radios y elevación
 
@@ -81,6 +84,7 @@ Los cuatro estados de sesión usan **color + icono + texto** (sección 7). El co
 | `radius-sm` / `radius-md` / `radius-lg` | 8 / 12 / 16 px | Campos y chips / tarjetas / hojas y diálogos |
 | `elevation-0` / `elevation-1` | Sin sombra / borde y fondo `surface-raised` | Sobre fondo oscuro, la elevación se expresa con el color de la superficie y no con sombras |
 | `touch-min` | 44 px | Tamaño mínimo de cualquier objetivo táctil (T-02 del README) |
+| `focus-ring-width` / `focus-ring-offset` | 2 px / 2 px | Anillo de foco de `color-focus` (sección 7). La separación es una [Propuesta] DEV-039 |
 | `nav-height` | 56 px, más el área segura inferior | Barra de navegación inferior |
 
 ## 3. Tipografía, colores, espaciado y componentes
@@ -111,6 +115,8 @@ Inventario mínimo para las pantallas del MVP. Cada componente define los estado
 > - `InlineAlert`/`Toast`, `Skeleton`/`Spinner`, `EmptyState`, `ErrorState`, `ConfirmDialog` y `StatusBadge`.
 >
 > El resto (`Stepper`, `NumberField`, `SetRow`, `ExerciseCard`, `ProgressBar` y `StatTile`) se añade, con los mismos tokens, en el ticket de pantalla del incremento que lo necesite por primera vez: DEV-025 en I4 y DEV-033 en I6.
+>
+> **Implementado en DEV-039 (parcial):** `Card` (variante `raised`), `Button` (`primary` y `secondary`, con `disabled` y `loading`), `TextField` (etiqueta, ayuda y error) e `InlineAlert` (`error` e `info`), en `frontend/src/shared/ui/`, con clases CSS prefijadas `cc-`. Reciben los textos ya traducidos por props. El resto del inventario de I1 sigue pendiente (sección 6 del README, DEV-039).
 
 | Componente | Uso principal | Notas |
 |------------|---------------|-------|

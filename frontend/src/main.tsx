@@ -1,5 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+// Tokens y estilos globales primero, antes que los de los componentes (DEV-039).
+import './shared/styles/tokens.css';
+import './shared/styles/global.css';
 import { App } from './app/App';
 import { I18nProvider } from './i18n/I18nProvider';
 

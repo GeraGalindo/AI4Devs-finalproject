@@ -11,6 +11,7 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 5. [Historias de usuario](#5-historias-de-usuario)
 6. [Tickets de trabajo](#6-tickets-de-trabajo)
 7. [Pull requests](#7-pull-requests)
+8. [Prompts de implementación de la Entrega 2](#prompts-de-implementación-de-la-entrega-2)
 
 ### Mapa de prompts registrados
 
@@ -41,6 +42,7 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 | 21 | DEV-003: base del backend (configuración segura, *middleware* y errores) | Sección 4, Prompt 3 | Código nuevo (`backend/src/domain/clock.ts`, `backend/src/shared/http/`, pruebas), `backend/src/app.ts`, `server.ts`, `config.ts`, `/api/health`, la vista de diagnóstico (CSS), dependencias, CI, `CLAUDE.md`, `readme.md` (0.3, 1.4, 2.3, 2.5, 2.6, 4, 6 y 7) y `prompts.md` |
 | 22 | DEV-004: autenticación (registro, inicio, sesión actual y cierre) | Sección 5, Prompt 3 | Código nuevo (`backend/src/modules/auth/`, `src/shared/http/session-cookie.ts`, `rate-limit.ts` y `require-auth.ts`, pruebas unitarias y de integración), `backend/src/app.ts`, `server.ts`, `config.ts`, dependencias, `.env.example`, `CLAUDE.md`, `readme.md` (0.3, 1.2, 1.4, 2.5, 2.6, 4, 5 y 6) y `prompts.md` |
 | 23 | DEV-038 (parcial): base de internacionalización del frontend | Sección 2.3, Prompt 3 | Código nuevo (`frontend/src/i18n/`, `frontend/src/locales/en/`, `frontend/src/test/missing-keys.ts` y pruebas), `frontend/src/main.tsx`, `src/test/setup.ts`, `eslint.config.js`, dependencias, `CLAUDE.md`, `readme.md` (0.3, 2.2, 2.6 y 6), `docs/design-system.md` (8.1 y 8.2) y `prompts.md` |
+| 24 | DEV-039 (parcial): tokens y componentes base del sistema de diseño | **Prompts de implementación de la Entrega 2** | Código nuevo (`frontend/src/shared/styles/` y `frontend/src/shared/ui/`, con sus pruebas), `frontend/src/main.tsx`, `frontend/index.html`, `CLAUDE.md`, `readme.md` (0.3, 2.6 y 6), `docs/design-system.md` (2, 2.1, 2.2 y 3.2) y `prompts.md` |
 
 **Notas:**
 - **Numeración:** los prompts 01–05 y 11–15 llevan el número que les dio el autor. Los números 06–10 los asignó la IA al documentarlos, siguiendo la secuencia.
@@ -51,6 +53,7 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 - **Prompt 21:** DEV-003 se registra en la sección 4 (Especificación de la API), cuyo hueco del Prompt 3 estaba libre, porque implementa las convenciones comunes del contrato. Incluye el prompt de análisis (que también verificó el merge del PR #6) y la aprobación de la implementación.
 - **Prompt 22:** DEV-004 se registra en la sección 5 (Historias de usuario), cuyo hueco del Prompt 3 estaba libre, porque implementa HU-04 y HU-05 en el backend. Incluye el prompt de análisis (que también verificó el merge del PR #8), el de entrega del análisis y el de implementación.
 - **Prompt 23:** DEV-038 (parcial) se registra en 2.3 (estructura del proyecto), cuyo hueco del Prompt 3 estaba libre, porque crea la estructura de internacionalización del frontend (decisión D9). Incluye el prompt que fusionó el PR #10 y analizó el incremento de la Entrega 2, el análisis de DEV-038 y la implementación. Tras este, solo queda libre el hueco 2.4, Prompt 3.
+- **Prompt 24:** DEV-039 (parcial) inaugura la sección «Prompts de implementación de la Entrega 2», antes del Anexo, por decisión del autor (L9): los huecos de tres prompts por sección ya estaban ocupados salvo 2.4, Prompt 3, que no corresponde a este ticket. Incluye el análisis y la implementación.
 
 ---
 
@@ -4213,6 +4216,495 @@ Entrega un resumen de los cambios y confirma que el recorrido funcional I3 e I4 
 **Prompt 2:**
 
 **Prompt 3:**
+
+---
+
+## Prompts de implementación de la Entrega 2
+
+> Los huecos de tres prompts por sección ya están ocupados, salvo 2.4, Prompt 3. Por decisión del autor (L9 de DEV-039), los prompts de implementación de la Entrega 2 a partir del 24 se registran en esta sección, con las mismas convenciones y en orden. No cambia ninguna entrada anterior.
+
+**Prompt 24 — DEV-039 (parcial): tokens y componentes base del sistema de diseño**
+
+- **Herramienta:** Claude Code (modelo `claude-opus-5-5`), en la misma sesión que DEV-001 a DEV-004 y DEV-038. Roles indicados por el autor: el usuario es el Product Owner; ChatGPT, analista y revisor; Claude Code, implementador.
+- **Objetivo:** analizar DEV-039 parcial sin modificar archivos y, tras la aprobación de L1–L9, implementar los tokens, los estilos globales y los componentes `Card`, `Button`, `TextField` e `InlineAlert` en una rama, y validarlos en local, sin commit, push ni PR.
+- **Archivos afectados:**
+  - **nuevos:**
+    - `frontend/src/shared/styles/`: `tokens.css`, `global.css` y `tokens.test.ts`;
+    - `frontend/src/shared/ui/`: `Card`, `Button`, `TextField` e `InlineAlert` (cada uno con `.tsx`, `.css` y `.test.tsx`), `classNames.ts` con su prueba y `ui-i18n.test.tsx`;
+  - **modificados:** `frontend/src/main.tsx`, `frontend/index.html` (`color-scheme`), `CLAUDE.md`, `readme.md` (0.3, 2.6 y 6), `docs/design-system.md` (2, 2.1, 2.2 y 3.2) y `prompts.md`;
+  - **sin cambios:** el backend, la base de datos, las dependencias, la CI, los E2E, la configuración de i18n, la regla de ESLint y la vista de diagnóstico.
+
+Texto literal del prompt (análisis):
+
+```text
+# Cali Coach — DEV-039 parcial: análisis técnico
+
+Actúa como arquitecto frontend y desarrollador de Cali Coach.
+
+Necesito un análisis técnico de DEV-039 parcial para la Entrega 2.
+
+IMPORTANTE: esta solicitud es exclusivamente de análisis y planificación.
+
+NO modifiques archivos, instales dependencias, crees ramas, commits, pushes ni Pull Requests.
+
+## 1. Contexto
+
+- Proyecto: Cali Coach.
+- Product Owner: usuario.
+- Analista y revisor: ChatGPT.
+- Implementador: Claude Code.
+- Rama esperada: main.
+- HEAD esperado: 3d1ec298d3ccd15800715b6d38246eaeffc074b2.
+- DEV-001, DEV-002, DEV-003 y DEV-004: terminados.
+- DEV-038: incremento parcial integrado, ticket completo todavía pendiente.
+- Próximos incrementos: DEV-039 parcial → DEV-006 parcial → DEV-007 parcial.
+
+Objetivo de Entrega 2:
+
+Conseguir una funcionalidad real de extremo a extremo:
+
+Formulario de registro React → POST /api/auth/register → PostgreSQL → sesión autenticada.
+
+DEV-039 únicamente prepara los componentes visuales que necesitará ese flujo.
+
+## 2. Verificación inicial
+
+Antes de proponer cambios:
+
+1. Confirma HEAD, rama y estado limpio.
+2. Lee CLAUDE.md.
+3. Lee readme.md, especialmente DEV-039 y sus criterios de aceptación.
+4. Lee docs/design-system.md completo.
+5. Revisa prompts.md para conocer las convenciones del proyecto.
+6. Inspecciona la estructura real del frontend.
+7. Revisa la configuración actual de CSS, React, TypeScript, Vitest y ESLint.
+8. Examina los componentes y estilos existentes de DiagnosticsPage.
+9. Comprueba cómo funciona la infraestructura i18n integrada en DEV-038.
+
+No asumas que los componentes o tokens ya existen.
+
+## 3. Alcance propuesto
+
+Analiza la implementación mínima de:
+
+### A. Design tokens
+
+- Colores para el tema oscuro.
+- Tipografía.
+- Espaciado.
+- Radios.
+- Bordes.
+- Estados de foco.
+- Estados de error.
+- Estados deshabilitados.
+
+Los valores deben derivarse de docs/design-system.md.
+
+No inventes una segunda identidad visual.
+
+### B. Estilos globales
+
+- Reset o normalización mínima.
+- Fondo y color de texto.
+- Tipografía base.
+- Box sizing.
+- Comportamiento responsive.
+- Compatibilidad con 320 px.
+- Accesibilidad y foco visible.
+
+### C. Componentes reutilizables
+
+Analiza los contratos mínimos de:
+
+1. Card
+2. Button
+3. TextField
+4. InlineAlert
+
+Para cada componente, define:
+
+- Props y tipos TypeScript.
+- Variantes necesarias.
+- Estados.
+- Comportamiento accesible.
+- Integración con formularios.
+- Integración con i18n.
+- Estrategia de estilos.
+- Pruebas necesarias.
+
+Prefiere componentes nativos de React/HTML con props estándar, evitando abstracciones innecesarias.
+
+## 4. Restricciones
+
+Quedan fuera de DEV-039 parcial:
+
+- Pantalla de registro S-01.
+- Login y logout.
+- Router.
+- Cliente HTTP.
+- SessionProvider.
+- Formularios conectados al backend.
+- TanStack Query.
+- Librerías de componentes externas.
+- Bibliotecas de formularios.
+- Nuevas traducciones de pantallas.
+- Cambios en backend o base de datos.
+- Cambios en los criterios de producto DP-01 a DP-17.
+
+No propongas instalar dependencias si CSS y React nativos resuelven el problema.
+
+## 5. Integración con DEV-038
+
+Analiza:
+
+1. Cómo los componentes recibirán textos ya traducidos mediante props.
+2. Cómo evitar textos visibles escritos directamente en JSX.
+3. Cómo utilizar los mensajes de errors.json sin acoplar los componentes al backend.
+4. Cómo mantener la regla ESLint de DEV-038.
+5. Cómo preservar la excepción temporal de DiagnosticsPage o retirarla de forma controlada.
+
+No modifiques la infraestructura de i18n salvo que identifiques un bloqueo real.
+
+## 6. Seguridad y accesibilidad
+
+Comprueba especialmente:
+
+- Compatibilidad con la CSP estricta de DEV-003.
+- Ausencia de estilos inline y de dependencias que los inyecten.
+- Navegación con teclado.
+- Foco visible.
+- Etiquetas accesibles en TextField.
+- Asociación de errores con aria-describedby.
+- aria-invalid.
+- Estados loading y disabled en Button.
+- role="alert" cuando corresponda.
+- Contraste suficiente según el diseño.
+- Responsive desde 320 px.
+
+Distingue los requisitos obligatorios de las mejoras posteriores.
+
+## 7. Plan de pruebas
+
+Propón pruebas con Vitest y React Testing Library para:
+
+- Renderizado de los cuatro componentes.
+- Props y variantes.
+- Accesibilidad básica.
+- Interacción por teclado.
+- Estados disabled y loading.
+- Asociación de label, input y error.
+- Alertas.
+- Ausencia de regresiones en DiagnosticsPage.
+- Compatibilidad con ESLint e i18n.
+
+Evalúa si hace falta alguna prueba E2E nueva o si bastan las seis existentes para este incremento.
+
+## 8. Documentación
+
+Indica qué cambios serían necesarios en:
+
+- readme.md.
+- docs/design-system.md.
+- CLAUDE.md.
+- prompts.md.
+
+Mantén DEV-039 como PARCIAL.
+
+No marques completados criterios que todavía no se implementen.
+
+No modifiques los Prompts 16–18.
+
+Propón una ubicación para el próximo prompt sin sobrescribir entradas existentes.
+
+## 9. Entregable del análisis
+
+Entrega un informe estructurado con:
+
+A. Estado inicial del repositorio.
+
+B. Alcance exacto de DEV-039 según la documentación.
+
+C. Alcance parcial recomendado y trabajo diferido.
+
+D. Propuesta de tokens CSS y correspondencia con el diseño existente.
+
+E. Contratos TypeScript de Card, Button, TextField e InlineAlert.
+
+F. Estructura de archivos propuesta.
+
+G. Integración con i18n, CSP y DiagnosticsPage.
+
+H. Estrategia de accesibilidad y responsive.
+
+I. Plan de pruebas.
+
+J. Criterios de aceptación verificables.
+
+K. Riesgos y alternativas.
+
+L. Decisiones técnicas que requieren aprobación del Product Owner.
+
+M. Secuencia de implementación propuesta.
+
+## 10. Condición de parada
+
+No implementes nada todavía.
+
+Espera la aprobación explícita del Product Owner antes de crear una rama o modificar código.
+```
+
+Texto literal del prompt (implementación):
+
+```text
+# Cali Coach — DEV-039 parcial: implementación local autorizada
+
+Como Product Owner, apruebo las decisiones L1–L9 del análisis técnico de DEV-039 parcial, con los ajustes descritos a continuación.
+
+Autorizo crear una rama e implementar DEV-039 parcial localmente.
+
+NO autorizo commit, push, Pull Request ni merge.
+
+## Contexto
+
+- Proyecto: Cali Coach.
+- Base esperada de main: 3d1ec298d3ccd15800715b6d38246eaeffc074b2.
+- DEV-038 parcial: integrado y documentado.
+- Objetivo de Entrega 2: registro React → Express → PostgreSQL.
+- Orden aprobado: DEV-039 parcial → DEV-006 parcial → DEV-007 parcial.
+
+## Fase 1 — Preparación
+
+1. Confirma que main coincide con origin/main.
+2. Confirma que el árbol está limpio.
+3. Lee CLAUDE.md, readme.md y docs/design-system.md.
+4. Crea feature/dev-039-design-foundation desde main.
+5. Comprueba los contratos y restricciones existentes.
+
+Si main ha avanzado de forma incompatible, detente y consulta.
+
+## Fase 2 — Tokens y estilos globales
+
+Implementa:
+
+- frontend/src/shared/styles/tokens.css
+- frontend/src/shared/styles/global.css
+
+Utiliza los tokens de docs/design-system.md.
+
+Apruebo los tres detalles de L2:
+
+- --color-on-primary: #FFFFFF.
+- Separación de 2 px para el anillo de foco.
+- Estado deshabilitado con surface-raised, text-disabled y border-control.
+
+Documéntalos como propuestas donde corresponda.
+
+Mantén exclusivamente el tema oscuro.
+
+Añade el metadato color-scheme dark a index.html.
+
+No añadas fuentes externas, temas alternativos ni dependencias.
+
+## Fase 3 — Componentes
+
+Implementa con React, TypeScript y CSS nativos:
+
+1. Card
+2. Button
+3. TextField
+4. InlineAlert
+
+Utiliza clases CSS prefijadas con cc-.
+
+Los componentes deben recibir los textos mediante props. No incluyas textos visibles escritos directamente en JSX ni mensajes por defecto en inglés.
+
+### Button
+
+- Variantes primary y secondary.
+- type="button" por defecto.
+- Estados disabled y loading.
+- Tamaño táctil mínimo de 44 × 44 px.
+- Durante loading, mantener el foco cuando sea posible.
+- Impedir la ejecución de onClick y el envío del formulario desde el botón durante loading.
+- Probar clic, doble clic, Enter y Espacio.
+- Utilizar un indicador visual decorativo sin texto por defecto.
+- No utilizar estilos inline.
+
+La protección del componente no sustituye al bloqueo de solicitudes duplicadas que deberá implementar DEV-007.
+
+### TextField
+
+- Label obligatorio.
+- Hint y error opcionales.
+- Asociación correcta mediante htmlFor e id.
+- aria-invalid cuando existe error.
+- aria-describedby debe conservar los identificadores proporcionados por el consumidor y añadir los de hint/error sin duplicados.
+- Propagación de ref, name, autoComplete, required, value y onChange.
+- Compatibilidad con formularios controlados y no controlados.
+- Altura mínima de 44 px.
+
+### InlineAlert
+
+- Error: role="alert".
+- Info: role="status".
+- Icono decorativo y texto.
+- El color no debe ser el único indicador.
+- Mensajes proporcionados por el consumidor.
+
+### Card
+
+- Contenedor neutro.
+- Variante raised.
+- Propagación de className y atributos nativos.
+- Sin introducir semántica incorrecta.
+
+## Fase 4 — Contraste y accesibilidad
+
+Implementa pruebas automáticas de contraste basadas en los valores reales de tokens.css.
+
+Verifica las combinaciones utilizadas:
+
+- Texto principal y secundario sobre sus fondos.
+- Texto sobre primary y primary-pressed.
+- Bordes de controles sobre sus superficies.
+- Texto y bordes de error sobre los fondos correspondientes.
+- Estados deshabilitados, documentando las excepciones WCAG que correspondan.
+
+Utiliza los umbrales del análisis:
+
+- Texto normal: 4,5:1.
+- Controles y componentes visuales relevantes: 3:1.
+
+No ajustes silenciosamente los valores del diseño si encuentras un contraste insuficiente. Informa del problema y propón una corrección.
+
+Implementa foco visible, soporte para prefers-reduced-motion y estilos fluidos compatibles con 320 px.
+
+## Fase 5 — Integración
+
+1. Importa los estilos globales desde main.tsx.
+2. Conserva I18nProvider y la configuración de DEV-038.
+3. No cambies la regla ESLint de internacionalización.
+4. Mantén DiagnosticsPage sin modificar.
+5. Comprueba que sus estilos siguen respetando max-width: 480px.
+6. No introduzcas estilos inline ni violaciones de CSP.
+
+## Fase 6 — Pruebas
+
+Implementa las pruebas propuestas en el análisis:
+
+- Tokens y contraste.
+- Card.
+- Button.
+- TextField.
+- InlineAlert.
+- Integración de los componentes con i18n.
+
+Comprueba especialmente los tres ajustes aprobados:
+
+1. Bloqueo de interacción y envío durante loading.
+2. Conservación y combinación de aria-describedby.
+3. Contraste de combinaciones reales.
+
+Ejecuta:
+
+- npm ci
+- npm run lint
+- npm run typecheck
+- npm test
+- npm run test:integration
+- npm run build
+- npm audit --audit-level=high
+- git diff --check
+- CI=1 npm run test:e2e
+
+Los seis E2E existentes deben pasar, incluidos los de CSP.
+
+No añadas una pantalla de demostración únicamente para probar los componentes.
+
+## Fase 7 — Documentación
+
+Actualiza:
+
+- readme.md.
+- docs/design-system.md.
+- CLAUDE.md.
+- prompts.md.
+
+Registra las decisiones L1–L9 y los ajustes aprobados.
+
+Marca DEV-039 como PARCIAL, indicando lo implementado y lo pendiente.
+
+Para Prompt 24, utiliza una sección nueva titulada "Prompts de implementación de la Entrega 2", antes del Anexo.
+
+No sobrescribas entradas existentes ni modifiques los Prompts 16–18.
+
+## Fase 8 — Informe
+
+Entrega:
+
+1. Rama y commit base.
+2. Lista de archivos creados y modificados.
+3. Resumen del diff.
+4. Contratos TypeScript implementados.
+5. Evidencia del comportamiento de Button en loading.
+6. Evidencia de accesibilidad de TextField.
+7. Resultados de contraste.
+8. Resultados de todas las pruebas.
+9. Resultado E2E y CSP.
+10. Riesgos y limitaciones.
+11. Confirmación de que DEV-039 sigue PARCIAL.
+12. Confirmación de que no hiciste commit, push ni PR.
+
+## Restricciones
+
+- No implementar DEV-006 ni DEV-007.
+- No crear pantallas de registro.
+- No introducir router, cliente HTTP ni SessionProvider.
+- No modificar backend ni base de datos.
+- No instalar dependencias nuevas.
+- No modificar los Prompts 16–18.
+- No hacer commit, push, PR ni merge.
+
+Detente después del informe y espera mi revisión.
+```
+
+**Decisiones humanas:**
+- **Sobre el análisis:** el autor aprobó L1–L9:
+  - L1: tokens, estilos globales y `Card`, `Button` (`primary` y `secondary`), `TextField` e `InlineAlert` (`error` e `info`); el resto, diferido;
+  - L2: `--color-on-primary` `#FFFFFF`, una separación de 2 px del anillo de foco y el estado deshabilitado con `surface-raised`, `text-disabled` y `border-control`, documentados como [Propuesta];
+  - L3: solo tema oscuro, con `color-scheme: dark`;
+  - L4: CSS normal con prefijo `cc-` y estados por atributos ARIA;
+  - L5: errores de campo sin `role="alert"`; el resumen del formulario va en `InlineAlert`;
+  - L6: `DiagnosticsPage` sin cambios, con su excepción de *lint* hasta DEV-006;
+  - L7: sin axe ni dependencias nuevas, con una prueba de contraste propia;
+  - L8: `TimezoneSelect`, diferido a DEV-007;
+  - L9: una sección nueva para el Prompt 24 y los siguientes.
+- **Ajustes de la implementación:**
+  - en `loading`, `Button` mantiene el foco y no ejecuta `onClick` ni envía el formulario, probado con clic, doble clic, Enter y Espacio. No sustituye al bloqueo de peticiones duplicadas de DEV-007;
+  - `aria-describedby` conserva los identificadores de quien usa `TextField` y añade los de la ayuda y el error, sin duplicados;
+  - el contraste se comprueba con las combinaciones reales, sin ajustar el diseño en silencio si alguna no cumple.
+
+**Resultado generado por la IA:**
+- **Análisis** (sin modificar archivos): alcance parcial, tokens de §2.1, §2.2 y §3.1, contratos TypeScript, estructura de archivos, integración con i18n, CSP y `DiagnosticsPage`, plan de pruebas y nueve decisiones (L1–L9).
+- **Implementación:**
+  - `tokens.css` con los valores literales de `docs/design-system.md` y tres [Propuesta] (L2); `global.css` con *box-sizing*, fondo y texto, tipografía base, `:focus-visible` y `prefers-reduced-motion`;
+  - `Button`, `TextField`, `InlineAlert` y `Card` con elementos nativos, props estándar y `ref` como prop (React 19). Los textos llegan por props, sin textos por defecto; los iconos son SVG decorativos (`aria-hidden`);
+  - `idList` combina los `aria-describedby` sin duplicados.
+- **Correcciones durante la implementación:**
+  - en Vitest, `?raw` devuelve vacío para los CSS, así que la prueba de contraste lee los archivos con `node:fs`;
+  - la prueba de integración con i18n no compilaba: con los tipos de DEV-038, las claves con prefijo (`auth:…`) exigen declarar sus espacios de nombres en `useTranslation`. Se ajustó la prueba, sin tocar la infraestructura de i18n.
+- **Hallazgo de contraste:** el fondo del botón primario sobre `surface-raised` da 2,78:1, por debajo de 3:1 (sobre `bg`, 3,36; sobre `surface`, 3,10). La IA no cambió el valor y lo presentó en su informe. El autor pidió resolverlo antes de publicar con un borde visible, preferiblemente `border-control`, sin cambiar `#7C3AED` ni el texto blanco. La IA comprobó que `border-control` supera 3:1 sobre los tres fondos (4,08, 3,77 y 3,38) y lo aplicó solo a la variante `primary`; `tokens.test.ts` comprueba el borde en la regla real de `Button.css`, el estado pulsado y el contraste del texto.
+- **Validación (local, 2026-11-27; detalle en el README, 2.6):**
+  - `npm ci`, `lint`, `typecheck`, `build`, `git diff --check`: sin errores;
+  - `npm test`: 201/201 del backend y 94/94 del frontend (53 nuevas, 5 de ellas tras la corrección de contraste; las 41 anteriores sin cambios);
+  - `npm run test:integration`: 104/104;
+  - `CI=1 npm run test:e2e`: 6/6, incluidas las 4 pruebas de CSP sobre el *build* real; `main.diagnostics` mantiene su `max-width: 480px`;
+  - `npm audit --audit-level=high`: 0 vulnerabilidades; sin dependencias nuevas;
+  - mutaciones temporales: quitar el `preventDefault` de `loading`, dejar que `loading` ejecute `onClick`, descartar el `aria-describedby` de quien usa el campo y quitar el borde del botón primario. Las pruebas detectaron las cuatro;
+  - *build*: el JS no cambia (272,14 kB), porque ninguna pantalla usa aún los componentes; el CSS pasa de 0,09 kB a 2,14 kB (tokens y estilos globales).
+  - **La ejecución en GitHub Actions queda pendiente del PR.**
+
+**Revisión humana:** pendiente. El autor revisará la implementación antes de autorizar el commit, el push y el PR. DEV-039 **no** está terminado: es parcial por decisión del autor y, además, falta la revisión, el PR y la CI.
 
 ---
 
