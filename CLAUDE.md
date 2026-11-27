@@ -62,6 +62,12 @@ Antes de editar código o documentación:
   - `Button` es `type="button"` por defecto; en `loading` no ejecuta `onClick` ni envía el formulario, pero la pantalla debe evitar igualmente las peticiones duplicadas;
   - los errores de campo van en `TextField` (`error`), sin `role="alert"`; el resumen del formulario, en `InlineAlert`;
   - el botón primario lleva el borde `border-control` porque su fondo no llega a 3:1 sobre `surface-raised`: no lo quites. Un color de fondo nuevo para un control necesita su comprobación en `tokens.test.ts`.
+- **Llamadas a la API y sesión** (DEV-006, parcial):
+  - toda llamada pasa por `apiRequest` (`src/shared/api/client.ts`), nunca por `fetch` directo. La única excepción es `checkHealth` de DEV-001;
+  - `apiRequest` ya pone `X-CSRF-Protection`, `Content-Type` solo con cuerpo y `credentials: 'same-origin'`; no fijes `Origin` ni otras cabeceras de seguridad a mano. Cada respuesta con cuerpo necesita su función `parse`, que comprueba la forma sin Zod;
+  - los errores llegan como `ApiError`. En pantalla se muestra `translateErrorCode(i18n, error.code)`. El cliente HTTP solo expone identificadores de campos inválidos. Los mensajes visibles se obtienen de los catálogos i18n del frontend; nunca de `details.fields[].message` ni de `error.message` del backend. Cada pantalla marca con `TextField error` los campos de `error.invalidFields`, con mensajes de su propio catálogo (por ejemplo, `auth`);
+  - el usuario y el estado de la sesión salen de `useSession()` (`src/features/auth/session.ts`), nunca de `localStorage` ni de las *cookies*. Solo un `401 UNAUTHENTICATED` significa "sin sesión"; `unavailable` es un fallo que se reintenta con `restore()`. Tras un registro correcto se llama a `signedIn(user)` con el `user` de la respuesta;
+  - rutas en `src/app/AppRoutes.tsx`. Hasta DEV-007, `/` redirige a `/diagnostics` y el `SessionProvider` no está montado.
 - **Tests:** las unitarias van junto al código (`*.test.ts(x)`), las de integración en `backend/tests/integration/` y las E2E en `e2e/tests/`.
 - **Dependencias:** exactas (`.npmrc` con `save-exact`). No añadas librerías sin necesidad concreta ni sin aprobación si no están en la sección 2.
 - No crees carpetas vacías "para más adelante". Cada ticket crea las suyas.
