@@ -1,8 +1,10 @@
 import { existsSync } from 'node:fs';
 import { createApp } from './app.js';
+import { createAuthRepository } from './modules/auth/auth.repository.js';
 import { ConfigError, loadConfig } from './shared/config.js';
 import { createDatabaseCheck, createPool } from './shared/db.js';
 import { DEFAULT_SPA_DIR } from './shared/http/spa.js';
+import { createPrisma } from './shared/prisma.js';
 
 function main(): void {
   let config;
@@ -17,7 +19,13 @@ function main(): void {
   }
 
   const pool = createPool(config.databaseUrl);
-  const app = createApp({ config, checkDatabase: createDatabaseCheck(pool), spaDir: DEFAULT_SPA_DIR });
+  const prisma = createPrisma(pool);
+  const app = createApp({
+    config,
+    checkDatabase: createDatabaseCheck(pool),
+    authRepository: createAuthRepository(prisma),
+    spaDir: DEFAULT_SPA_DIR,
+  });
 
   const server = app.listen(config.port, () => {
     console.log(`[server] listening on http://localhost:${config.port} (${config.nodeEnv}, origin ${config.appOrigin})`);
@@ -27,7 +35,11 @@ function main(): void {
   const shutdown = (signal: string) => {
     console.log(`[server] ${signal} received, shutting down`);
     server.close(() => {
-      pool.end().finally(() => process.exit(0));
+      // Primero Prisma y después el pool que comparte (DEV-002).
+      prisma
+        .$disconnect()
+        .finally(() => pool.end())
+        .finally(() => process.exit(0));
     });
   };
   process.on('SIGINT', () => shutdown('SIGINT'));

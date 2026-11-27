@@ -23,7 +23,7 @@ Cali Coach
 
 ### **0.3. Descripción breve del proyecto:**
 
-Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asigna un programa de entrenamiento preconfigurado, lo distribuye en los días que el atleta puede entrenar (de 2 a 6), le muestra la sesión de cada día, registra las series realizadas y le enseña su progreso (sección 1). **Estado:** la especificación del MVP está documentada (Entrega 1). DEV-001 añade el andamiaje técnico: frontend, backend, PostgreSQL local, CI y una comprobación técnica de salud (`GET /api/health`). DEV-002 añade Prisma y la primera migración (tabla `users`). DEV-003 añade la base común del backend: configuración segura, CSRF, reglas de cuerpo, validación, formato de errores, cabeceras de seguridad y el servicio del *build* de la SPA. **Todavía no hay ninguna funcionalidad de negocio implementada.**
+Aplicación web *mobile-first* para practicantes intermedios de calistenia. Asigna un programa de entrenamiento preconfigurado, lo distribuye en los días que el atleta puede entrenar (de 2 a 6), le muestra la sesión de cada día, registra las series realizadas y le enseña su progreso (sección 1). **Estado:** la especificación del MVP está documentada (Entrega 1). DEV-001 añade el andamiaje técnico: frontend, backend, PostgreSQL local, CI y una comprobación técnica de salud (`GET /api/health`). DEV-002 añade Prisma y la primera migración (tabla `users`). DEV-003 añade la base común del backend: configuración segura, CSRF, reglas de cuerpo, validación, formato de errores, cabeceras de seguridad y el servicio del *build* de la SPA. DEV-004 añade la autenticación del backend (registro, inicio, sesión actual y cierre; HU-04 y HU-05), **pendiente de revisión, Pull Request y CI**. Todavía no hay otras funcionalidades de negocio ni interfaz de acceso (DEV-007).
 
 ### **0.4. URL del proyecto:**
 
@@ -192,8 +192,7 @@ El Product Owner ha resuelto las 17 decisiones que estaban abiertas. **Todas est
 
 **Decisiones técnicas abiertas.** No son del Product Owner; las resuelve el equipo técnico:
 - la plataforma PaaS y el dominio (2.4, DEV-036);
-- bcrypt o argon2 (DEV-004);
-- la longitud mínima de la contraseña y los umbrales del límite de peticiones (DEV-004);
+- ~~bcrypt o argon2; la longitud mínima de la contraseña y los umbrales del límite de peticiones (DEV-004)~~ **Resueltas en DEV-004** (sección 6): Argon2id; contraseñas de 12 a 128 caracteres; 10 peticiones de `login` cada 15 minutos y 5 de `register` cada hora, por IP;
 - TanStack Query (DEV-006);
 - la comparación con el mockup visual, que no está en el repositorio (DEV-039);
 - la estrategia futura para traducir el contenido guardado (DEV-038);
@@ -267,7 +266,7 @@ flowchart TD
 ### **1.4. Instrucciones de instalación:**
 > Documenta de manera precisa las instrucciones para instalar y poner en marcha el proyecto en local (librerías, backend, frontend, servidor, base de datos, migraciones y semillas de datos, etc.)
 
-> **Borrador de DEV-001, ampliado en DEV-002 y DEV-003.** Cubre el arranque local del andamiaje técnico, las migraciones de Prisma y la configuración segura del backend. Las *seeds* se añadirán con DEV-010, y la versión definitiva de esta sección es de DEV-037.
+> **Borrador de DEV-001, ampliado en DEV-002, DEV-003 y DEV-004.** Cubre el arranque local del andamiaje técnico, las migraciones de Prisma, la configuración segura del backend y el secreto de la sesión. Las *seeds* se añadirán con DEV-010, y la versión definitiva de esta sección es de DEV-037.
 
 #### Requisitos previos
 
@@ -289,7 +288,7 @@ npm run db:migrate                       # aplica las migraciones versionadas (p
 npm run dev                              # backend en :3000 y Vite en :5173
 ```
 
-Si ya tenías un `backend/.env` de DEV-001 o DEV-002, compáralo con `backend/.env.example`: hacen falta `TEST_DATABASE_URL` (DEV-002) y `NODE_ENV` (obligatoria desde DEV-003; `APP_ORIGIN` tiene valor por defecto en desarrollo).
+Si ya tenías un `backend/.env` de DEV-001 o DEV-002, compáralo con `backend/.env.example`: hacen falta `TEST_DATABASE_URL` (DEV-002) y `NODE_ENV` (obligatoria desde DEV-003; `APP_ORIGIN` tiene valor por defecto en desarrollo). `JWT_SECRET` (DEV-004) es opcional en desarrollo y obligatoria en producción.
 
 Para probar la SPA tal como se servirá en producción (mismo origen, con la CSP de `helmet`), compila con `npm run build` y arranca el backend compilado con `APP_ORIGIN=http://localhost:3000 npm run start --workspace backend`: Express sirve `frontend/dist` en `http://localhost:3000`. `APP_ORIGIN` debe ser ese origen para que la comprobación CSRF acepte las peticiones de la SPA.
 
@@ -301,12 +300,13 @@ Abre `http://localhost:5173`. La vista técnica *System status* llama a `GET /ap
 |---------|----------|-------------------|-------------|
 | `backend/.env` | `NODE_ENV` | — | **Obligatoria:** `development`, `test` o `production`. Sin ella, o con otro valor, el backend no arranca. Los scripts `dev`, `test` y `test:integration` la fijan |
 | `backend/.env` | `APP_ORIGIN` | `http://localhost:5173` solo en `development`/`test` | Origen exacto de la SPA para la comprobación CSRF. **Obligatoria en `production`**, con `https` y sin ruta, *query*, fragmento ni credenciales |
+| `backend/.env` | `JWT_SECRET` | Un valor fijo y público, solo en `development`/`test` | Secreto HS256 de los JWT de sesión (DEV-004). **Obligatoria en `production`:** al menos 32 bytes, sin espacios alrededor, con variedad de caracteres y distinta del valor de desarrollo o de un ejemplo (`change-me`, `example`…); si no, el backend no arranca. Genérala con `openssl rand -base64 48` y no la versiones. Nunca se imprime ni se registra |
 | `backend/.env` | `PORT` | `3000` | Puerto del backend |
 | `backend/.env` | `DATABASE_URL` | `postgres://calicoach:calicoach@localhost:5432/calicoach` | **Obligatoria.** Sin ella, el backend se niega a arrancar con un mensaje explícito. También es la base sobre la que actúan los comandos `db:*` |
 | `backend/.env` | `TEST_DATABASE_URL` | `postgres://calicoach:calicoach@localhost:5432/calicoach_test` | **Obligatoria para `test:integration`.** Base desechable: su nombre debe terminar en `_test` y ser distinta de `DATABASE_URL`, o las pruebas se niegan a ejecutarse. Las pruebas la crean si no existe y le aplican las migraciones |
 | `frontend/.env` (opcional) | `VITE_API_PROXY_TARGET` | `http://localhost:3000` | Destino del *proxy* `/api` de Vite |
 
-La cookie de sesión no se configura con variables: es `session` sin `Secure` en `development`/`test` y `__Host-session` con `Secure` en `production` (sección 4). La emitirá DEV-004.
+La cookie de sesión no se configura con variables: es `session` sin `Secure` en `development`/`test` y `__Host-session` con `Secure` en `production` (sección 4). DEV-004 la emite al registrarse o iniciar sesión.
 
 Solo se versionan los `.env.example`. Los `.env` están en `.gitignore`. Las credenciales de `docker-compose.yml` y de la CI son de desarrollo y no son secretos.
 
@@ -336,10 +336,10 @@ El esquema está en `backend/prisma/schema.prisma` y las migraciones en `backend
 
 #### Limitaciones conocidas
 
-- Solo existe la tabla `users` (DEV-002). No hay *seeds*, autenticación ni funcionalidades de negocio. La única ruta es `GET /api/health`.
-- Prisma 7 lee como `[]` un `users.available_weekdays` que en PostgreSQL es `NULL`. Los repositorios de DEV-004 y DEV-005 deberán convertirlo en `null` (3.2).
+- Solo existe la tabla `users` (DEV-002) y no hay *seeds*. Las rutas son `GET /api/health` y las de autenticación (`POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` y `POST /api/auth/logout`, DEV-004). No hay interfaz de acceso (DEV-007) ni otras funcionalidades de negocio.
+- Prisma 7 lee como `[]` un `users.available_weekdays` que en PostgreSQL es `NULL`. El repositorio de autenticación (DEV-004) lo convierte en `null`; el de perfil (DEV-005) deberá hacerlo también (3.2).
 - El `package.json` raíz fuerza `effect` 3.22.1 (*override*) para corregir la vulnerabilidad GHSA-7589-6fvf-x4pw del CLI de Prisma 7.10.1 (2.6).
-- El backend sirve el *build* de la SPA y aplica `helmet`, CSRF, las reglas de cuerpo y el formato de errores (DEV-003), pero aún no hay autenticación ni límite de peticiones (DEV-004), ni `trust proxy` (DEV-036).
+- El backend sirve el *build* de la SPA y aplica `helmet`, CSRF, las reglas de cuerpo y el formato de errores (DEV-003), y la autenticación con límite de peticiones (DEV-004). Sin `trust proxy` (DEV-036), el límite usa la IP del socket y guarda los contadores en memoria: no sirve detrás de un *proxy* ni con varias instancias, y se reinicia con el proceso.
 - La vista de diagnóstico es técnica, en inglés y sin i18n ni *tokens* de diseño (DEV-038 y DEV-039 la migrarán o retirarán).
 - `npm run dev` lanza los dos procesos con la shell (`&`), así que está pensado para Linux y macOS. En Windows, arranca cada aplicación por separado.
 - Los scripts del backend `dev`, `test` y `test:integration` fijan el entorno con la sintaxis `NODE_ENV=… comando`, que también es de Linux y macOS. En Windows no funcionan desde `cmd` ni PowerShell; hay que usar WSL o una shell POSIX como Git Bash. No se ha añadido `cross-env` (decisión de la revisión de DEV-003).
@@ -804,7 +804,7 @@ flowchart LR
 
 > Enumera y describe las prácticas de seguridad principales que se han implementado en el proyecto, añadiendo ejemplos si procede
 
-> Son medidas **previstas**. Desde DEV-003 están implementadas las comunes: cabeceras de `helmet` con CSP estricta, protección CSRF, regla de cuerpo y tipo de contenido, validación con Zod, manejador de errores sin trazas, arranque seguro y el servicio de la SPA bajo el mismo origen (ver "Implementación en DEV-003", al final de esta sección). Contraseñas, JWT, límite de peticiones y autorización por usuario llegan con DEV-004 y siguientes.
+> Son medidas **previstas**. Desde DEV-003 están implementadas las comunes: cabeceras de `helmet` con CSP estricta, protección CSRF, regla de cuerpo y tipo de contenido, validación con Zod, manejador de errores sin trazas, arranque seguro y el servicio de la SPA bajo el mismo origen (ver "Implementación en DEV-003", al final de esta sección). Desde DEV-004 lo están también las contraseñas (Argon2id), el JWT en cookie con revocación por `token_version` y el límite de peticiones de `register` y `login` (ver "Implementación en DEV-004"). La autorización por propietario llega con los tickets de cada recurso.
 
 | Área | Medida [Propuesta] |
 |------|--------------------|
@@ -866,7 +866,7 @@ Las cookies viajan solas en cada petición, así que cualquier operación que mo
 
 #### Implementación en DEV-003
 
-- **Orden de los controles** (sección 4): `X-Request-Id` y `helmet` → CSRF en todo `POST`, `PUT`, `PATCH` y `DELETE` bajo `/api` → cuerpo y tipo de contenido por ruta (`jsonBody` o `noBody`) → validación Zod (`validate`) → servicio → `404` en JSON y manejador central de errores. El límite de peticiones y la autenticación se insertarán entre el cuerpo y la validación (DEV-004).
+- **Orden de los controles** (sección 4): `X-Request-Id` y `helmet` → CSRF en todo `POST`, `PUT`, `PATCH` y `DELETE` bajo `/api` → cuerpo y tipo de contenido por ruta (`jsonBody` o `noBody`) → validación Zod (`validate`) → servicio → `404` en JSON y manejador central de errores. Desde DEV-004, el límite de peticiones y la autenticación van entre el cuerpo y la validación.
 - **CSRF:** `Origin` igual a `APP_ORIGIN` (`null` se rechaza); sin `Origin`, `Sec-Fetch-Site: same-origin` o un `Referer` del mismo origen; y siempre `X-CSRF-Protection: 1` (cualquier otro valor también se rechaza) → `403 CSRF_REJECTED`. Se evalúa antes de leer el cuerpo, así que un `Origin` ajeno con JSON mal formado recibe `403`.
 - **Cuerpo:** las operaciones con cuerpo exigen `application/json` (→ `415`), JSON válido (→ `400 MALFORMED_JSON`) y como máximo **16 KB** (→ `413 PAYLOAD_TOO_LARGE`). Las operaciones sin cuerpo no exigen `Content-Type` y rechazan cualquier cuerpo no vacío, incluido `{}` o uno por fragmentos (→ `400 VALIDATION_ERROR`).
 - **Errores:** `{ error: { code, message, details?, requestId } }` con `Content-Type: application/json`. El `requestId` coincide con la cabecera `X-Request-Id`, un UUID nuevo en cada respuesta que ignora el valor del cliente. Un error no controlado responde `500 INTERNAL_ERROR` sin traza, SQL ni mensaje interno **en ningún entorno**; la causa va al *log* con el `requestId`.
@@ -874,6 +874,20 @@ Las cookies viajan solas en cada petición, así que cualquier operación que mo
 - **Arranque seguro:** `NODE_ENV` obligatorio (`development`, `test` o `production`) y, en `production`, `APP_ORIGIN` con `https`, o el servidor no arranca. La cookie es fija por entorno, sin variables: en `production` siempre es `__Host-session` con `Secure`, así que no se puede relajar.
 - **`Clock`:** se inyecta con `createApp({ clock })` y solo se admite un reloj distinto del del sistema con `NODE_ENV=test`. No hay variables ni endpoints para controlarlo.
 - **SPA:** Express sirve `frontend/dist` si existe. Las rutas `GET` sin extensión de fichero reciben `index.html`; `/api` nunca se intercepta, y un recurso estático inexistente responde `404`. El proyecto E2E `spa-build` lo comprueba con el *build* real en Chromium, sin violaciones de CSP.
+
+#### Implementación en DEV-004
+
+Pendiente de revisión, Pull Request y CI. Decisiones D1–D10 en la sección 6.
+
+- **Rutas** (`src/modules/auth/`): `POST /api/auth/register` y `POST /api/auth/login` pasan por CSRF → `jsonBody` → límite de peticiones → Zod → servicio; `GET /api/auth/me` por `requireAuth`; `POST /api/auth/logout` por CSRF → `noBody` → servicio. Todas responden con `Cache-Control: no-store`.
+- **Contraseñas (D1, D2):** Argon2id con la librería `argon2` (m = 19 456 KiB, t = 2, p = 1). Solo se guarda el *hash* en `password_hash` y la verificación la hace la librería. Con un email inexistente se verifica contra un *hash* de relleno válido, calculado una vez por proceso, para que la respuesta tarde lo mismo. La contraseña tiene de 12 a 128 caracteres (puntos de código), sin reglas de composición y sin recortarla. En el `login` no se aplica el mínimo: una contraseña corta es simplemente incorrecta (`401`).
+- **JWT (D3, D4):** HS256 con `jose`; solo se acepta ese algoritmo (`none`, HS384/HS512 o RS256 → `401`). El payload debe tener exactamente `sub` (uuid), `ver` (entero ≥ 0), `iat` y `exp`, con `exp − iat` ≤ 7 días e `iat` no futuro. `iat`, `exp` y la comprobación de caducidad usan el `Clock` inyectado. `requireAuth` carga el usuario y compara `ver` con `token_version`. El secreto es `JWT_SECRET` (1.4).
+- **Cookie (D5, D10):** se lee con `parseCookie` y se escribe con `stringifySetCookie` de la librería `cookie`. Solo cuenta la cookie del entorno: en `production`, `__Host-session` (una cookie `session` se ignora). Siempre `HttpOnly; SameSite=Lax; Path=/`, sin `Domain` y con `Max-Age=604800`; `Secure` en `production`. `logout` la borra con los mismos atributos y `Max-Age=0`. `register` y `login` sustituyen la cookie anterior sin tenerla en cuenta. El JWT nunca va en el cuerpo ni en la URL, y no se aceptan identidades de la *query*, de `Authorization` ni de otras cabeceras.
+- **Revocación:** `logout` con una sesión válida ejecuta un único `UPDATE … SET token_version = token_version + 1 WHERE id = … AND token_version = <ver del token>` (`updateMany` de Prisma). Así varias peticiones simultáneas lo incrementan una sola vez, y todas las sesiones anteriores del usuario quedan revocadas en todos los dispositivos. Sin sesión válida responde `204` sin tocar la base de datos.
+- **Límite de peticiones (D6):** `express-rate-limit` en memoria, un contador por endpoint y por `createApp`: `login` 10 peticiones cada 15 minutos y `register` 5 cada hora, por IP del socket (sin `trust proxy` ni `X-Forwarded-For`). Cuenta todos los intentos que superan el CSRF y la lectura del cuerpo, también los correctos y los que fallan la validación. No cuenta los rechazados antes, en los pasos 2 y 3 del orden de la sección 4. Al superarlo → `429 RATE_LIMITED` con `Retry-After`. El reloj del limitador es el del sistema, no el `Clock`.
+- **Zona horaria (D7):** se acepta un identificador con forma IANA reconocido por `Intl.DateTimeFormat`, incluido `UTC`, y se guarda tal como llega. Se rechazan los desfases (`+01:00`, `-05:00`, `UTC+1`): `Intl` los acepta, pero PostgreSQL los interpreta con el signo invertido (convención POSIX), así que "hoy" saldría con horas de diferencia. Se comprobó que `Intl` y PostgreSQL resuelven igual los nombres IANA, también en minúsculas o en desuso (`Asia/Calcutta`, `Etc/GMT+5`).
+- **Errores y *logs*:** el `401` de `login` es idéntico para un email inexistente y una contraseña incorrecta (D9), y solo cambia `requestId`. El repositorio sustituye cualquier error de Prisma por `UserRepositoryError`, con la operación y el código de Prisma, sin el mensaje original ni la causa, porque podrían contener el email o el *hash*. Una violación de unicidad (`P2002`) → `409 EMAIL_ALREADY_REGISTERED`. Ni las contraseñas, ni los *hashes*, ni los JWT, ni el secreto aparecen en respuestas o *logs*.
+- **Persistencia:** Prisma sobre el pool compartido (`createPrisma`). El registro no escribe `available_weekdays`, que queda `NULL`, y el repositorio devuelve `null` cuando Prisma lee `[]`. Sin cambios en el esquema, las migraciones ni las restricciones.
 
 ### **2.6. Tests**
 
@@ -926,6 +940,29 @@ Otras comprobaciones locales de DEV-003:
 - **Regresión:** *lint*, tipos y *build* sin errores; componentes del frontend 5/5; integración con PostgreSQL 36/36 (DEV-001 y DEV-002) en `calicoach_test`, con la base de desarrollo sin tocar; *smoke* E2E de DEV-001 1/1. El E2E completo (6/6) se ejecutó con `CI=1` y los servidores arrancados desde cero.
 - **Arranque seguro con el servidor compilado:** sin `NODE_ENV`, con `NODE_ENV=staging`, en producción sin `APP_ORIGIN` o con `APP_ORIGIN` `http`, el proceso termina con código 1 y un mensaje explícito. Con una configuración de producción válida arranca, y las antiguas variables de la cookie no tienen ningún efecto.
 - **Dependencias:** `helmet` 8.3.0 (nueva) y `zod` 4.6.7 (ya estaba en el *lockfile* como dependencia transitiva), con versión exacta. Ninguna otra versión del *lockfile* cambia, `effect` sigue en 3.22.1 y `npm audit --audit-level=high` informa de 0 vulnerabilidades.
+
+**Pruebas de DEV-004 y resultados** (ejecución **local** del 2026-11-27, Node 24.13.0 y PostgreSQL 17.12 en Docker). **Pendiente de verificar en GitHub Actions** con el PR. Las unitarias no necesitan PostgreSQL; las de integración usan la app real con Prisma sobre `calicoach_test`:
+
+| Suite | Archivo | Qué comprueba | Resultado local |
+|-------|---------|---------------|-----------------|
+| Configuración | `src/shared/config.test.ts` | Las 27 de DEV-001 y DEV-003 y 15 nuevas sobre `JWT_SECRET`: valor de desarrollo por defecto; mínimo de 32 bytes (bytes, no caracteres); en producción, rechazo si falta, es corto, tiene espacios alrededor, es el de desarrollo, un ejemplo o un valor repetitivo; el mensaje nunca incluye el secreto | 42/42 |
+| Esquemas | `src/modules/auth/auth.schemas.test.ts` | Email normalizado, con formato, ASCII y de 254 caracteres como máximo; contraseña de 11, 12, 128 y 129 caracteres (también con emojis), sin recortar ni reglas de composición; zonas IANA aceptadas (incluidas `UTC` y `Etc/GMT+5`) y guardadas tal cual; desfases (`+01:00`, `-05:00`, `UTC+1`…) y zonas desconocidas rechazados; campos desconocidos, ausentes o de otro tipo; `login` sin mínimo de longitud | 45/45 |
+| JWT | `src/modules/auth/auth.token.test.ts` | Cabecera y claims exactos, 7 días; caducado con el reloj inyectado; `alg: none`, HS384, HS512 y RS256; payload o firma alterados y otro secreto; claims ausentes, de otro tipo, de más, emitido en el futuro o con más de 7 días; tokens mal formados | 21/21 |
+| Contraseñas | `src/modules/auth/auth.password.test.ts` | Formato `$argon2id$v=19$m=19456,t=2,p=1$`, sal aleatoria, verificación correcta e incorrecta y *hash* de relleno | 3/3 |
+| Servicio | `src/modules/auth/auth.service.test.ts` | Con dobles en memoria: el *hash* llega al repositorio; `409`; mismo `401` con verificación de relleno para el email inexistente; revocación por `ver`; `logout` sin token válido no toca el repositorio | 6/6 |
+| Saneamiento | `src/modules/auth/auth.repository.test.ts` | Un error de Prisma que contiene el email y el *hash* se sustituye en las cuatro operaciones por `UserRepositoryError`, sin causa; solo `P2002` en `create` → email duplicado | 6/6 |
+| Cookie | `src/shared/http/session-cookie.test.ts` | API-10: atributos exactos en producción y en desarrollo; borrado con `Max-Age=0`; lectura solo de la cookie del entorno | 5/5 |
+| Registro | `tests/integration/auth.register.test.ts` | HU-04: `201` con el usuario, la cookie y la zona del navegador; *hash* Argon2id, `available_weekdays` `NULL` y `token_version` 0 en la fila; email normalizado; zonas guardadas tal cual; `409` (también con otras mayúsculas) sin fila ni cookie; 5 registros simultáneos → un `201` y cuatro `409`, una fila; `400` por campo sin crear nada; 12 y 128 caracteres; `415` | 19/19 |
+| Sesión | `tests/integration/auth.session.test.ts` | HU-05 y API-07: `login` correcto, email normalizado, el mismo `401` sin cookie, `400` y sustitución de la cookie (D10); `me` sin escrituras, `401` sin cookie o con otra, sin aceptar identidades fuera de la cookie; API-08 por HTTP (caducado con el `Clock`, `none`, HS512, alterado, usuario inexistente); API-09: `logout` revoca dos dispositivos; idempotencia; `logout` y `me` simultáneos; API-43 (parte de `logout`) | 18/18 |
+| Seguridad | `tests/integration/auth.security.test.ts` | API-06 y CSRF en `register`, `login` y `logout` (5 variantes cada uno, sin cookie ni efectos); API-11 en los dos limitadores, con `Retry-After`, contadores independientes, `X-Forwarded-For` ignorado, orden respecto al cuerpo y contadores por instancia; API-10 por HTTP en producción; sin credenciales en los *logs* de un flujo completo ni en los de un fallo de la base de datos | 24/24 |
+| Repositorio | `tests/integration/auth.repository.test.ts` | `NULL` → `null` y días configurados sin cambios; sin `passwordHash` en la sesión; `users_email_key` → email duplicado; incremento condicionado de `token_version`, también con 8 revocaciones simultáneas | 7/7 |
+| Regresión | El resto de suites | DEV-001, DEV-002 y DEV-003 sin cambios en las aserciones: solo reciben `jwtSecret` y un repositorio que falla si se usa | 67/67, 4/4, 2/2 y 36/36 |
+
+Otras comprobaciones locales de DEV-004:
+- **Totales:** `npm test` 201/201 del backend (101 nuevas) y 5/5 del frontend; `npm run test:integration` 104/104 (68 nuevas) en `calicoach_test`, con la base de desarrollo sin tocar (0 tablas); `npm run test:e2e` 6/6 con `CI=1`. `npm ci`, *lint*, tipos, *build* y `git diff --check`, sin errores.
+- **Pruebas de mutación manuales:** se quitaron de forma temporal, uno a uno, la condición de `token_version` del `UPDATE`, la restricción de algoritmo de `jose`, `HttpOnly`, el orden del limitador, la conversión `[]` → `null`, el saneamiento de errores y la verificación de relleno. Las pruebas detectaron cada cambio. La primera prueba de concurrencia de `logout` por HTTP no detectaba la falta de la condición, así que se añadió una prueba determinista del repositorio; la de los *logs* con la base caída no detectaba la falta de saneamiento, así que se añadió la prueba unitaria con un error que contiene el email y el *hash*.
+- **Arranque seguro con el servidor compilado:** en producción, sin `JWT_SECRET`, con el valor de desarrollo, con uno corto o con un ejemplo, el proceso termina con código 1 y un mensaje que no incluye el valor; con un secreto aleatorio de 48 bytes arranca.
+- **Dependencias:** `argon2` 0.45.2, `jose` 6.2.17, `express-rate-limit` 8.7.4 y `cookie` 2.0.2, con versión exacta y publicadas hace más de dos semanas. `argon2` es nativo, con binarios precompilados, y trae como dependencias de producción `@phc/format`, `node-addon-api`, `node-gyp-build` y `cross-env` (de ahí que `cross-spawn` y las suyas dejen de ser solo de desarrollo en el *lockfile*). Ninguna versión existente cambia, `effect` sigue en 3.22.1 (`npm ls` lo sigue marcando `invalid`, ver arriba) y `npm audit --audit-level=high` informa de 0 vulnerabilidades.
 
 
 | Nivel | Herramienta | Qué se prueba | Casos clave |
@@ -1539,7 +1576,7 @@ Todas están **[Confirmada]** (registro DP-01 a DP-17 en 1.2). **Ninguna exige c
 
 > Si tu backend se comunica a través de API, describe los endpoints principales (máximo 3) en formato OpenAPI. Opcionalmente puedes añadir un ejemplo de petición y de respuesta para mayor claridad
 
-> **Estado de esta sección:** describe el **contrato REST propuesto** para el MVP. Ningún endpoint de negocio está implementado. Solo existe el endpoint técnico `GET /api/health` (DEV-001). Desde DEV-003 están implementadas las convenciones comunes: orden de los controles, CSRF, cuerpo y tipo de contenido, validación Zod, `404` en JSON y formato de errores con `requestId` (2.5, "Implementación en DEV-003"). Etiquetas, como en las secciones 2 y 3:
+> **Estado de esta sección:** describe el **contrato REST propuesto** para el MVP. Además del endpoint técnico `GET /api/health` (DEV-001), DEV-004 implementa los cuatro de autenticación (`register`, `login`, `me` y `logout`), pendientes de revisión, PR y CI; ningún otro endpoint de negocio existe todavía. Desde DEV-003 están implementadas las convenciones comunes: orden de los controles, CSRF, cuerpo y tipo de contenido, validación Zod, `404` en JSON y formato de errores con `requestId` (2.5, "Implementación en DEV-003"). Etiquetas, como en las secciones 2 y 3:
 > - **[Confirmada]:** reglas de producto.
 > - **[Propuesta]:** rutas, formatos y códigos HTTP. Es el valor por defecto de toda la sección.
 > - **[Pendiente]:** necesita una decisión del Product Owner.
@@ -1627,7 +1664,7 @@ No hay rutas de escritura del catálogo ni de administración (2.5). Tampoco hay
    - **Operaciones sin cuerpo** (`POST /api/auth/logout`, `POST /api/sessions/{id}/complete` y `DELETE /api/sessions/{id}/sets/{setId}`): **no** se exige `Content-Type`. Si llega un cuerpo no vacío → `400 VALIDATION_ERROR`, sea cual sea su tipo.
 
    Así no hace falta enviar un `{}` artificial, y la protección sigue siendo la del paso 2: una página de otro sitio puede enviar un `POST` sin cuerpo con un formulario, pero sin `X-CSRF-Protection` y con un `Origin` ajeno o `null`.
-4. **Límite de peticiones** (`express-rate-limit`) en `register` y `login`: si se supera → `429` con `Retry-After`. Los umbrales concretos se fijarán al implementar.
+4. **Límite de peticiones** (`express-rate-limit`) en `register` y `login`: si se supera → `429` con `Retry-After`. Umbrales de DEV-004: `login` 10 peticiones cada 15 minutos y `register` 5 cada hora, por IP (2.5, "Implementación en DEV-004").
 5. **Autenticación:** sin cookie, JWT inválido, caducado, con otro algoritmo o con `ver` antiguo → `401`.
 6. **Validación** con Zod de parámetros, *query* y cuerpo → `400`.
 7. **Servicio:** reglas de negocio y transacciones (`404`, `409`, `422`, `503`).
@@ -1660,8 +1697,8 @@ Los dos perfiles se complementan: el de desarrollo cubre los flujos y el control
 
 **Validación de entradas** (Zod, en modo estricto: los campos desconocidos → `400`):
 - Email con formato válido, normalizado con `trim` y minúsculas antes de buscarlo o guardarlo, tal como lo exige el `CHECK` de 3.2.
-- Contraseña con longitud mínima (2.5); el valor exacto se fijará al implementar.
-- `timezone`: debe ser una zona IANA aceptada por `Intl.DateTimeFormat`.
+- Contraseña de 12 a 128 caracteres, sin reglas de composición ni recortes (DEV-004, D2). En `login` solo se aplica el máximo.
+- `timezone`: debe ser una zona IANA aceptada por `Intl.DateTimeFormat`, incluida `UTC`. Se rechazan los desfases como `+01:00` o `-05:00`, que no son zonas IANA y que PostgreSQL interpretaría con el signo invertido (DEV-004, D7).
 - `availableWeekdays`: de 2 a 6 enteros **distintos** entre 0 y 6.
 - Identificadores de ruta: formato `uuid`; si no lo tienen → `400`.
 - `setNumber`, `reps` y `durationSeconds`: enteros dentro del rango de `smallint`, con los mínimos de 3.2.
@@ -1721,6 +1758,8 @@ Todas las respuestas de error usan la misma estructura:
 - **Desde DEV-003:** todas sus respuestas llevan `X-Request-Id` y las cabeceras de `helmet`, y el `503` incluye `requestId` con el mismo valor.
 
 #### Autenticación
+
+> **Implementado en DEV-004** (los cuatro endpoints de este apartado), pendiente de revisión, PR y CI. Detalle en 2.5, "Implementación en DEV-004".
 
 **`POST /api/auth/register`**
 - **Propósito:** crear una cuenta (F1) e iniciar sesión en la misma respuesta.
@@ -2382,7 +2421,7 @@ Si se reenvía la misma petición, la respuesta es `409`:
 | Reconciliación dentro de `GET` | [Propuesta]: compromiso del MVP | Se mantiene, documentada y acotada (2.2). Las alternativas sin escrituras en `GET` (estado derivado al leer, `POST /api/sessions/reconcile`, tarea obligatoria) quedan [Pendiente] y no se añaden al contrato. |
 | Operaciones sin cuerpo | [Propuesta] | Sin `Content-Type` obligatorio. Cualquier cuerpo → `400`. CSRF completo. |
 | `Idempotency-Key` | No se incluye | Requeriría una tabla nueva: pendiente para el modelo de datos si se necesita. |
-| Umbrales del límite de peticiones, longitud mínima de la contraseña y tamaño máximo del cuerpo | [Propuesta] | Se fijarán al implementar. |
+| Umbrales del límite de peticiones, longitud mínima de la contraseña y tamaño máximo del cuerpo | [Propuesta]: fijados al implementar | Cuerpo: 16 KB (DEV-003). Contraseña: de 12 a 128 caracteres. Límite: 10 `login` cada 15 minutos y 5 `register` cada hora, por IP (DEV-004). |
 
 #### Riesgos e inconsistencias detectadas respecto a las secciones 1–3
 
@@ -2776,7 +2815,7 @@ Se aplican a **todas** las historias del backlog. No se repiten en cada una:
   - registro desde otro origen → `403`;
   - superar el límite de peticiones → `429` con un mensaje de espera.
 - **Pendiente:**
-  - la longitud mínima de la contraseña se fijará al implementar (2.5);
+  - ~~la longitud mínima de la contraseña se fijará al implementar (2.5)~~ **Resuelto en DEV-004:** de 12 a 128 caracteres;
   - el `409` revela que la cuenta existe: es un riesgo aceptado provisionalmente (sección 4).
 
 **HU-05 — Iniciar sesión, mantenerla y cerrarla**
@@ -3824,7 +3863,18 @@ Cada ticket añade solo lo que le es propio.
   - el `401` de `login` es idéntico para un email inexistente y para una contraseña incorrecta.
 - **Pruebas:** API-07–API-11 y CSRF en `login` y `logout` (API-06, API-43).
 - **Decisión:** la sesión dura 7 días absolutos, sin renovación automática (DP-15).
-- **Pendiente (técnico):** la longitud mínima de la contraseña y bcrypt o argon2.
+- **Pendiente (técnico):** ~~la longitud mínima de la contraseña y bcrypt o argon2~~ resuelto (D1 y D2).
+- **Estado:** **implementado en la rama `feature/dev-004-authentication`, pendiente de revisión, Pull Request y CI.** No está terminado hasta el merge y la CI correspondiente. Verificación local en 2.6. Decisiones técnicas aprobadas por el autor:
+  - D1: Argon2id con la librería `argon2` (m = 19 456 KiB, t = 2, p = 1), verificación con la librería y *hash* de relleno para emails inexistentes;
+  - D2: contraseñas de 12 a 128 caracteres, sin reglas de composición ni recortes, con Zod estricto;
+  - D3: JWT HS256 con `jose`, claims `sub`, `ver`, `iat` y `exp`, 7 días y el `Clock` inyectable;
+  - D4: `JWT_SECRET` obligatorio en producción (32 bytes como mínimo, sin valores de desarrollo ni de ejemplo); valor fijo solo en `development` y `test`;
+  - D5: cookie con la librería `cookie`, con la configuración fija de DEV-003 y `Max-Age=604800`; sin `cookie-parser` ni un *parser* propio;
+  - D6: `express-rate-limit` en memoria: `login` 10 cada 15 minutos y `register` 5 cada hora por IP, contando todos los intentos, con contadores por endpoint y sin `trust proxy`;
+  - D7: zonas IANA reconocidas por `Intl`, incluida `UTC`, guardadas tal cual; desfases rechazados;
+  - D8: módulo `backend/src/modules/auth/` con rutas, controlador, servicio, repositorio y esquemas, reutilizando las primitivas de DEV-003;
+  - D9: el mismo `401 INVALID_CREDENTIALS` (código, mensaje y estructura) para email inexistente y contraseña incorrecta; solo cambia `requestId`;
+  - D10: `register` y `login` sustituyen la cookie anterior sin tenerla en cuenta.
 
 **DEV-005 — API de perfil: disponibilidad y zona horaria**
 - **Incremento:** I1.
@@ -4682,7 +4732,7 @@ Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha ver
   - el borrador de 1.4 con el arranque local (definición de terminado de DEV-001) y el registro de los prompts.
 - **Huecos detectados** (no se corrigen aquí):
   - **[Pendiente de decisión]:** ningún ticket prevé una prueba automatizada que recorra interfaz → API → base de datos antes de DEV-026, al cerrar I4. Para la Entrega 2, las opciones son una demostración manual documentada o adelantar un E2E reducido del registro; cualquiera de las dos cambia el alcance de un ticket y la decide el autor;
-  - el criterio 3 de HU-04 necesita la longitud mínima de la contraseña, una decisión técnica abierta de DEV-004 (1.2);
+  - ~~el criterio 3 de HU-04 necesita la longitud mínima de la contraseña, una decisión técnica abierta de DEV-004 (1.2)~~ resuelto en DEV-004: de 12 a 128 caracteres;
   - el flujo no necesita un despliegue. DEV-036 se puede adelantar, pero no se sabe si la Entrega 2 lo exige (ver la nota de verificación).
 
 **Entrega 3: MVP integrado.** Objetivo: el recorrido principal del usuario con las historias Must implementadas y verificadas.

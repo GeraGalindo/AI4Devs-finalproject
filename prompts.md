@@ -39,6 +39,7 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 | 19 | DEV-001: *scaffolding* técnico, CI y *harness* inicial | Sección 2.4, Prompt 2 | Código nuevo (`backend/`, `frontend/`, `e2e/`, CI y configuración), `CLAUDE.md` (nuevo), `readme.md` (0.3, 1.4, 2.1, 2.3, 2.4, 2.6, 4 y 6) y `prompts.md` |
 | 20 | DEV-002: persistencia de `users` con Prisma 7 | Sección 3, Prompt 3 | Código nuevo (`backend/prisma/`, `prisma.config.ts`, `src/shared/prisma.ts`, pruebas de integración y de soporte), `package.json`, `package-lock.json`, CI, `CLAUDE.md`, `readme.md` (0.3, 1.4, 2, 2.3, 2.4, 2.6, 3.1, 3.2, 6 y 7) y `prompts.md` |
 | 21 | DEV-003: base del backend (configuración segura, *middleware* y errores) | Sección 4, Prompt 3 | Código nuevo (`backend/src/domain/clock.ts`, `backend/src/shared/http/`, pruebas), `backend/src/app.ts`, `server.ts`, `config.ts`, `/api/health`, la vista de diagnóstico (CSS), dependencias, CI, `CLAUDE.md`, `readme.md` (0.3, 1.4, 2.3, 2.5, 2.6, 4, 6 y 7) y `prompts.md` |
+| 22 | DEV-004: autenticación (registro, inicio, sesión actual y cierre) | Sección 5, Prompt 3 | Código nuevo (`backend/src/modules/auth/`, `src/shared/http/session-cookie.ts`, `rate-limit.ts` y `require-auth.ts`, pruebas unitarias y de integración), `backend/src/app.ts`, `server.ts`, `config.ts`, dependencias, `.env.example`, `CLAUDE.md`, `readme.md` (0.3, 1.2, 1.4, 2.5, 2.6, 4, 5 y 6) y `prompts.md` |
 
 **Notas:**
 - **Numeración:** los prompts 01–05 y 11–15 llevan el número que les dio el autor. Los números 06–10 los asignó la IA al documentarlos, siguiendo la secuencia.
@@ -47,6 +48,7 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 - **Prompt 19:** es el primero de implementación. Se registra en 2.4 (Infraestructura y despliegue), cuyo hueco estaba libre, e incluye el prompt de la Fase A y la aprobación de la Fase B, que forman un único encargo.
 - **Prompt 20:** DEV-002 se registra en la sección 3 (Modelo de datos), cuyo hueco del Prompt 3 estaba libre. Incluye el prompt de la Fase A y las dos aprobaciones (antes de B1 y antes de B2), que forman un único encargo.
 - **Prompt 21:** DEV-003 se registra en la sección 4 (Especificación de la API), cuyo hueco del Prompt 3 estaba libre, porque implementa las convenciones comunes del contrato. Incluye el prompt de análisis (que también verificó el merge del PR #6) y la aprobación de la implementación.
+- **Prompt 22:** DEV-004 se registra en la sección 5 (Historias de usuario), cuyo hueco del Prompt 3 estaba libre, porque implementa HU-04 y HU-05 en el backend. Incluye el prompt de análisis (que también verificó el merge del PR #8), el de entrega del análisis y el de implementación.
 
 ---
 
@@ -2633,6 +2635,484 @@ Al finalizar, presenta:
   - no se generó código y no se ejecutaron pruebas.
 
 **Prompt 3:**
+
+*Prompt 22 — DEV-004: autenticación (registro, inicio, sesión actual y cierre)*
+
+- **Herramienta:** Claude Code (modelo `claude-opus-5-5`), en la misma sesión que DEV-001 a DEV-003. Roles indicados por el autor en la implementación: el usuario es el Product Owner; ChatGPT, analista y revisor; Claude Code, desarrollador.
+- **Objetivo:** verificar el cierre de DEV-003 (merge del PR #8, hecho a mano por el autor), analizar DEV-004 sin modificar archivos y, tras la aprobación de D1–D10, implementarlo en una rama y validarlo en local, sin commit, push ni PR.
+- **Archivos afectados:**
+  - **nuevos:**
+    - `backend/src/modules/auth/`: `auth.routes.ts`, `auth.controller.ts`, `auth.service.ts`, `auth.repository.ts`, `auth.schemas.ts`, `auth.password.ts` y `auth.token.ts`, con sus pruebas;
+    - `backend/src/shared/http/`: `session-cookie.ts` (con prueba), `rate-limit.ts` y `require-auth.ts`;
+    - `backend/tests/integration/`: `auth.register.test.ts`, `auth.session.test.ts`, `auth.security.test.ts` y `auth.repository.test.ts`;
+    - `backend/tests/support/`: `auth-app.ts` y `auth-stubs.ts`;
+  - **modificados:**
+    - `backend/src/app.ts`, `server.ts`, `shared/config.ts` (`JWT_SECRET`) y `shared/prisma.ts` (comentario);
+    - las pruebas existentes de contrato, de salud y de configuración, solo por la nueva firma de `createApp` y el secreto de producción de prueba;
+    - `backend/.env.example`, `backend/package.json` y `package-lock.json`;
+    - `CLAUDE.md`, `readme.md` (0.3, 1.2, 1.4, 2.5, 2.6, 4, 5 y 6) y `prompts.md`.
+  - **sin cambios:** el esquema, las migraciones, la CI, el frontend y el E2E.
+
+Texto literal del prompt (cierre de DEV-003 y análisis):
+
+```text
+# Cali Coach — Cierre de DEV-003 y análisis técnico de DEV-004
+
+El Product Owner ha aprobado el merge del PR #8:
+
+https://github.com/GeraGalindo/AI4Devs-finalproject/pull/8
+
+El merge será realizado manualmente en GitHub por el Product Owner.
+
+**No intentes realizar el merge.**
+
+## Fase 1 — Verificación del cierre de DEV-003
+
+Una vez que el PR #8 aparezca como MERGED:
+
+1. Confirma que el PR #8 fue integrado en main.
+2. Verifica que el commit aprobado `90bd46a971e6469fc20b340a5495e021de005cc6` está incluido.
+3. Identifica el merge commit.
+4. Ejecuta git fetch origin y actualiza main local mediante fast-forward.
+5. Confirma que main coincide con origin/main.
+6. Verifica que el árbol de trabajo está limpio.
+7. Espera y comprueba la CI de main posterior al merge.
+8. Confirma que DEV-003 queda completamente cerrado, incluyendo su documentación.
+
+Si el PR no está integrado, hay conflictos, cambios inesperados o falla la CI, detente y consulta.
+
+## Fase 2 — Análisis técnico de DEV-004 (solo lectura)
+
+Después de confirmar el cierre de DEV-003, analiza DEV-004 conforme al backlog, la arquitectura y los contratos existentes.
+
+Investiga:
+
+1. Alcance y criterios de aceptación exactos de DEV-004.
+2. Dependencias con DEV-002 y DEV-003.
+3. Estado actual del modelo users, Prisma y las migraciones.
+4. Requisitos de registro, login, logout y consulta de sesión, según el alcance real del ticket.
+5. Hashing de contraseñas y almacenamiento seguro.
+6. JWT, cookies HttpOnly, Secure y SameSite.
+7. Protección CSRF para endpoints de autenticación.
+8. Rate limiting y manejo de errores de autenticación.
+9. Validación estricta de entradas con Zod.
+10. Pruebas unitarias, de integración y de contrato necesarias.
+11. Archivos que habría que crear o modificar.
+12. Riesgos de seguridad, regresión y compatibilidad.
+
+Distingue los requisitos explícitos del contrato de las propuestas técnicas nuevas. No amplíes el alcance del ticket sin aprobación.
+
+## Fase 3 — Propuesta de implementación
+
+Prepara:
+
+- Diseño técnico propuesto.
+- Etapas de implementación.
+- Estrategia de pruebas.
+- Decisiones técnicas pendientes de aprobación del Product Owner.
+- Dependencias para conseguir el primer flujo funcional React → Express → PostgreSQL de la Entrega 2.
+
+## Restricciones
+
+- No implementes DEV-004 todavía.
+- No modifiques archivos.
+- No crees ramas, commits ni Pull Requests.
+- No ejecutes migraciones destructivas.
+- No modifiques los Prompts 16–18.
+- Mantén el override de effect.
+
+## Entregable
+
+Presenta:
+
+1. Resultado del merge del PR #8 y CI de main.
+2. Confirmación del cierre de DEV-003.
+3. Informe técnico de DEV-004.
+4. Decisiones que requieren aprobación.
+5. Propuesta de implementación por etapas.
+
+Detente después del análisis y espera mi revisión.
+```
+
+Texto literal del prompt (entrega del análisis, mientras el PR #8 seguía abierto):
+
+```text
+# Cali Coach — DEV-004: entregar análisis técnico
+
+Gracias por la revisión preliminar.
+
+El merge del PR #8 lo realizaré manualmente en GitHub. No necesitas mantener procesos de comprobación en segundo plano.
+
+1. Detén cualquier proceso de vigilancia que hayas iniciado para el PR #8.
+2. No intentes hacer el merge.
+3. No actualices main hasta que te confirme que el PR está integrado.
+
+Mientras tanto, entrega el análisis técnico de DEV-004 que ya has preparado.
+
+Incluye:
+
+- Alcance y criterios de aceptación exactos según README y las historias HU-04/HU-05.
+- Contrato de autenticación y pruebas API aplicables.
+- Diseño propuesto para registro, login, logout y sesión, únicamente donde corresponda al ticket.
+- Hashing, JWT, cookies, CSRF y rate limiting.
+- Integración con Prisma y el modelo users existente.
+- Dependencias y riesgos.
+- Archivos previstos.
+- Propuesta de implementación por etapas.
+- Decisiones técnicas que necesitan aprobación del Product Owner, con alternativas y tu recomendación.
+
+Distingue claramente los requisitos existentes de las decisiones técnicas nuevas.
+
+No implementes nada, no modifiques archivos y no crees ramas ni commits.
+
+Presenta el informe completo y espera mi revisión.
+```
+
+Texto literal del prompt (implementación):
+
+```text
+# Cali Coach — DEV-004: implementación de autenticación
+
+## Contexto y roles
+
+- Product Owner: usuario. Aprueba decisiones y autoriza publicación.
+- Analista y revisor: ChatGPT.
+- Desarrollador: Claude Code.
+
+DEV-001 y DEV-002 están terminados. DEV-003 está implementado en main mediante PR #7 y tiene un PR documental #8 pendiente de confirmación de merge.
+
+Este encargo autoriza implementar DEV-004 en una rama de trabajo, pero NO autoriza commit, push, Pull Request ni merge.
+
+## Fase 0 — Verificar dependencias
+
+Antes de implementar:
+
+1. Comprueba el estado del PR #8.
+2. Si está MERGED, confirma que incluye el commit `90bd46a971e6469fc20b340a5495e021de005cc6`.
+3. Confirma la CI posterior al merge.
+4. Actualiza main local por fast-forward y verifica que coincide con origin/main.
+5. Comprueba que el árbol está limpio.
+6. Revisa el alcance exacto de DEV-004 en readme.md, las historias HU-04/HU-05, la sección 4, los casos API-06–11 y la parte aplicable de API-43.
+7. Revisa CLAUDE.md y las convenciones existentes.
+
+Si PR #8 sigue abierto, la CI falla o existen diferencias inesperadas, detente antes de modificar archivos y presenta el bloqueo. No hagas el merge de PR #8.
+
+## Fase 1 — Crear rama
+
+Desde main actualizado, crea:
+
+`feature/dev-004-authentication`
+
+No modifiques migraciones ni el esquema users.
+
+## Fase 2 — Decisiones técnicas aprobadas
+
+Implementa las siguientes decisiones.
+
+### D1 — Hash de contraseñas
+
+- Usar Argon2id mediante la librería argon2.
+- Parámetros: memoryCost=19456 KiB, timeCost=2, parallelism=1.
+- Guardar únicamente el hash en password_hash.
+- Verificar las contraseñas mediante la librería, sin comparaciones manuales.
+- Para un email inexistente, ejecutar una verificación contra un hash de relleno válido para reducir diferencias temporales.
+- No registrar contraseñas ni hashes en logs.
+
+### D2 — Validación de contraseñas
+
+- Mínimo 12 y máximo 128 caracteres.
+- Sin reglas adicionales de composición.
+- No aplicar trim ni transformar contraseñas.
+- Usar Zod estricto para validar los cuerpos.
+- Errores de validación según el contrato existente.
+
+### D3 — JWT
+
+- Usar jose.
+- Algoritmo exclusivamente HS256.
+- Claims requeridos: sub, ver, iat y exp.
+- Sesión de 7 días, según DP-15.
+- Verificar firma, algoritmo, expiración y estructura de claims.
+- Usar el Clock inyectable de DEV-003 para pruebas deterministas.
+- Nunca devolver el JWT en JSON ni en URLs.
+
+### D4 — JWT_SECRET
+
+- En producción, JWT_SECRET es obligatorio y debe tener al menos 32 bytes de entropía adecuada.
+- Rechazar valores ausentes, cortos, conocidos o de desarrollo en producción.
+- Permitir un valor fijo exclusivamente para desarrollo local y pruebas.
+- No imprimir ni registrar el secreto.
+- Documentar la configuración en .env.example sin incluir secretos reales.
+- Si no puede garantizarse que el secreto sea seguro, fallar al arrancar en producción.
+
+No ampliar esta excepción a staging ni a otros entornos compartidos.
+
+### D5 — Cookie de sesión
+
+- Usar la librería cookie.
+- Mantener la configuración fija de DEV-003:
+  - production: __Host-session, HttpOnly, Secure, SameSite=Lax, Path=/, sin Domain.
+  - development/test: session, sin Secure.
+- Max-Age=604800 segundos.
+- La cookie se emite únicamente después de autenticación correcta.
+- Logout elimina la cookie con atributos compatibles.
+- No utilizar cookie-parser ni crear un parser propio.
+
+### D6 — Rate limiting
+
+Usar express-rate-limit.
+
+- Login: máximo 10 solicitudes por 15 minutos e IP.
+- Registro: máximo 5 solicitudes por hora e IP.
+- Contabilizar todos los intentos, incluidos los exitosos.
+- Mantener contadores independientes por endpoint.
+- Implementar inicialmente en memoria.
+- Devolver 429 RATE_LIMITED y Retry-After.
+- Respetar el orden de middleware establecido en la sección 4.
+- No confiar en X-Forwarded-For ni habilitar trust proxy.
+- No considerar este limitador suficiente para un despliegue con proxy o múltiples instancias.
+
+Si la implementación propuesta altera el orden de controles de seguridad existente, detenerse y solicitar revisión.
+
+### D7 — Timezone
+
+- Aceptar identificadores IANA válidos reconocidos por Intl.DateTimeFormat, incluyendo UTC.
+- Rechazar offsets como +01:00 y -05:00.
+- No normalizar arbitrariamente identificadores IANA válidos.
+- Guardar la zona horaria recibida después de validarla.
+- Documentar y probar el comportamiento.
+
+### D8 — Organización
+
+Crear el módulo backend/src/modules/auth/ con separación de:
+
+- Rutas.
+- Controladores.
+- Servicio.
+- Repositorio.
+- Esquemas Zod.
+
+Reutilizar las primitivas de DEV-003 y mantener la separación entre módulos.
+
+### D9 — Credenciales incorrectas
+
+El login con email inexistente y el login con contraseña incorrecta deben producir:
+
+- HTTP 401.
+- Mismo código INVALID_CREDENTIALS.
+- Mismo mensaje genérico.
+- Misma estructura JSON.
+
+El requestId puede ser diferente.
+
+No revelar si una cuenta existe mediante mensajes específicos de login.
+
+### D10 — Sesión existente
+
+Register y login pueden reemplazar una cookie de sesión existente después de autenticación correcta.
+
+No confiar en la sesión previa para identificar al nuevo usuario.
+
+## Fase 3 — Funcionalidades
+
+### POST /api/auth/register
+
+- Validar email, password y timezone.
+- Normalizar email con trim y minúsculas.
+- Comprobar unicidad mediante PostgreSQL.
+- Crear usuario con password_hash Argon2id.
+- Dejar available_weekdays como NULL.
+- Emitir cookie de sesión.
+- Responder 201 con el usuario público.
+- Responder 409 EMAIL_ALREADY_REGISTERED ante duplicados.
+- Proteger contra CSRF y rate limiting.
+
+Cubrir también registros concurrentes con el mismo email.
+
+### POST /api/auth/login
+
+- Normalizar email.
+- Buscar usuario.
+- Verificar contraseña o hash de relleno.
+- Emitir cookie válida.
+- Responder 200 con usuario público.
+- Devolver 401 genérico para credenciales incorrectas.
+- Aplicar CSRF y rate limiting.
+
+### GET /api/auth/me
+
+- Verificar cookie y JWT.
+- Consultar usuario y comprobar token_version.
+- Responder con usuario público.
+- No modificar updated_at.
+- Responder 401 UNAUTHENTICATED cuando corresponda.
+
+### POST /api/auth/logout
+
+- Exigir las protecciones CSRF y noBody.
+- Si existe una sesión válida, incrementar token_version atómicamente.
+- Invalidar todas las sesiones anteriores del usuario.
+- Eliminar la cookie.
+- Responder 204, también cuando no exista sesión válida.
+- No modificar la base de datos si la cookie es inválida.
+
+Probar solicitudes concurrentes y garantizar que ninguna permite reutilizar una sesión revocada.
+
+### requireAuth
+
+- Leer exclusivamente la cookie de sesión.
+- Validar JWT con jose.
+- Verificar sub, ver, iat y exp.
+- Consultar token_version en PostgreSQL.
+- Establecer la identidad autenticada para los siguientes middlewares.
+- Rechazar cookies manipuladas, caducadas o revocadas.
+
+No aceptar identidades provenientes del cuerpo, parámetros o cabeceras arbitrarias.
+
+## Fase 4 — Salvaguardas
+
+1. Mantener el orden de middleware aprobado en DEV-003.
+2. Preservar el formato {error:{code,message,requestId}}.
+3. No incluir trazas, secretos, contraseñas ni hashes en respuestas o logs.
+4. Aplicar Cache-Control: no-store a las respuestas con información de usuario.
+5. Evitar errores de Prisma que filtren argumentos de consultas.
+6. Convertir available_weekdays=[] de Prisma a null en la respuesta pública, preservando el NULL real en PostgreSQL.
+7. Mantener las salvaguardas de calicoach_test.
+8. No modificar Prisma, migraciones ni restricciones SQL.
+9. Mantener el override de effect.
+10. No implementar frontend, perfil ni endpoints adicionales.
+
+## Fase 5 — Pruebas
+
+Incluir pruebas unitarias, de contrato e integración real con PostgreSQL.
+
+Como mínimo:
+
+- HU-04 y HU-05.
+- API-06 a API-11.
+- Parte aplicable de API-43.
+- Contraseña correcta, incorrecta y usuario inexistente.
+- Registro correcto, duplicado y concurrente.
+- Hash Argon2id persistido.
+- Normalización de email.
+- Zona horaria válida, UTC y offsets rechazados.
+- Contraseña de 11, 12, 128 y 129 caracteres.
+- Campos desconocidos rechazados.
+- JWT válido, caducado, manipulado, alg:none y algoritmo distinto de HS256.
+- Cookie segura en producción.
+- Ausencia de JWT en el cuerpo.
+- GET /me sin escritura.
+- Logout idempotente y revocación en todos los dispositivos.
+- CSRF en login, registro y logout.
+- 429 y Retry-After para ambos limitadores.
+- Sin filtraciones de credenciales en logs.
+- Regresión completa de DEV-001, DEV-002 y DEV-003.
+
+Ejecutar:
+
+- npm ci
+- npm run lint
+- npm run typecheck
+- npm test
+- npm run test:integration
+- npm run build
+- npm run test:e2e
+- npm audit --audit-level=high
+- git diff --check
+
+Verificar además la versión efectiva de effect y la ausencia de cambios en migraciones.
+
+## Fase 6 — Documentación
+
+Actualizar:
+
+- readme.md: estado, diseño, contratos, pruebas y limitaciones de DEV-004.
+- CLAUDE.md: convenciones de autenticación.
+- prompts.md: Prompt 22, con decisiones, implementación, verificaciones y revisión pendiente.
+
+No modificar los Prompts 16–18.
+
+No declarar DEV-004 terminado antes del merge y la CI correspondiente.
+
+## Fase 7 — Informe para revisión
+
+Presenta:
+
+1. Estado de PR #8 y main.
+2. Rama de trabajo y archivos modificados.
+3. Decisiones D1–D10 implementadas.
+4. Resultados de pruebas con cantidades exactas.
+5. Evidencia de los criterios de aceptación.
+6. Riesgos y limitaciones restantes.
+7. Diferencias respecto al diseño aprobado.
+8. Resultado de npm audit y estado del override effect.
+9. Confirmación de que no hay commits, push ni PR.
+
+## Restricciones finales
+
+- No hacer commit.
+- No hacer push.
+- No abrir Pull Request.
+- No hacer merge.
+- No comenzar DEV-005, DEV-006 ni DEV-007.
+- No modificar frontend.
+- No ejecutar migraciones destructivas.
+- No cambiar el contrato sin aprobación.
+
+Detente después de implementar y validar localmente. Espera la revisión del Product Owner antes de publicar.
+```
+
+**Decisiones humanas:**
+- **Antes del análisis:** el autor fusionó a mano el PR #8 (cierre documental de DEV-003) y pidió no intentar el merge. Durante el análisis, el PR seguía abierto. El autor pidió detener la comprobación en segundo plano que la IA había lanzado, no actualizar `main` y entregar el análisis.
+- **Sobre el análisis:** el autor aprobó D1–D10 con estas precisiones:
+  - D2: mínimo de 12 caracteres, la recomendación de la IA;
+  - D4: excepción de desarrollo solo para `development` y `test`, nunca para *staging* ni otros entornos compartidos, y fallo al arrancar si no puede garantizarse un secreto seguro;
+  - D5: sin `cookie-parser` ni un *parser* propio;
+  - D6: contar todos los intentos, incluidos los correctos. La IA había propuesto contar solo los fallidos en `login`.
+- **Condiciones añadidas:**
+  - concurrencia en el registro y en el `logout`;
+  - `Cache-Control: no-store`;
+  - errores de Prisma sin argumentos;
+  - `[]` → `null` preservando el `NULL` real;
+  - no tocar Prisma, las migraciones ni la CI;
+  - detenerse si el orden de los controles cambiaba;
+  - no declarar DEV-004 terminado antes del merge y la CI.
+
+**Resultado generado por la IA:**
+- **Verificación del PR #8:** fusionado por el autor (`bf95b10`, que contiene `90bd46a` sin otros cambios). CI de `main` 45965749772 en verde. `main` actualizada por *fast-forward* y árbol limpio. DEV-003 queda cerrado también en la documentación.
+- **Análisis** (sin modificar archivos):
+  - alcance, criterios y pruebas aplicables;
+  - el modelo `users` ya cubría DEV-004 sin migraciones;
+  - diez decisiones con alternativas y recomendación;
+  - riesgos: *logs* de Prisma con argumentos, coste de argon2, límite por IP sin `trust proxy`, binario nativo y el *override* de `effect`.
+  - Con dos consultas de solo lectura, comprobó que `Intl` acepta `+01:00` y PostgreSQL lo interpreta con el signo invertido, de ahí D7.
+  - Propuso versiones publicadas hace más de dos semanas.
+- **Implementación:**
+  - `JWT_SECRET` en `loadConfig`;
+  - cookie, límite de peticiones y `requireAuth` en `src/shared/http/`;
+  - el módulo `auth`: Argon2id con *hash* de relleno, JWT con `jose` y `Clock`, esquemas Zod, repositorio con Prisma y errores saneados, servicio, controlador y rutas en el orden de la sección 4;
+  - en `createApp`, la nueva dependencia `authRepository`, y `extraApiRoutes(api, { requireAuth })`;
+  - en `server.ts`, Prisma sobre el pool, con cierre ordenado.
+- **Correcciones durante la implementación:**
+  - una prueba del JWT intentaba leer la firma como JSON, y se corrigió la prueba;
+  - ESLint señaló dos variables sin usar en una prueba;
+  - `backend/.env` local no tenía `TEST_DATABASE_URL`: la IA no lo modificó y pasó la variable en la línea de órdenes, con la base `calicoach_test` de `.env.example`;
+  - las pruebas de mutación manuales revelaron dos pruebas débiles (la concurrencia del `logout` por HTTP y los *logs* con la base caída), y se añadieron pruebas deterministas que sí detectan los fallos.
+- **Validación (local, 2026-11-27; detalle en el README, 2.6):**
+  - `npm ci`, `lint`, `typecheck`, `build` y `git diff --check`, sin errores;
+  - `npm test`: 201/201 del backend (101 nuevas) y 5/5 del frontend;
+  - `npm run test:integration`: 104/104 (68 nuevas) en `calicoach_test`, con la base de desarrollo sin tocar;
+  - `npm run test:e2e`: 6/6 con `CI=1`;
+  - `npm audit --audit-level=high`: 0 vulnerabilidades. `effect` 3.22.1;
+  - sin cambios en el esquema, las migraciones, la CI ni el frontend;
+  - el arranque en producción con un `JWT_SECRET` ausente, de desarrollo, corto o de ejemplo termina con código 1;
+  - **la ejecución en GitHub Actions queda pendiente del PR.**
+- **Diferencias respecto al diseño aprobado:**
+  - el límite de peticiones no cuenta las peticiones rechazadas antes de él (CSRF y cuerpo), por el orden de la sección 4. La IA lo documentó y lo probó, porque D6 pide a la vez contar todos los intentos y respetar ese orden;
+  - el limitador usa el reloj del sistema, no el `Clock`;
+  - además de lo pedido, el JWT rechaza un `iat` futuro y una vida de más de 7 días, y la contraseña tiene un máximo de 128 caracteres también en el `login`, sin mínimo.
+
+**Revisión humana:** pendiente. El autor revisará la implementación antes de autorizar el commit, el push y el PR. DEV-004 **no** está terminado: falta la revisión, el PR y la CI.
 
 ---
 
