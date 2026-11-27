@@ -3,10 +3,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "playwright test",
+    "test": "node scripts/prepare-e2e-db.ts && playwright test",
+    "test:unit": "node --test support/*.test.ts",
+    "db:prepare": "node scripts/prepare-e2e-db.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
-    "@playwright/test": "1.65.1"
+    "@playwright/test": "1.65.1",
+    "@types/pg": "8.23.1",
+    "pg": "8.23.1"
   }
 }

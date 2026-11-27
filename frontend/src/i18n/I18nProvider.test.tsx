@@ -69,6 +69,8 @@ describe('I18nProvider', () => {
       }),
     );
     vi.stubGlobal('fetch', fetchFn);
+    // Desde DEV-007, `/` restaura la sesión: la vista de diagnóstico está en `/diagnostics`.
+    window.history.pushState({}, '', '/diagnostics');
     try {
       render(
         <I18nProvider>

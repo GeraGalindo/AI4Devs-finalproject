@@ -44,6 +44,7 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 | 23 | DEV-038 (parcial): base de internacionalización del frontend | Sección 2.3, Prompt 3 | Código nuevo (`frontend/src/i18n/`, `frontend/src/locales/en/`, `frontend/src/test/missing-keys.ts` y pruebas), `frontend/src/main.tsx`, `src/test/setup.ts`, `eslint.config.js`, dependencias, `CLAUDE.md`, `readme.md` (0.3, 2.2, 2.6 y 6), `docs/design-system.md` (8.1 y 8.2) y `prompts.md` |
 | 24 | DEV-039 (parcial): tokens y componentes base del sistema de diseño | **Prompts de implementación de la Entrega 2** | Código nuevo (`frontend/src/shared/styles/` y `frontend/src/shared/ui/`, con sus pruebas), `frontend/src/main.tsx`, `frontend/index.html`, `CLAUDE.md`, `readme.md` (0.3, 2.6 y 6), `docs/design-system.md` (2, 2.1, 2.2 y 3.2) y `prompts.md` |
 | 25 | DEV-006 (parcial): cliente HTTP, sesión y router | **Prompts de implementación de la Entrega 2** | Código nuevo (`frontend/src/shared/api/`, `frontend/src/features/auth/` y `frontend/src/app/AppRoutes.tsx`, con sus pruebas), `frontend/src/app/App.tsx`, dependencias, `CLAUDE.md`, `readme.md` (0.3, 1.2, 1.4, 2.2, 2.6 y 6) y `prompts.md` |
+| 26 | DEV-007 (parcial): registro de extremo a extremo y E2E en cada PR | **Prompts de implementación de la Entrega 2** | Código nuevo (`frontend/src/features/auth/`, `e2e/support/`, `e2e/scripts/` y `e2e/tests/spa-build.signup.spec.ts`, con sus pruebas), rutas, catálogo `auth`, E2E existentes, Playwright, CI, dependencias de `e2e`, `CLAUDE.md`, `readme.md` (0.3, 1.4, 2.4, 2.6 y 6), `docs/design-system.md` (5 y 9) y `prompts.md` |
 
 **Notas:**
 - **Numeración:** los prompts 01–05 y 11–15 llevan el número que les dio el autor. Los números 06–10 los asignó la IA al documentarlos, siguiendo la secuencia.
@@ -56,6 +57,7 @@ Los prompts se registran por la sección del README a la que se refieren, con un
 - **Prompt 23:** DEV-038 (parcial) se registra en 2.3 (estructura del proyecto), cuyo hueco del Prompt 3 estaba libre, porque crea la estructura de internacionalización del frontend (decisión D9). Incluye el prompt que fusionó el PR #10 y analizó el incremento de la Entrega 2, el análisis de DEV-038 y la implementación. Tras este, solo queda libre el hueco 2.4, Prompt 3.
 - **Prompt 24:** DEV-039 (parcial) inaugura la sección «Prompts de implementación de la Entrega 2», antes del Anexo, por decisión del autor (L9): los huecos de tres prompts por sección ya estaban ocupados salvo 2.4, Prompt 3, que no corresponde a este ticket. Incluye el análisis y la implementación.
 - **Prompt 25:** DEV-006 (parcial) se registra después del Prompt 24, en la misma sección (decisión M8). Incluye el análisis y la implementación.
+- **Prompt 26:** DEV-007 (parcial) se registra después del Prompt 25, en la misma sección (decisión T10). Incluye el análisis y la implementación.
 
 ---
 
@@ -5260,6 +5262,537 @@ Detente después del informe y espera mi revisión.
   - el formato de fechas de DEV-038 y TanStack Query, si se adopta.
 
   Pendiente para **DEV-007**: montar el `SessionProvider`, registrar `/signup` y definir `/` con y sin sesión; aplicar M5 (la prueba de CSP abrirá `/diagnostics` y el E2E de registro tolerará solo el `401` de `/api/auth/me`); y ejecutar el E2E de registro automáticamente en la CI de cada PR, lo que exige cambiar el job de E2E (hoy solo corre con `workflow_dispatch` y no aplica migraciones). DEV-007 no se ha empezado.
+
+---
+
+**Prompt 26 — DEV-007 (parcial): registro de extremo a extremo y E2E en cada PR**
+
+- **Herramienta:** Claude Code (modelo `claude-opus-5-5`), en la misma sesión que DEV-001 a DEV-004, DEV-038, DEV-039 y DEV-006. Roles indicados por el autor: el usuario es el Product Owner; ChatGPT, analista y revisor; Claude Code, implementador.
+- **Objetivo:** analizar DEV-007 parcial sin modificar archivos y, tras la aprobación de P1–P6 y T1–T10, implementar el registro de extremo a extremo (React → Express → PostgreSQL → sesión → restauración al recargar) con un E2E real que corre en la CI de cada PR, y validarlo en local, sin commit, push ni PR.
+- **Archivos afectados:**
+  - **nuevos:**
+    - `frontend/src/features/auth/`: `SignUpPage.tsx`, `TimeZoneField.tsx`, `SessionBoundary.tsx`, `SessionStatus.tsx`, `HomeRoute.tsx`, `SignUpRoute.tsx`, `signUpValidation.ts`, `timeZones.ts`, `AuthPage.css` y `TimeZoneField.css`, con las pruebas `SignUpPage.test.tsx`, `signUpValidation.test.ts` y `timeZones.test.ts`;
+    - `e2e/support/`: `e2e-database.ts` (salvaguardas y preparación de `calicoach_e2e`) con `e2e-database.test.ts`, `page-problems.ts` y `db.ts`;
+    - `e2e/scripts/prepare-e2e-db.ts` y `e2e/tests/spa-build.signup.spec.ts`;
+  - **modificados:** `frontend/src/app/AppRoutes.tsx` y su prueba, `frontend/src/features/auth/api.ts` (`register`), `frontend/src/locales/en/auth.json`, `frontend/src/i18n/I18nProvider.test.tsx`, `e2e/playwright.config.ts`, `e2e/tests/diagnostics.smoke.spec.ts`, `e2e/tests/spa-build.csp.spec.ts`, `e2e/package.json`, `e2e/tsconfig.json`, `package.json` (raíz), `package-lock.json`, `.github/workflows/ci.yml`, `CLAUDE.md`, `readme.md`, `docs/design-system.md` y `prompts.md`;
+  - **sin cambios:** el backend, el esquema y las migraciones.
+
+Texto literal del prompt (análisis):
+
+```text
+# Cali Coach — DEV-007 parcial: análisis técnico previo
+
+Actúa como arquitecto y desarrollador de Cali Coach.
+
+Como Product Owner, autorizo exclusivamente el análisis técnico de DEV-007 parcial.
+
+NO autorizo modificar archivos, instalar dependencias, crear ramas, commits, PR ni hacer merge.
+
+## 1. Estado inicial
+
+Confirma:
+
+- main = origin/main = facfad9d372fecf36db355c979cecaf4855ec8e3.
+- Árbol de trabajo limpio.
+- DEV-004 completado.
+- DEV-038 parcial integrado.
+- DEV-039 parcial integrado.
+- DEV-006 parcial integrado y documentado.
+
+Lee:
+
+- CLAUDE.md.
+- readme.md, especialmente DEV-007 y los criterios de Entrega 2.
+- docs/design-system.md.
+- prompts.md, especialmente Prompt 25.
+- Componentes de frontend/src/shared/ui/.
+- Cliente HTTP y SessionProvider.
+- Catálogos i18n.
+- Backend auth y sus contratos.
+- Migraciones de Prisma.
+- Configuración de Playwright y GitHub Actions.
+
+## 2. Objetivo
+
+Diseñar el menor incremento que permita demostrar:
+
+React → Express → PostgreSQL → sesión autenticada → restauración después de recargar.
+
+Incluye:
+
+- S-01: registro.
+- S-03: restauración de sesión.
+- Vista provisional autenticada mostrando el correo del usuario.
+- Mensajes traducidos al inglés.
+- Validación del formulario.
+- Manejo de errores.
+- Pruebas unitarias, integración y E2E.
+
+No incluye:
+
+- Pantalla de login.
+- Pantalla de logout.
+- Perfil completo.
+- Programas de entrenamiento.
+- AppShell o navegación definitiva.
+- Suscripciones.
+- TanStack Query.
+- Cambios de reglas de producto.
+
+## 3. Contratos reales
+
+Inspecciona el código y confirma:
+
+- POST /api/auth/register.
+- GET /api/auth/me.
+- Cookies HttpOnly.
+- Protección CSRF.
+- Validación Zod del backend.
+- Códigos de error.
+- Rate limiting.
+- Respuestas 201, 200 y 401.
+- Forma exacta de PublicUser.
+- Normalización de email.
+- Validación de timezone.
+
+No inventes contratos ni cambies el backend sin aprobación.
+
+## 4. Registro y formulario
+
+Propón:
+
+- Campos necesarios.
+- Validación local compatible con el backend.
+- Uso de Button, Card, TextField e InlineAlert.
+- Prevención de doble clic, Enter repetido y envíos concurrentes.
+- Estados loading, success y error.
+- Tratamiento de 400, 409, 429, 503 y errores de red.
+- Mapeo de invalidFields a mensajes propios de i18n.
+- Protección contra mostrar mensajes técnicos del servidor.
+- Accesibilidad con teclado y lectores de pantalla.
+- Comportamiento a 320 px.
+
+## 5. Zona horaria
+
+La detección inicial debe utilizar:
+
+Intl.DateTimeFormat().resolvedOptions().timeZone
+
+Si falla o devuelve una zona no válida:
+
+- Ofrecer selección manual accesible de una zona IANA válida.
+- No inventar un valor predeterminado.
+- No enviar una zona inválida al backend.
+
+Propón cómo construir y validar la lista de zonas sin introducir dependencias innecesarias.
+
+## 6. Sesión y rutas
+
+Propón:
+
+- Conexión de SessionProvider a la aplicación.
+- /signup.
+- / para usuarios autenticados.
+- / para usuarios no autenticados.
+- Restauración después de recargar.
+- Manejo de unavailable con reintento.
+- Protección contra carreras de sesión.
+- Conservación de /diagnostics sin restauración.
+- Tratamiento del 401 esperado en Playwright sin ocultar errores de consola inesperados.
+
+## 7. i18n y diseño
+
+Identifica:
+
+- Nuevas claves necesarias en auth.json y common.json.
+- Mensajes de validación.
+- Mensajes de errores de API.
+- Etiquetas accesibles.
+- Reutilización de componentes DEV-039.
+- Reglas CSP.
+- Ajustes necesarios para 320 px.
+
+Evita textos literales en JSX.
+
+## 8. E2E real y CI
+
+Diseña un escenario Playwright que:
+
+1. Abra /signup.
+2. Complete el formulario.
+3. Envíe el registro.
+4. Compruebe la respuesta y la sesión.
+5. Compruebe la persistencia en PostgreSQL.
+6. Recargue la página.
+7. Compruebe GET /api/auth/me y la restauración.
+8. Verifique la ausencia de errores inesperados de consola y violaciones CSP.
+
+Condiciones:
+
+- Base E2E aislada, por ejemplo calicoach_e2e.
+- No utilizar calicoach ni calicoach_test.
+- Aplicar migraciones antes de ejecutar el E2E.
+- Añadir salvaguardas contra bases incorrectas.
+- Ejecutar automáticamente el E2E de registro en la CI de cada PR.
+- Mantener los E2E actuales.
+- No introducir credenciales reales ni secretos en el repositorio.
+
+Analiza si es necesario añadir pg como dependencia de desarrollo en e2e.
+
+## 9. Documentación
+
+Propón actualizaciones para:
+
+- readme.md.
+- CLAUDE.md.
+- docs/design-system.md, solo si corresponde.
+- prompts.md, Prompt 26 después del 25.
+
+Mantén DEV-007 como PARCIAL si quedan funcionalidades pendientes del ticket completo.
+
+No alteres los Prompts 16–18.
+
+## 10. Decisiones para el Product Owner
+
+Presenta las decisiones técnicas pendientes con:
+
+- Alternativas.
+- Recomendación.
+- Consecuencias.
+- Riesgos.
+
+Distingue claramente entre decisiones de producto y decisiones técnicas.
+
+## 11. Informe final
+
+Entrega:
+
+A. Estado inicial.
+
+B. Alcance completo de DEV-007 según el README.
+
+C. Alcance parcial recomendado para Entrega 2.
+
+D. Contratos backend verificados.
+
+E. Diseño de formulario y validación.
+
+F. Diseño de sesión y rutas.
+
+G. Estrategia de timezone.
+
+H. i18n, diseño y accesibilidad.
+
+I. Arquitectura E2E y cambios de CI.
+
+J. Archivos previstos.
+
+K. Plan de pruebas.
+
+L. Criterios de aceptación verificables.
+
+M. Riesgos y alternativas.
+
+N. Decisiones que requieren aprobación del Product Owner.
+
+O. Secuencia de implementación.
+
+Solo análisis. No modifiques nada y espera mi aprobación.
+```
+
+Texto literal del prompt (implementación):
+
+```text
+# Cali Coach — DEV-007 parcial: implementación local autorizada
+
+Como Product Owner, apruebo las decisiones P1–P6 y T1–T10 del análisis técnico de DEV-007 parcial, con los ajustes A1–A5 indicados a continuación.
+
+Autorizo implementar localmente el flujo de registro de usuarios de extremo a extremo.
+
+NO autorizo commit, push, Pull Request ni merge.
+
+## Contexto
+
+- Proyecto: Cali Coach.
+- Base esperada de main: facfad9d372fecf36db355c979cecaf4855ec8e3.
+- DEV-004 completado.
+- DEV-038, DEV-039 y DEV-006 integrados como parciales.
+- Objetivo: cumplir la Entrega 2 con una funcionalidad real React → Express → PostgreSQL.
+- Rama propuesta: feature/dev-007-signup-flow.
+
+## Fase 1 — Preparación
+
+1. Confirma que main coincide con origin/main.
+2. Confirma que el árbol está limpio.
+3. Revisa CLAUDE.md, readme.md, docs/design-system.md y Prompt 25.
+4. Verifica los contratos reales de auth y el cliente HTTP.
+5. Crea feature/dev-007-signup-flow desde main.
+
+Si la base ha cambiado de forma incompatible, detente y consulta.
+
+## Fase 2 — Registro
+
+Implementa S-01 con:
+
+- Email.
+- Contraseña.
+- Zona horaria detectada o seleccionada manualmente.
+- Button, Card, TextField e InlineAlert de DEV-039.
+- Textos en inglés desde auth.json.
+- Validación local.
+- Prevención de doble clic, Enter repetido y envíos concurrentes.
+- Estados de carga y error.
+- Foco en el primer campo inválido.
+- Mensajes de error junto al campo.
+- Diseño responsive desde 320 px.
+- Accesibilidad con teclado y lectores de pantalla.
+
+No añadas confirmación de contraseña ni botón para mostrarla.
+
+No implementes login ni logout.
+
+## Fase 3 — Validación
+
+- Email: normalización compatible con backend y máximo 254 caracteres.
+- Contraseña: 12–128 caracteres Unicode según el contrato.
+- Timezone: identificador IANA válido, sin offsets.
+- Backend como autoridad definitiva.
+
+Incluye pruebas de límites, Unicode y casos inválidos.
+
+Si el regex de Zod no puede reproducirse de forma fiable, utiliza una comprobación local conservadora que no rechace emails que el backend aceptaría.
+
+## Fase 4 — Zona horaria
+
+1. Detecta mediante Intl.DateTimeFormat().resolvedOptions().timeZone.
+2. Muestra la zona detectada como información visible.
+3. Si no es válida, ofrece un select nativo accesible.
+4. Obtén las opciones mediante Intl.supportedValuesOf('timeZone') cuando esté disponible.
+5. Añade UTC.
+6. No selecciones una zona por defecto cuando falle la detección.
+7. Si supportedValuesOf no existe, ofrece entrada manual validada.
+8. No envíes zonas inválidas.
+9. Si el backend rechaza timezone, permite corregirla manualmente.
+
+No añadas dependencias.
+
+## Fase 5 — API y sesión
+
+Implementa register() utilizando apiRequest.
+
+Al recibir 201:
+
+- Valida { user }.
+- Actualiza SessionProvider mediante signedIn(user).
+- Navega a / con replace.
+
+Conecta SessionProvider a las rutas que requieren sesión.
+
+Rutas:
+
+- /diagnostics: sin restauración.
+- /: sin sesión → /signup; con sesión → vista provisional.
+- /signup: sin sesión → formulario; con sesión → /.
+- *: redirección a /.
+
+La vista provisional muestra el email del usuario y se documenta como temporal hasta Today (S-06).
+
+Al recargar, GET /api/auth/me debe restaurar la sesión.
+
+El estado unavailable muestra un mensaje traducido y un botón para reintentar.
+
+## Fase 6 — Errores
+
+- 400 VALIDATION_ERROR: invalidFields y mensajes propios de auth.json.
+- 409 EMAIL_ALREADY_REGISTERED: error en email.
+- 429 RATE_LIMITED: mensaje traducido con minutos redondeados hacia arriba.
+- 403, 413, 415, 500 y 503: mensajes traducidos por code.
+- Nunca mostrar error.message ni details.fields[].message del backend.
+
+Después de un error de red o respuesta inválida durante POST /register:
+
+1. Consultar GET /api/auth/me.
+2. Si responde 200, signedIn(user) y navegar a /.
+3. Si responde 401 UNAUTHENTICATED, conservar el formulario y mostrar un error traducido.
+4. Si falla la comprobación, conservar el formulario, mostrar que el resultado es incierto y permitir reintentar la comprobación.
+5. Nunca repetir automáticamente POST /register.
+
+No limpiar el formulario después de un error.
+
+## Fase 7 — E2E y PostgreSQL
+
+Preparar calicoach_e2e como base aislada.
+
+Salvaguardas:
+
+- Nombre terminado en _e2e.
+- Distinta de DATABASE_URL y TEST_DATABASE_URL.
+- Host local.
+- Comprobación de current_database() tras conectar.
+- No tocar calicoach ni calicoach_test.
+- Aplicar migraciones antes de las pruebas.
+- No borrar datos de otras bases.
+- No reutilizar servidores que apunten a una base diferente.
+
+Usa pg y @types/pg en e2e para comprobar persistencia.
+
+Implementa un E2E en spa-build que verifique:
+
+1. / redirige a /signup sin sesión.
+2. Registro con email en mayúsculas.
+3. POST /api/auth/register devuelve 201.
+4. Se recibe cookie HttpOnly.
+5. Se muestra el email normalizado.
+6. PostgreSQL contiene la fila correcta.
+7. El hash es Argon2id y no contiene la contraseña.
+8. Timezone y available_weekdays son correctos.
+9. Al recargar, GET /api/auth/me devuelve 200.
+10. Se mantiene la sesión.
+11. No hay errores inesperados ni violaciones CSP.
+12. No hay desplazamiento horizontal a 320 px.
+13. Los controles interactivos cumplen al menos 44 px.
+
+Añade escenarios de email duplicado y selección manual de timezone.
+
+No fuerces un 429 real con múltiples registros: pruébalo con mocks en RTL.
+
+## Fase 8 — E2E existentes y CI
+
+Adapta los E2E existentes al nuevo enrutamiento:
+
+- Smoke y CSP abren /diagnostics.
+- /today conserva las comprobaciones pertinentes.
+- Los errores HTTP esperados se declaran por escenario.
+- No silenciar globalmente errores de consola.
+- Cualquier error JavaScript, violación CSP o respuesta HTTP inesperada debe fallar.
+
+Actualiza Playwright para utilizar E2E_DATABASE_URL.
+
+Configura el job E2E de GitHub Actions para ejecutarse:
+
+- Automáticamente en cada pull_request.
+- Manualmente mediante workflow_dispatch.
+
+No es necesario duplicarlo en cada push a main.
+
+El job debe crear/preparar calicoach_e2e, aplicar migraciones y ejecutar toda la suite.
+
+## Fase 9 — Pruebas
+
+Incluye pruebas de:
+
+- Validación.
+- Zonas horarias.
+- Componentes.
+- i18n.
+- Doble envío.
+- Errores 400, 409, 429 y 503.
+- Recuperación tras error de red.
+- Rutas y restauración.
+- Salvaguardas de base de datos.
+- E2E real.
+
+Ejecuta:
+
+- npm ci
+- npm run lint
+- npm run typecheck
+- npm test
+- npm run test:integration
+- npm run build
+- npm audit --audit-level=high
+- git diff --check
+- CI=1 npm run test:e2e
+
+Comprueba que calicoach y calicoach_test no se modificaron.
+
+## Fase 10 — Documentación
+
+Actualiza:
+
+- readme.md.
+- CLAUDE.md.
+- docs/design-system.md.
+- prompts.md, Prompt 26 después del 25.
+
+Documenta:
+
+- P1–P6 y T1–T10.
+- Ajustes A1–A5.
+- Registro real y restauración.
+- Base E2E aislada.
+- E2E automático en PR.
+- Vista provisional como excepción temporal.
+- Funcionalidades pendientes de DEV-007.
+
+Mantén DEV-007 como PARCIAL — NO TERMINADO.
+
+No modifiques los Prompts 16–18.
+
+## Fase 11 — Informe
+
+Entrega:
+
+1. Rama y base.
+2. Archivos nuevos y modificados.
+3. Contratos y arquitectura implementados.
+4. Diseño del formulario.
+5. Validación y timezone.
+6. Sesión y rutas.
+7. Errores y recuperación.
+8. E2E y aislamiento de PostgreSQL.
+9. Cambios de CI.
+10. Resultados de pruebas.
+11. Riesgos y limitaciones.
+12. Estado de DEV-007.
+13. Confirmación de que no hiciste commit, push ni PR.
+
+## Restricciones
+
+- No implementar login ni logout.
+- No modificar backend ni migraciones.
+- No añadir TanStack Query.
+- No crear AppShell ni navegación definitiva.
+- No hacer commit, push, PR ni merge.
+- No alterar Prompts 16–18.
+- Detente después del informe y espera mi revisión.
+```
+
+**Decisiones humanas:**
+- **Producto (P1–P6):** vista provisional en `/` con el email, como excepción temporal a `docs/design-system.md` §9 hasta *Today* (S-06); la zona detectada se muestra en el formulario; el `429` indica la espera en minutos; sin confirmación de contraseña ni botón para mostrarla; los textos en inglés se revisan en el diff; DEV-007 sigue parcial (inicio y cierre de sesión pendientes).
+- **Técnicas (T1–T10):** base `calicoach_e2e` con salvaguardas; `pg` y `@types/pg` en `e2e`; E2E en cada PR y con `workflow_dispatch`; el *smoke* y la prueba de CSP abren `/diagnostics`, con las respuestas de error esperadas declaradas por escenario; el E2E de registro en `spa-build`; `<select>` nativo con `Intl` y `UTC` (texto como respaldo); el mismo patrón de email que Zod; comprobar `GET /me` tras un error de red; `/signup` con sesión → `/`; el Prompt 26 tras el 25.
+- **Ajustes de la implementación (A1–A5).** La orden de implementación los citó sin detallarlos; la IA los interpretó primero con otra correspondencia, y en su revisión el autor los definió así:
+  - A1, aislamiento real de `calicoach_e2e`: verificar `current_database()` tras conectar, evitar reutilizar servidores conectados a otra base y fallar claramente si los puertos están ocupados;
+  - A2, límite de peticiones: no provocar un `429` real mediante múltiples registros, probarlo con *mocks* y redondear los minutos de espera hacia arriba;
+  - A3, recuperación tras un error de red: consultar `GET /api/auth/me`; con `200`, restaurar la sesión; con `401`, conservar el formulario; si `/me` falla, mostrar un resultado incierto y permitir repetir únicamente `/me`; nunca reenviar automáticamente `POST /register`;
+  - A4, validación local: mantener el backend como autoridad, probar límites y Unicode y evitar rechazar emails válidos para Zod;
+  - A5, política de E2E: declarar los errores HTTP esperados por método, ruta y estado, no silenciar errores inesperados y comprobar la CSP, los 320 px y los objetivos táctiles de 44 px.
+
+**Resultado generado por la IA:**
+- **Análisis** (sin modificar archivos): contratos verificados en el código, diseño del formulario, de la zona horaria, de la sesión y de las rutas, la arquitectura del E2E con base aislada y los cambios de CI, con seis decisiones de producto y diez técnicas.
+- **Implementación:**
+  - S-01 (`SignUpPage`): `Card`, dos `TextField`, la zona detectada como texto o el `TimeZoneField` manual, `InlineAlert` para el resumen y los errores generales y `Button` en `loading`. `noValidate`, validación local, foco en el primer campo con error y un bloqueo propio (`useRef`) además del de `Button` contra los envíos duplicados;
+  - `signUpValidation.ts` con el patrón de email de Zod 4.6.7 copiado literalmente (comparado con el instalado, para no rechazar emails que Zod acepta: A4) y el recuento de la contraseña en puntos de código; `timeZones.ts` con la misma validación que el backend, la detección y la lista de zonas;
+  - `register()` con `apiRequest`; `SessionBoundary` monta el `SessionProvider` en `/` y `/signup`; `HomeRoute` (vista provisional), `SignUpRoute` y `SessionStatus` (carga y `unavailable` con reintento); `/diagnostics` fuera de la sesión;
+  - E2E: `support/e2e-database.ts` (salvaguardas, `current_database()` y preparación con `prisma migrate deploy`), `scripts/prepare-e2e-db.ts` antes de `playwright test`, `support/page-problems.ts` (respuestas esperadas por escenario, consola, excepciones, CSP, 320 px y 44 px) y el E2E de registro con tres escenarios; el *smoke* y la prueba de CSP pasan a `/diagnostics`;
+  - Playwright usa `E2E_DATABASE_URL` y puertos propios (backend `:3001`, Vite `:5174` y `spa-build` `:3100`) sin reutilizar servidores; la CI ejecuta el E2E en cada PR, prepara `calicoach_e2e` y comprueba que `calicoach` sigue sin tablas.
+- **Correcciones durante la implementación:**
+  - la regla `react-hooks/refs` rechazaba un objeto con las *refs* de los campos: se separaron en variables;
+  - el patrón de Zod tiene escapes `\-` innecesarios para ESLint; se conservó la copia literal con una excepción comentada;
+  - con los tipos de DEV-038, la prueba de rutas necesitó `useTranslation` con sus espacios de nombres; varias pruebas de DEV-006 describían la redirección temporal de `/` y se reescribieron para el comportamiento nuevo, y la prueba de montaje de `App` de DEV-038 abre ahora `/diagnostics`.
+- **Validación (local, 2026-11-27; detalle en el README, 2.6):**
+  - `npm ci`, `lint`, `typecheck`, `build`, `git diff --check`: sin errores;
+  - `npm test`: 201/201 del backend, 270/270 del frontend (90 nuevas) y 12/12 de las salvaguardas de E2E (`node --test`);
+  - `npm run test:integration`: 104/104;
+  - `CI=1 npm run test:e2e`: 13/13 (el *smoke*, 9 de `spa-build.csp` y 3 de registro) sobre `calicoach_e2e`;
+  - `npm audit --audit-level=high`: 0 vulnerabilidades; `pg` y `@types/pg` ya estaban en el *lockfile*;
+  - `calicoach` sigue con 0 tablas y la suma MD5 de `users` en `calicoach_test` es la misma antes y después; la preparación rechaza `calicoach`, `calicoach_test` y un host remoto;
+  - mutación temporal: sin declarar el `401` esperado, el E2E de registro falla con `unexpected HTTP error responses`;
+  - **revisión del autor antes de publicar:** pidió comprobar la implementación contra las definiciones exactas de A1–A5 y la estabilidad del E2E frente al límite de peticiones. La implementación ya las cumplía, y solo cambió la documentación de A1–A5. Para que el presupuesto del limitador quede comprobado, cada escenario de registro cuenta ahora sus `POST /api/auth/register` (1, 1 más el de la API y 1: 4 por ejecución, máximo 5 por hora) y el archivo fija `retries: 0`. Dos ejecuciones seguidas dieron 13/13 sin `429`; con `--repeat-each=2` aparece el `429` a partir del sexto registro, como era de esperar; un puerto ocupado hace fallar Playwright de inmediato;
+  - *build*: JS 329,24 kB (104,70 kB gzip) y CSS 6,61 kB, porque el formulario y los componentes entran por fin en el *build*.
+  - **La ejecución en GitHub Actions queda pendiente del PR.**
+
+**Revisión humana:** pendiente. El autor revisará la implementación antes de autorizar el commit, el push y el PR. DEV-007 **no** está terminado: es parcial por decisión del autor y, además, falta la revisión, el PR y la CI.
 
 ---
 

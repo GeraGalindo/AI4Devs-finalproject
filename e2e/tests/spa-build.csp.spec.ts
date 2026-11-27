@@ -1,15 +1,12 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { watchPage } from '../support/page-problems.ts';
 
 /**
  * DEV-003 (D8 y D9): el build real de la SPA servido por Express, con la CSP estricta de helmet.
- * Las violaciones de CSP se recogen con el evento `securitypolicyviolation` del navegador.
+ * Desde DEV-007, `/` y las rutas desconocidas restauran la sesión (`GET /api/auth/me`, `401`
+ * sin sesión), así que la comprobación completa en el navegador se hace en `/diagnostics` y el
+ * resto de rutas declaran ese `401` como esperado (M5).
  */
-declare global {
-  interface Window {
-    __cspViolations: string[];
-  }
-}
-
 const REQUIRED_DIRECTIVES = [
   "default-src 'self'",
   "script-src 'self'",
@@ -20,55 +17,55 @@ const REQUIRED_DIRECTIVES = [
   "base-uri 'self'",
 ];
 
-async function trackViolations(page: Page): Promise<string[]> {
-  const consoleErrors: string[] = [];
-  page.on('console', (msg) => {
-    if (msg.type() === 'error') consoleErrors.push(msg.text());
-  });
-  page.on('pageerror', (err) => consoleErrors.push(err.message));
-  await page.addInitScript(() => {
-    window.__cspViolations = [];
-    document.addEventListener('securitypolicyviolation', (e) => {
-      window.__cspViolations.push(`${e.violatedDirective} ${e.blockedURI}`);
-    });
-  });
-  return consoleErrors;
-}
+const ME_UNAUTHENTICATED = { method: 'GET', path: '/api/auth/me', status: 401 };
 
-for (const path of ['/', '/today']) {
-  test(`GET ${path} serves the SPA build with the strict CSP and no violations`, async ({ page }) => {
-    const consoleErrors = await trackViolations(page);
-    const assets: { url: string; status: number }[] = [];
-    page.on('response', (res) => {
-      if (new URL(res.url()).pathname.startsWith('/assets/')) assets.push({ url: res.url(), status: res.status() });
-    });
-
-    const response = await page.goto(path);
-    expect(response?.status()).toBe(200);
-    expect(response?.headers()['content-type']).toMatch(/text\/html/);
-
-    const csp = response?.headers()['content-security-policy'] ?? '';
+for (const path of ['/', '/diagnostics', '/today', '/signup']) {
+  test(`GET ${path} returns the SPA build with the strict CSP header`, async ({ request }) => {
+    const response = await request.get(path);
+    expect(response.status()).toBe(200);
+    expect(response.headers()['content-type']).toMatch(/text\/html/);
+    const csp = response.headers()['content-security-policy'] ?? '';
     for (const directive of REQUIRED_DIRECTIVES) expect(csp).toContain(directive);
     expect(csp).not.toContain('unsafe-inline');
     expect(csp).not.toContain('unsafe-eval');
-
-    // La aplicación funciona: llega al backend y a PostgreSQL por el mismo origen.
-    await expect(page.getByTestId('health-status')).toHaveText('All systems operational.');
-    // La hoja de estilos (no estilos en línea) se aplica.
-    await expect(page.locator('main.diagnostics')).toHaveCSS('max-width', '480px');
-
-    expect(assets.some((a) => a.url.endsWith('.js'))).toBe(true);
-    expect(assets.some((a) => a.url.endsWith('.css'))).toBe(true);
-    expect(assets.every((a) => a.status === 200)).toBe(true);
-
-    expect(await page.evaluate(() => window.__cspViolations)).toEqual([]);
-    expect(consoleErrors).toEqual([]);
   });
 }
 
+test('GET /diagnostics runs in the browser with the strict CSP and no violations', async ({ page }) => {
+  const problems = await watchPage(page);
+  const assets: { url: string; status: number }[] = [];
+  page.on('response', (res) => {
+    if (new URL(res.url()).pathname.startsWith('/assets/')) assets.push({ url: res.url(), status: res.status() });
+  });
+
+  await page.goto('/diagnostics');
+
+  // La aplicación funciona: llega al backend y a PostgreSQL por el mismo origen.
+  await expect(page.getByTestId('health-status')).toHaveText('All systems operational.');
+  // La hoja de estilos (no estilos en línea) se aplica.
+  await expect(page.locator('main.diagnostics')).toHaveCSS('max-width', '480px');
+
+  expect(assets.some((a) => a.url.endsWith('.js'))).toBe(true);
+  expect(assets.some((a) => a.url.endsWith('.css'))).toBe(true);
+  expect(assets.every((a) => a.status === 200)).toBe(true);
+  await problems.expectNoUnexpectedProblems();
+});
+
+test('GET /today falls back to the SPA and ends at /signup with only the expected 401', async ({ page }) => {
+  const problems = await watchPage(page, [ME_UNAUTHENTICATED]);
+  await page.goto('/today');
+
+  await expect(page).toHaveURL(/\/signup$/);
+  await expect(page.getByRole('heading', { name: 'Create your account' })).toBeVisible();
+  // Los estilos de los componentes (DEV-039) llegan en la hoja de estilos del build.
+  await expect(page.getByRole('button', { name: 'Create account' })).toHaveCSS('min-height', '44px');
+  expect(problems.responses()).toEqual([ME_UNAUTHENTICATED]);
+  await problems.expectNoUnexpectedProblems();
+});
+
 test('the violation detector works: an inline style is blocked by the CSP', async ({ page }) => {
-  await trackViolations(page);
-  await page.goto('/');
+  await watchPage(page);
+  await page.goto('/diagnostics');
   await page.evaluate(() => {
     const style = document.createElement('style');
     style.textContent = 'body { color: red; }';
