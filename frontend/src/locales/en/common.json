@@ -1,0 +1,9 @@
+{
+  "appName": "Cali Coach",
+  "actions": {
+    "retry": "Try again"
+  },
+  "status": {
+    "loading": "Loading…"
+  }
+}
