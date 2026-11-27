@@ -2253,7 +2253,7 @@ Espera mi revisión y autorización antes de publicar.
   - primera entrega: `npm test` 102/102 del backend y 5/5 del frontend, integración 36/36, E2E 1/1, la SPA con la CSP comprobada a mano en Chromium y el arranque inseguro rechazado en seis casos;
   - tras la revisión (ver "Revisión humana"): `npm test` 100/100 del backend (95 nuevas) y 5/5 del frontend; `npm run test:integration` 36/36 en `calicoach_test`, con la base de desarrollo sin tocar; `npm run test:e2e` 6/6 con `CI=1` (el *smoke* de DEV-001 y 5 pruebas automatizadas de la SPA con la CSP); el arranque inseguro con el servidor compilado termina con código 1 en los cuatro casos que quedan;
   - `npm audit --audit-level=high`: 0 vulnerabilidades;
-  - **la ejecución en GitHub Actions está pendiente del PR.**
+  - **la ejecución en GitHub Actions estaba pendiente del PR** cuando se cerró la implementación. Ahora está en verde: ver la revisión humana.
 
 **Revisión humana:**
 - **Análisis:** el autor aprobó D1–D4 y D6–D11 y aprobó D5 con modificación (sin `CLOCK_FIXED_NOW`), y añadió condiciones de seguridad y de verificación.
@@ -2261,7 +2261,13 @@ Espera mi revisión y autorización antes de publicar.
   - **cookie:** quitar `SESSION_COOKIE_NAME` y `SESSION_COOKIE_SECURE` salvo que el contrato las exigiera. La IA comprobó que la sección 4 fija la cookie solo con `NODE_ENV` y `APP_ORIGIN`, así que no había conflicto; la cookie pasó a ser fija por entorno, y una prueba comprueba que esas variables no relajan la configuración de producción;
   - **CSP:** convertir la comprobación manual en una prueba automatizada. La IA añadió el proyecto Playwright `spa-build`, que compila y sirve el *build* real con Express, sin dependencias nuevas; incluye un control positivo que demuestra que el detector de violaciones funciona;
   - **scripts:** documentar que `NODE_ENV=…` en los scripts es de Linux y macOS, sin añadir `cross-env`.
-- **Implementación (tras los ajustes):** **pendiente** de que el autor revise los resultados y decida sobre el commit, el push y el PR.
+- **Implementación (tras los ajustes):** el autor aprobó la validación final y autorizó el commit (`b8887cd`), el push y el PR #7, y pidió ejecutar el E2E manual sobre la rama del PR.
+- **CI en GitHub Actions** (sección 7 del README):
+  - ejecución `pull_request` 45883952528, en verde: auditoría sin vulnerabilidades altas, lint, tipos, tests 100/100 y 5/5, migraciones, *drift*, salvaguarda, integración 36/36, fila centinela intacta y *build*;
+  - ejecución `workflow_dispatch` 45884075772 sobre el mismo commit `b8887cd`, en verde, con el E2E 6/6 (el *smoke* de DEV-001 y las 5 pruebas de la SPA real con la CSP);
+  - ejecución `push` a `main` 45885000728, en verde, tras el merge.
+- **Aprobación final:** el autor revisó los resultados del PR #7, aprobó DEV-003 y autorizó el merge. Antes del merge se comprobó que el PR apuntaba a `main`, que su último commit seguía siendo `b8887cd`, que las dos ejecuciones habían pasado sobre ese commit y que no había conflictos. El merge se hizo con `--match-head-commit` (`f5b5e56`).
+- **Cierre:** DEV-003 queda **terminado**. Limitaciones conocidas: el E2E, incluida la comprobación de la CSP, solo se ejecuta en CI con `workflow_dispatch`; `spa-build` sirve por http con `NODE_ENV=development`, así que `upgrade-insecure-requests` solo lo cubre la prueba de contrato; y los scripts con `NODE_ENV=…` son de Linux y macOS. Pendiente para **DEV-004**: autenticación, JWT, emisión de la cookie, límite de peticiones y API-06 (*login CSRF*). Pendiente para **DEV-036**: `trust proxy` y el despliegue. El *override* de `effect` se mantiene. DEV-004 no se ha empezado.
 
 ---
 

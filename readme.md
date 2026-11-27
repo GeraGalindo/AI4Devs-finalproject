@@ -911,7 +911,7 @@ Otras comprobaciones locales de DEV-002:
   - **`npm ls` marca `effect` como `invalid`** y termina con código 1, porque compara la versión instalada con la exacta que declara `@prisma/config` (3.20.0) sin aplicar el *override*. Ocurre también en una instalación limpia con *workspaces* (sin ellos, npm muestra `overridden`). Es un problema de cómo npm presenta el árbol: `npm ci`, `npm audit` y las operaciones de Prisma funcionan.
   - **Retirada:** el *override* se eliminará en un ticket de mantenimiento, después de verificar una versión estable de Prisma que incorpore la corrección.
 
-**Pruebas de DEV-003 y resultados** (ejecución **local** del 2026-11-26, Node 24.13.0 y PostgreSQL 17.12 en Docker). **Pendiente de verificar en GitHub Actions** hasta que exista el PR. Las pruebas de la API usan rutas de prueba que solo inyectan los tests (`createApp({ extraApiRoutes })`) y no necesitan PostgreSQL:
+**Pruebas de DEV-003 y resultados** (ejecución **local** del 2026-11-26, Node 24.13.0 y PostgreSQL 17.12 en Docker). **En GitHub Actions** se obtuvieron los mismos resultados en el PR #7 y en `main`, y el E2E completo (6/6, incluidas las 5 pruebas de la SPA real con la CSP) pasó con `workflow_dispatch` sobre el commit del PR (sección 7). Las pruebas de la API usan rutas de prueba que solo inyectan los tests (`createApp({ extraApiRoutes })`) y no necesitan PostgreSQL:
 
 | Suite | Archivo | Qué comprueba | Resultado local |
 |-------|---------|---------------|-----------------|
@@ -3791,7 +3791,7 @@ Cada ticket añade solo lo que le es propio.
   - API-01–API-06 y API-36–API-38 sobre rutas de prueba;
   - unitarias de configuración.
 - **Pendiente:** ninguno.
-- **Estado:** **implementado en local, pendiente de PR** (rama `feature/dev-003-backend-foundation`). Decisiones técnicas aprobadas para este ticket:
+- **Estado:** **terminado.** Fusionado en `main` mediante el PR #7 (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/7), con la CI en verde en el PR, en `workflow_dispatch` (con E2E 6/6) y en `main` (2.6 y sección 7). Decisiones técnicas aprobadas para este ticket:
   - D1: `helmet` 8.3.0 y `zod` 4.6.7, versiones exactas y sujetas a `npm audit`; sin `cors`;
   - D2: `APP_ORIGIN` obligatorio fuera de `development`/`test`, `https` y sin ruta ni credenciales en producción; `http://localhost:5173` por defecto en `development`/`test`;
   - D3: cookie fija por entorno, sin variables para cambiarla: `session` sin `Secure` en `development`/`test` y `__Host-session` con `Secure` en producción; la cookie no se emite todavía (DEV-004). Una primera versión admitía `SESSION_COOKIE_NAME` y `SESSION_COOKIE_SECURE` en desarrollo; el autor pidió quitarlas en la revisión;
@@ -4717,6 +4717,7 @@ Los documentos existen en `main` (Pull Request #1, ya fusionada). **No se ha ver
 | [#4](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/4) | `docs: record DEV-001 closure and pull request history` | Documentación (cierre de DEV-001) | `docs/dev-001-closure` → `main` | 2026-11-22 | `bdc273a` | En verde |
 | [#5](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/5) | `feat: add users persistence with Prisma 7 (DEV-002)` | Implementación (Entrega 2) | `feature/dev-002-users-persistence` → `main` | 2026-11-26 | `44e228f` | En verde |
 | [#6](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/6) | `docs: record DEV-002 closure and PR #5 evidence` | Documentación (cierre de DEV-002) | `docs/dev-002-closure` → `main` | 2026-11-26 | `fc95091` | En verde |
+| [#7](https://github.com/GeraGalindo/AI4Devs-finalproject/pull/7) | `feat: establish backend security foundation (DEV-003)` | Implementación (Entrega 2) | `feature/dev-003-backend-foundation` → `main` | 2026-11-26 | `f5b5e56` | En verde |
 
 Todas se fusionaron con *merge commit*, que es la estrategia habitual del repositorio.
 
@@ -4856,3 +4857,33 @@ Todas se fusionaron con *merge commit*, que es la estrategia habitual del reposi
 | [45879963777](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45879963777) | `push` a `main` tras el merge `fc95091` | En verde |
 
 - **Revisión humana:** el autor aprobó el diff documental antes del commit y autorizó publicar el PR. **El merge lo hizo el autor manualmente en GitHub** (`merged_by`: el autor), no desde la sesión de Claude Code. GitHub no registra revisiones ni comentarios.
+
+**Pull Request 7**
+
+**#7 — `feat: establish backend security foundation (DEV-003)`** (https://github.com/GeraGalindo/AI4Devs-finalproject/pull/7)
+
+- **Rama:** `feature/dev-003-backend-foundation` → `main`. Un commit (`b8887cd`). Creada y fusionada el 2026-11-26 con *merge commit* (`f5b5e56`). El merge se hizo con `--match-head-commit`, después de comprobar que el commit era el mismo que habían validado la CI del PR y el E2E manual.
+- **Propósito:** DEV-003 (sección 6), la base común de seguridad y errores del backend. Sin endpoints de negocio.
+- **Contenido:**
+  - configuración con arranque seguro (`NODE_ENV` obligatorio, `APP_ORIGIN` validado y cookie fija por entorno) y `Clock` inyectable;
+  - la cadena de controles de la sección 4: `X-Request-Id`, `helmet` con CSP estricta, CSRF, reglas de cuerpo y tipo de contenido, Zod, `404` en JSON y manejador de errores sin trazas;
+  - el servicio del *build* de la SPA, con la vista de diagnóstico en CSS;
+  - pruebas de configuración, `Clock` y contrato (API-01–05 y API-36–38), y el proyecto E2E `spa-build`;
+  - `helmet` 8.3.0 y `zod` 4.6.7; `NODE_ENV` explícito en la CI;
+  - `CLAUDE.md`, el README (incluida la ficha del PR #6) y el Prompt 21.
+- **Tamaño:** 30 archivos, +1570 y −57 líneas.
+- **Pruebas locales** (2026-11-26, detalle en 2.6):
+  - `npm ci` desde cero, lint, tipos y *build* sin errores;
+  - backend 100/100 y frontend 5/5;
+  - integración 36/36 en `calicoach_test`;
+  - E2E 6/6 (el *smoke* de DEV-001 y 5 pruebas de la SPA real con la CSP);
+  - arranque inseguro del servidor compilado rechazado, y `npm audit --audit-level=high` sin vulnerabilidades.
+- **GitHub Actions:**
+
+| Ejecución | Evento | Resultado |
+|-----------|--------|-----------|
+| [45883952528](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45883952528) | `pull_request` (`b8887cd`) | Auditoría (0 vulnerabilidades), lint, tipos, tests (100/100 y 5/5), migraciones, *drift*, salvaguarda, integración (36/36), fila centinela intacta y *build*: en verde. E2E omitido por diseño |
+| [45884075772](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45884075772) | `workflow_dispatch` con E2E sobre `b8887cd` | Las mismas comprobaciones más el E2E en Chromium: 6/6 (*smoke* de DEV-001 y las 5 pruebas de `spa-build`): en verde |
+| [45885000728](https://github.com/GeraGalindo/AI4Devs-finalproject/actions/runs/45885000728) | `push` a `main` tras el merge `f5b5e56` | Las mismas comprobaciones que en el PR: en verde |
+
+- **Revisión humana:** el autor revisó el análisis y las decisiones D1–D11, aprobó la implementación provisionalmente y pidió tres ajustes antes del commit (la cookie sin variables, la CSP con una prueba automatizada y la nota sobre los scripts con `NODE_ENV=…`). Después autorizó el commit, el push, el PR y el E2E manual, y, tras revisar la CI, autorizó el merge. Lo fusionó desde la sesión de Claude Code con su autorización explícita (`merged_by`: el autor). GitHub no registra revisiones ni comentarios.
